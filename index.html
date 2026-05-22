@@ -2635,7 +2635,7 @@ function renderBooking(d, divName) {
 
   if (!B) {
     // No booking data for this scope (rare — e.g. a unit with no APT activity)
-    Array.from(bkTab.children).forEach((el, i) => { if (i > 1) el.style.display = 'none'; });
+    Array.from(bkTab.children).forEach((el, i) => { if (i > 1 && el.id !== 'bk-subdiv-section') el.style.display = 'none'; });
     document.getElementById('bk-daterange').style.display = 'none';
     document.getElementById('bk-office-network').innerHTML = '';
     document.getElementById('bk-office-flags').innerHTML = '';
@@ -2646,7 +2646,9 @@ function renderBooking(d, divName) {
     empty.innerHTML = '<strong>No booking activity recorded</strong>This unit has zero APT booking entries for April 2026.';
     bkTab.insertBefore(empty, bkTab.firstChild.nextSibling.nextSibling);
     document.getElementById('booking-count').textContent = '\u2014';
-    renderSubdivBreakdown(divName);
+    const _sdSec = document.getElementById('bk-subdiv-section');
+    if (_sdSec) _sdSec.style.display = '';
+    try { renderSubdivBreakdown(divName); } catch(e) { console.error('[SubDiv]', e); }
     return;
   }
 
@@ -2666,7 +2668,9 @@ function renderBooking(d, divName) {
   // OFFICE NETWORK + NIL/LOW BOOKING FLAGS
   renderOfficeNetwork(divName);
   renderOfficeFlags(divName);
-  renderSubdivBreakdown(divName);
+  const _sdSec2 = document.getElementById('bk-subdiv-section');
+  if (_sdSec2) _sdSec2.style.display = '';
+  try { renderSubdivBreakdown(divName); } catch(e) { console.error('[SubDiv]', e); }
 
   // KPI ROW
   document.getElementById('bk-business').innerHTML = '\u20b9' + fmt(T.business_cr, 2) + '<span class="unit"> Cr</span>';
@@ -3532,7 +3536,7 @@ const SUBDIV_BOOKING = {"Amalapuram":{"Amalapuram":{"HOs":[{"id":"11360042","nam
   window.renderSubdivBreakdown = function(divName) {
     const section = document.getElementById('bk-subdiv-section');
     const container = document.getElementById('sd-cards');
-    if (!section || !container) return;
+    if (!section || !container) { console.warn('[SubDiv] section/container missing'); return; }
 
     // Only show for individual division views
     if (!divName || divName.startsWith('__')) {
