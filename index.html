@@ -324,6 +324,7 @@ body {
   border: 1px solid var(--rule);
 }
 .kpi-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.kpi-row.cols-5 { grid-template-columns: repeat(5, 1fr); }
 .kpi-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .kpi-row.cols-6 { grid-template-columns: repeat(6, 1fr); }
 .kpi {
@@ -2530,7 +2531,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
     <h2 id="ov-title">Headline position</h2>
     <span class="desc" id="ov-headline-desc">Apr–May 2026 actuals (cumulative)<br>FY 2026-27 · 2 months elapsed</span>
   </div>
-  <div class="kpi-row cols-4">
+  <div class="kpi-row cols-5">
     <div class="kpi feature">
       <div>
         <div class="kpi-label" id="ov-composite-label">Composite Score</div>
@@ -2544,6 +2545,13 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
         <div class="kpi-value" id="ov-revenue">—</div>
       </div>
       <div class="kpi-sub" id="ov-revenue-sub">—</div>
+    </div>
+    <div class="kpi">
+      <div>
+        <div class="kpi-label">Total Expenditure</div>
+        <div class="kpi-value" id="ov-expenditure">—</div>
+      </div>
+      <div class="kpi-sub" id="ov-expenditure-sub">—</div>
     </div>
     <div class="kpi">
       <div>
@@ -3954,15 +3962,34 @@ function renderOverview(d) {
   const proRataTotal = d.pro_rata.Total;
   const pctOfPro = proRataTotal > 0 ? d.actuals.Total / proRataTotal * 100 : 0;
   document.getElementById('ov-revenue-sub').innerHTML = `vs ₹${fmt(proRataTotal,2)} Cr proportionate · ${fmt(pctOfPro,1)}% of target<br>FY 2026-27 target: ₹${fmt(d.targets.Total,2)} Cr`;
-  
-  // ECR
+
+  // Total Expenditure
+  const exp = d.total_exp || 0;
+  document.getElementById('ov-expenditure').innerHTML = '₹' + fmt(exp, 2) + '<span class="unit"> Cr</span>';
+  const pen = (d.swap && d.swap.Pension) ? d.swap.Pension : 0;
+  const sal = (d.swap && d.swap.Salaries) ? d.swap.Salaries : 0;
+  const swapTotal = pen + sal + ((d.swap && d.swap.Wages) || 0) + ((d.swap && d.swap.Allowances) || 0);
+  const swapShare = exp > 0 ? swapTotal / exp * 100 : 0;
+  document.getElementById('ov-expenditure-sub').innerHTML = `Pension share: ${fmt(exp > 0 ? pen/exp*100 : 0, 1)}%<br>SWAP share: ${fmt(swapShare,1)}% · ${getPeriodLabel()}`;
+
+  // ECR — for AP Circle (aggregate) show consolidated descriptor; for divisions show vs circle-mean
+  const isAgg = !!d.isAggregate;
   document.getElementById('ov-ecr-with').innerHTML = fmt(d.ecr_with_pension, 2) + '<span class="unit">%</span>';
-  const ecrWVsCircle = d.ecr_with_pension - CIRCLE.mean_ecr_with_pension;
-  document.getElementById('ov-ecr-with-sub').innerHTML = (ecrWVsCircle >= 0 ? '<span class="pos">+' : '<span class="neg">') + fmt(ecrWVsCircle,2) + '% vs circle avg</span><br>Circle avg: ' + fmt(CIRCLE.mean_ecr_with_pension,2) + '%';
-  
+  if (isAgg) {
+    document.getElementById('ov-ecr-with-sub').innerHTML = 'AP Circle <strong>consolidated</strong><br>₹' + fmt(d.actuals.Total,2) + ' Cr / ₹' + fmt(exp,2) + ' Cr expenditure';
+  } else {
+    const ecrWVsCircle = d.ecr_with_pension - CIRCLE.mean_ecr_with_pension;
+    document.getElementById('ov-ecr-with-sub').innerHTML = (ecrWVsCircle >= 0 ? '<span class="pos">+' : '<span class="neg">') + fmt(ecrWVsCircle,2) + '% vs circle avg</span><br>Circle avg: ' + fmt(CIRCLE.mean_ecr_with_pension,2) + '%';
+  }
+
   document.getElementById('ov-ecr-without').innerHTML = fmt(d.ecr_without_pension, 2) + '<span class="unit">%</span>';
-  const ecrWoVsCircle = d.ecr_without_pension - CIRCLE.mean_ecr_without_pension;
-  document.getElementById('ov-ecr-without-sub').innerHTML = (ecrWoVsCircle >= 0 ? '<span class="pos">+' : '<span class="neg">') + fmt(ecrWoVsCircle,2) + '% vs circle avg</span><br>Operational efficiency view';
+  if (isAgg) {
+    const exMinusPen = exp - pen;
+    document.getElementById('ov-ecr-without-sub').innerHTML = 'AP Circle <strong>consolidated</strong><br>₹' + fmt(d.actuals.Total,2) + ' Cr / ₹' + fmt(exMinusPen,2) + ' Cr (excl. pension)';
+  } else {
+    const ecrWoVsCircle = d.ecr_without_pension - CIRCLE.mean_ecr_without_pension;
+    document.getElementById('ov-ecr-without-sub').innerHTML = (ecrWoVsCircle >= 0 ? '<span class="pos">+' : '<span class="neg">') + fmt(ecrWoVsCircle,2) + '% vs circle avg</span><br>Operational efficiency view';
+  }
   
   // Traffic lights
   const lights = document.getElementById('ov-lights');
@@ -4810,21 +4837,60 @@ function renderCost(d, divName) {
   const ecrEl = document.getElementById('ecr-compare-content');
   const ecrW = d.ecr_with_pension;
   const ecrWo = d.ecr_without_pension;
-  ecrEl.innerHTML = `
+  const _isAgg = !!d.isAggregate;
+  const _exp   = d.total_exp || 0;
+  const _pen   = (d.swap && d.swap.Pension) ? d.swap.Pension : 0;
+  const _rev   = (d.actuals && d.actuals.Total) ? d.actuals.Total : 0;
+  // For AP Circle: drop the "Circle avg" comparison (the value IS the consolidated circle)
+  // and prepend a totals KPI row so Revenue + Expenditure sit beside ECR.
+  let _totalsRow = '';
+  if (_isAgg) {
+    _totalsRow = `
+      <div class="kpi-row cols-3" style="margin-bottom:14px;">
+        <div class="kpi feature">
+          <div>
+            <div class="kpi-label">AP Circle · Total Revenue</div>
+            <div class="kpi-value">₹${fmt(_rev,2)}<span class="unit"> Cr</span></div>
+          </div>
+          <div class="kpi-sub">Consolidated · ${getPeriodLabel()}</div>
+        </div>
+        <div class="kpi">
+          <div>
+            <div class="kpi-label">AP Circle · Total Expenditure</div>
+            <div class="kpi-value">₹${fmt(_exp,2)}<span class="unit"> Cr</span></div>
+          </div>
+          <div class="kpi-sub">Including pension ₹${fmt(_pen,2)} Cr · ${getPeriodLabel()}</div>
+        </div>
+        <div class="kpi">
+          <div>
+            <div class="kpi-label">Net Position</div>
+            <div class="kpi-value" style="color:${_rev - _exp >= 0 ? 'var(--green)' : 'var(--red)'};">${_rev - _exp >= 0 ? '+' : ''}₹${fmt(_rev - _exp,2)}<span class="unit"> Cr</span></div>
+          </div>
+          <div class="kpi-sub">Revenue − Expenditure · ${getPeriodLabel()}</div>
+        </div>
+      </div>`;
+  }
+  const _subW  = _isAgg
+    ? `AP Circle <strong>consolidated</strong><br>₹${fmt(_rev,2)} Cr / ₹${fmt(_exp,2)} Cr`
+    : `Revenue / Total Expenditure<br>Circle avg: ${fmt(CIRCLE.mean_ecr_with_pension,2)}%`;
+  const _subWo = _isAgg
+    ? `AP Circle <strong>consolidated</strong><br>₹${fmt(_rev,2)} Cr / ₹${fmt(_exp - _pen,2)} Cr (excl. pension)`
+    : `Operational cost recovery<br>Circle avg: ${fmt(CIRCLE.mean_ecr_without_pension,2)}%`;
+  ecrEl.innerHTML = _totalsRow + `
     <div class="kpi-row cols-3">
       <div class="kpi">
         <div>
           <div class="kpi-label">ECR With Pension</div>
           <div class="kpi-value">${fmt(ecrW,2)}<span class="unit">%</span></div>
         </div>
-        <div class="kpi-sub">Revenue / Total Expenditure<br>Circle avg: ${fmt(CIRCLE.mean_ecr_with_pension,2)}%</div>
+        <div class="kpi-sub">${_subW}</div>
       </div>
       <div class="kpi">
         <div>
           <div class="kpi-label">ECR Without Pension</div>
           <div class="kpi-value">${fmt(ecrWo,2)}<span class="unit">%</span></div>
         </div>
-        <div class="kpi-sub">Operational cost recovery<br>Circle avg: ${fmt(CIRCLE.mean_ecr_without_pension,2)}%</div>
+        <div class="kpi-sub">${_subWo}</div>
       </div>
       <div class="kpi">
         <div>
