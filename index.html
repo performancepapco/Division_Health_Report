@@ -528,11 +528,11 @@ body {
   top: -4px; bottom: -4px;
   width: 2px;
   background: var(--ink-strong);
-  left: calc(100% / 12 * 1);
+  left: var(--gate-pos, calc(100% / 12 * 1));
   z-index: 2;
 }
 .prog-target::after {
-  content: "APR · 1/12";
+  content: attr(data-label);
   position: absolute;
   top: -14px;
   font-family: var(--font-mono);
@@ -2474,12 +2474,12 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
 <div class="tabs">
   <button class="tab active" onclick="showTab('overview', this)">Overview</button>
   <button class="tab" onclick="showTab('verticals', this)">Six Verticals</button>
+  <button class="tab" onclick="showTab('cost', this)">Cost &amp; ECR</button>
   <button class="tab" onclick="showTab('booking', this)">Booking <span class="count" id="booking-count"></span></button>
   <button class="tab" onclick="showTab('posb', this)">POSB</button>
   <button class="tab" onclick="showTab('pli', this)">PLI</button>
   <button class="tab" onclick="showTab('rpli', this)">RPLI</button>
   <button class="tab" onclick="showTab('subdiv', this); initSubdivTab();">Sub-Div Drilldown</button>
-  <button class="tab" onclick="showTab('cost', this)">Cost &amp; ECR</button>
   <button class="tab" onclick="showTab('bolookup', this); initBOLookup();">BO Lookup</button>
   <button class="tab" onclick="showTab('notes', this)">Notes</button>
 </div>
@@ -3970,7 +3970,7 @@ function renderVerticals(d) {
         <div class="lbl">${v}</div>
         <div class="prog-bar">
           <div class="prog-fill ${cls}" style="width:${Math.min(pctOfYear, 100)}%;"></div>
-          <div class="prog-target"></div>
+          <div class="prog-target" style="--gate-pos: calc(100% / 12 * ${getPeriodMonths()});" data-label="${getPeriodShort().toUpperCase()} · ${getPeriodMonths()}/12"></div>
           <div class="prog-pct">${fmt(pctOfYear,1)}% of FY</div>
         </div>
         <div class="val">₹<strong>${fmt(ach,2)}</strong> / ₹${fmt(tgt,2)} Cr<br><span style="color:var(--ink-soft);">${fmt(pctOfPro,1)}% of target</span></div>
