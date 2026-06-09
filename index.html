@@ -4061,7 +4061,7 @@ function renderService(d, divName) {
 
   if (!mmuEbo && !mmuObo) {
     el.innerHTML = '<div class="placeholder"><strong>No MMU data for this division</strong></div>';
-    renderComplaints(d, divName);
+    if (typeof renderComplaints === 'function') renderComplaints(d, divName);
     return;
   }
   const mmuHeader = (eboDate || oboDate) ? ` (as of ${fmtDate(eboDate || oboDate)})` : '';
@@ -4116,7 +4116,7 @@ function renderService(d, divName) {
     html += `<div class="caveat"><strong>EBO delivery flag —</strong> ${fmt(mmuEbo.DP,2)}% is below 95% — typical eBO operations expect higher delivery rates. Returns analysis recommended.</div>`;
   }
   el.innerHTML = html;
-  renderComplaints(d, divName);
+  if (typeof renderComplaints === 'function') renderComplaints(d, divName);
 }
 
 function renderFocus(d, divName) {
