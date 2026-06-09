@@ -26,7 +26,7 @@ POSB_XLSX = UPM / "POSB Report April and May 2026.xlsx"
 PLI_XLSX  = UPM / "PLI_MAY2026_Drilldown.xlsx"
 RPLI_XLSX = UPM / "RPLI_MAY2026_Drilldown.xlsx"
 MAY_BK_CSV = UPM / "Booking_Productwise_Report (2).csv"
-APR_BK_CSV = UP  / "booking_productwise.csv"
+APR_BK_CSV = UP  / "april_2026" / "Booking_Productwise_Report apr 2026.csv"
 
 
 def norm_name(s):
@@ -666,7 +666,7 @@ def patch_html(lookup, search_idx):
     # 3) JS
     if MARK["js_b"] in html:
         pat = re.compile(re.escape(MARK["js_b"]) + r".*?" + re.escape(MARK["js_e"]) + r"\n", re.DOTALL)
-        html = pat.sub(NEW_JS.strip("\n") + "\n", html, count=1); print("  Replaced BO Lookup JS")
+        html = pat.sub(lambda _m: NEW_JS.strip("\n") + "\n", html, count=1); print("  Replaced BO Lookup JS")
     else:
         m = re.search(r"\nfunction showTab\(", html)
         if not m: print("  ERROR: showTab not found"); return False
