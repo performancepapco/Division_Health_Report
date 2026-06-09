@@ -2777,7 +2777,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
 <div id="tab-cost" class="tab-content">
   <div class="section-head">
     <h2>Expenditure composition · SWAP</h2>
-    <span class="desc">April 2026 monthly<br>expenditure breakdown</span>
+    <span class="desc" id="swap-desc">Apr–May 2026 cumulative<br>expenditure breakdown</span>
   </div>
   <div id="swap-content"></div>
 
@@ -3073,6 +3073,26 @@ const MONTH_ORDER = ['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-
 function refreshActiveData() {
   DATA = getViewData();
   recomputeRanks();
+  computeCircleMeans();
+}
+
+// Recompute CIRCLE.mean_ecr_* from the current DATA so the "Circle avg"
+// reference always matches the selected period (Apr, May, or Apr-May).
+function computeCircleMeans() {
+  var entries = Object.values(DATA).filter(function(d) {
+    return d && !d.isAggregate && !d.isOffice
+      && typeof d.ecr_with_pension === 'number'
+      && typeof d.ecr_without_pension === 'number'
+      && (d.ecr_with_pension > 0 || d.ecr_without_pension > 0);
+  });
+  if (entries.length === 0) return;
+  var sumW = 0, sumWo = 0;
+  entries.forEach(function(d) {
+    sumW  += d.ecr_with_pension;
+    sumWo += d.ecr_without_pension;
+  });
+  CIRCLE.mean_ecr_with_pension    = sumW  / entries.length;
+  CIRCLE.mean_ecr_without_pension = sumWo / entries.length;
 }
 
 function getViewData() {
@@ -3858,7 +3878,7 @@ function renderAggregateOnly(d, members, aggType) {
           <div class="r-sub" style="font-size:11px; color:var(--${cls}); font-weight:600; margin-bottom:6px;">of proportionate target</div>
           <div class="r-rev">
             <div>FY 2026-27 Target: <strong>₹${fmt(agg.targets.Total,2)} Cr</strong></div>
-            <div>April Achievement: <strong>₹${fmt(agg.actuals.Total,2)} Cr</strong></div>
+            <div>${getPeriodShort()} Achievement: <strong>₹${fmt(agg.actuals.Total,2)} Cr</strong></div>
             <div>Prop. Target: <strong>₹${fmt(agg.pro_rata.Total,2)} Cr</strong></div>
           </div>
         </div>`;
@@ -4702,7 +4722,7 @@ function renderCost(d, divName) {
     ['Other Operational', s.Other, 'CONTROLLABLE'],
   ];
   const total = s.Total;
-  let html = '<table class="brief"><thead><tr><th>Component</th><th>April (₹ Cr)</th><th>% of Total</th><th>Lever</th></tr></thead><tbody>';
+  let html = '<table class="brief"><thead><tr><th>Component</th><th>' + getPeriodShort() + ' (₹ Cr)</th><th>% of Total</th><th>Lever</th></tr></thead><tbody>';
   items.forEach(([name, val, lever]) => {
     const isControllable = lever === 'CONTROLLABLE';
     html += `<tr><td>${name}</td><td>${fmt(val,2)}</td><td>${fmt(val/total*100,2)}%</td><td style="font-size:10.5px; color:${isControllable?'var(--green)':'var(--ink-soft)'}; font-weight:${isControllable?'700':'500'};">${lever}</td></tr>`;
@@ -4755,7 +4775,7 @@ function renderCost(d, divName) {
       <div style="margin-top:20px;">
         <h4 style="font-size:13px; font-weight:600; margin-bottom:8px;">Region-wise % Achievement vs Pro-rata Pace</h4>
         <table class="brief">
-          <thead><tr><th>Region</th><th>April Rev (₹ Cr)</th><th>Prop. Target (₹ Cr)</th><th>% Achievement</th><th>Status</th></tr></thead>
+          <thead><tr><th>Region</th><th>${getPeriodShort()} Rev (₹ Cr)</th><th>Prop. Target (₹ Cr)</th><th>% Achievement</th><th>Status</th></tr></thead>
           <tbody>
             ${regRows.map(({reg, agg, pct}) => {
               const abbr = REG_ABBR[reg] || reg.substring(0,3);
