@@ -2388,10 +2388,10 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   </div>
   <div class="masthead-center">
     <h1>Division <em>Health Card</em></h1>
-    <div class="kicker">April 2026 · FY 2026-27 · Issue No. 01</div>
+    <div class="kicker" id="hdr-period-kicker">Apr–May 2026 · FY 2026-27 · Issue No. 02</div>
   </div>
   <div class="masthead-right">
-    <div>Vol. I — Apr 2026</div>
+    <div id="hdr-period-vol">Vol. I — Apr–May 2026</div>
     <div>Auto-refreshed per upload</div>
     <div>33 Divisions · 3 Regions</div>
   </div>
@@ -2464,8 +2464,8 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
       </select>
       <label for="month-to" style="white-space:nowrap;">To:</label>
       <select id="month-to" onchange="onMonthChange()" style="font-size:12px; padding:2px 4px; border:1px solid var(--rule); border-radius:3px; background:var(--surface-1); color:var(--ink);">
-        <option value="Apr-26" selected>April-2026</option>
-        <option value="May-26">May-2026</option>
+        <option value="Apr-26">April-2026</option>
+        <option value="May-26" selected>May-2026</option>
       </select>
     </div>
   </div>
@@ -2493,14 +2493,14 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <div class="agg-only" id="agg-region-split-section" style="display:none;">
     <div class="section-head">
       <h2 id="agg-overview-title">Regional split — % of Proportionate Target</h2>
-      <span class="desc">Ranked by % achievement vs pro-rata<br>April 2026</span>
+      <span class="desc" id="agg-region-split-desc">Ranked by % achievement vs pro-rata<br>Apr–May 2026</span>
     </div>
     <div class="region-split" id="agg-region-split"></div>
   </div>
 
   <div class="section-head">
     <h2 id="ov-title">Headline position</h2>
-    <span class="desc">Apr 2026 actuals<br>FY 2026-27 · Month 1</span>
+    <span class="desc" id="ov-headline-desc">Apr–May 2026 actuals (cumulative)<br>FY 2026-27 · 2 months elapsed</span>
   </div>
   <div class="kpi-row cols-4">
     <div class="kpi feature">
@@ -2580,7 +2580,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
 <div id="tab-verticals" class="tab-content">
   <div class="section-head">
     <h2>Six-vertical attainment vs FY 2026-27 target</h2>
-    <span class="desc">Bar fill = YTD / Annual target<br>Tick = April month gate (1/12)</span>
+    <span class="desc" id="vert-progs-desc">Bar fill = YTD / Annual target<br>Tick = period gate (2/12 for Apr–May)</span>
   </div>
   <div id="vert-progs" style="padding-top: 14px;"></div>
 
@@ -2597,7 +2597,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
 <div id="tab-booking" class="tab-content">
   <div class="section-head">
     <h2 id="bk-title">Booking-side intelligence</h2>
-    <span class="desc" id="bk-subtitle">APT data · Apr 1 – Apr 30, 2026<br>30-day window</span>
+    <span class="desc" id="bk-subtitle">APT data · Apr 1 – May 31, 2026<br>2-month cumulative window</span>
   </div>
   <div id="bk-daterange" class="bk-daterange" style="display:none;"></div>
 
@@ -2639,7 +2639,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <div>
     <div class="section-head">
       <h2>Customer-type composition</h2>
-      <span class="desc">Articles by booking channel<br>30-day window</span>
+      <span class="desc" id="bk-cmix-desc">Articles by booking channel<br>Apr–May 2026 cumulative</span>
     </div>
     <div class="cmix" id="bk-cmix"></div>
     <div class="cmix-legend" id="bk-cmix-legend"></div>
@@ -2649,7 +2649,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <div>
     <div class="section-head">
       <h2>Daily booking trend</h2>
-      <span class="desc">Articles per day · April 1 → April 30<br>Grey bars = Sundays / holidays</span>
+      <span class="desc" id="bk-trend-desc">Articles per day · April 1 → May 31, 2026<br>Grey bars = Sundays / holidays</span>
     </div>
     <div class="bk-trend" id="bk-trend"></div>
   </div>
@@ -2667,7 +2667,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <div>
     <div class="section-head">
       <h2>NIL &amp; low-booking offices</h2>
-      <span class="desc">Office activity flags · April 2026<br>NIL = 0 articles · Low = 1–5 articles<br>Admin offices (Circle / Regional / Divisional / Sub-Divisional) excluded</span>
+      <span class="desc" id="bk-flags-desc">Office activity flags · Apr–May 2026<br>NIL = 0 articles · Low = 1–5 articles<br>Admin offices (Circle / Regional / Divisional / Sub-Divisional) excluded</span>
     </div>
     <div id="bk-office-flags" class="office-flags"></div>
   </div>
@@ -2676,7 +2676,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
     <div>
       <div class="section-head">
         <h2 id="bk-top-title">Top 25 offices</h2>
-        <span class="desc">By booking revenue<br>30-day window</span>
+        <span class="desc" id="bk-top-desc">By booking revenue<br>Apr–May 2026 cumulative</span>
       </div>
       <div class="office-list" id="bk-top-offices"></div>
     </div>
@@ -2863,7 +2863,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
 
 <footer class="colophon">
   <div>AP Circle · Division Health Cards</div>
-  <div class="center">— April 2026 —</div>
+  <div class="center">— Apr–May 2026 —</div>
   <div class="right" id="footer-meta">v2.0 · 33 divisions</div>
 </footer>
 
@@ -2897,7 +2897,32 @@ const RPLI_RAW_JS = RPLI_MAY_JS;
 const POSB_RAW_JS = [{"name": "Anakapalle", "offices": 606, "opened": 21769, "closed": 9251, "net": 12518, "region": "Visakhapatnam"}, {"name": "Cuddapah", "offices": 448, "opened": 24813, "closed": 16249, "net": 8564, "region": "Kurnool"}, {"name": "Machilipatnam", "offices": 190, "opened": 16072, "closed": 7653, "net": 8419, "region": "Vijayawada"}, {"name": "Proddatur", "offices": 376, "opened": 17740, "closed": 11245, "net": 6495, "region": "Kurnool"}, {"name": "Narasaraopet", "offices": 446, "opened": 17377, "closed": 11404, "net": 5973, "region": "Vijayawada"}, {"name": "Visakhapatnam", "offices": 158, "opened": 12598, "closed": 6856, "net": 5742, "region": "Visakhapatnam"}, {"name": "Tirupati", "offices": 461, "opened": 20582, "closed": 15582, "net": 5000, "region": "Kurnool"}, {"name": "Kurnool", "offices": 434, "opened": 15907, "closed": 11402, "net": 4505, "region": "Kurnool"}, {"name": "Kakinada", "offices": 334, "opened": 11911, "closed": 7608, "net": 4303, "region": "Visakhapatnam"}, {"name": "Gudivada", "offices": 247, "opened": 10608, "closed": 6704, "net": 3904, "region": "Vijayawada"}, {"name": "Tenali", "offices": 268, "opened": 11664, "closed": 7813, "net": 3851, "region": "Vijayawada"}, {"name": "Rajahmundry", "offices": 370, "opened": 10700, "closed": 6864, "net": 3836, "region": "Visakhapatnam"}, {"name": "Prakasam", "offices": 449, "opened": 16725, "closed": 13034, "net": 3691, "region": "Vijayawada"}, {"name": "Vijayawada", "offices": 363, "opened": 14441, "closed": 11258, "net": 3183, "region": "Vijayawada"}, {"name": "Srikakulam", "offices": 576, "opened": 15625, "closed": 12567, "net": 3058, "region": "Visakhapatnam"}, {"name": "Anantapur", "offices": 472, "opened": 14441, "closed": 11997, "net": 2444, "region": "Kurnool"}, {"name": "Nandyal", "offices": 331, "opened": 15399, "closed": 13136, "net": 2263, "region": "Kurnool"}, {"name": "Markapur", "offices": 462, "opened": 18856, "closed": 16671, "net": 2185, "region": "Vijayawada"}, {"name": "Hindupur", "offices": 472, "opened": 14124, "closed": 12080, "net": 2044, "region": "Kurnool"}, {"name": "Vizianagaram", "offices": 343, "opened": 8567, "closed": 6704, "net": 1863, "region": "Visakhapatnam"}, {"name": "Tadepalligudem", "offices": 229, "opened": 10614, "closed": 8885, "net": 1729, "region": "Vijayawada"}, {"name": "Nellore", "offices": 436, "opened": 16080, "closed": 14371, "net": 1709, "region": "Vijayawada"}, {"name": "Amalapuram", "offices": 235, "opened": 9347, "closed": 7763, "net": 1584, "region": "Visakhapatnam"}, {"name": "Bhimavaram", "offices": 285, "opened": 14837, "closed": 13759, "net": 1078, "region": "Vijayawada"}, {"name": "Gudur", "offices": 336, "opened": 6452, "closed": 6041, "net": 411, "region": "Vijayawada"}, {"name": "Chittoor", "offices": 425, "opened": 24075, "closed": 23827, "net": 248, "region": "Kurnool"}, {"name": "Eluru", "offices": 256, "opened": 6759, "closed": 6937, "net": -178, "region": "Vijayawada"}, {"name": "Guntur", "offices": 176, "opened": 10031, "closed": 10222, "net": -191, "region": "Vijayawada"}, {"name": "Parvathipuram", "offices": 444, "opened": 8253, "closed": 8854, "net": -601, "region": "Visakhapatnam"}];
 // ============ END AUTO-GENERATED ============
 
-let CUR_MONTH_LABEL = 'Apr-26';
+let CUR_MONTH_LABEL = 'Apr-26 to May-26';
+
+// Period label helpers — read the dropdowns so labels follow the selected range
+const _MONTH_NAME = {'Apr-26':'Apr 2026','May-26':'May 2026','Jun-26':'Jun 2026','Jul-26':'Jul 2026','Aug-26':'Aug 2026','Sep-26':'Sep 2026','Oct-26':'Oct 2026','Nov-26':'Nov 2026','Dec-26':'Dec 2026','Jan-27':'Jan 2027','Feb-27':'Feb 2027','Mar-27':'Mar 2027'};
+const _MONTH_SHORT = {'Apr-26':'Apr','May-26':'May','Jun-26':'Jun','Jul-26':'Jul','Aug-26':'Aug','Sep-26':'Sep','Oct-26':'Oct','Nov-26':'Nov','Dec-26':'Dec','Jan-27':'Jan','Feb-27':'Feb','Mar-27':'Mar'};
+function _periodPair() {
+  var f = (document.getElementById('month-from') || {}).value || 'Apr-26';
+  var t = (document.getElementById('month-to')   || {}).value || 'May-26';
+  return [f, t];
+}
+function getPeriodLabel() {
+  var p = _periodPair();
+  if (p[0] === p[1]) return _MONTH_NAME[p[0]] || p[0];
+  return (_MONTH_SHORT[p[0]] || p[0]) + '–' + (_MONTH_NAME[p[1]] || p[1]);
+}
+function getPeriodMonths() {
+  var p = _periodPair();
+  // MONTH_ORDER is defined below; reference at call time
+  var i = MONTH_ORDER.indexOf(p[0]), j = MONTH_ORDER.indexOf(p[1]);
+  return Math.max(1, j - i + 1);
+}
+function getPeriodShort() {
+  var p = _periodPair();
+  if (p[0] === p[1]) return _MONTH_SHORT[p[0]] || p[0];
+  return (_MONTH_SHORT[p[0]] || p[0]) + '–' + (_MONTH_SHORT[p[1]] || p[1]);
+}
 let CUR_DIV_NAME = '__CIRCLE__';
 
 const BOOKING_DATA = {"label":"AP Circle","totals":{"articles":1187343,"business_cr":7.002,"business_l":700.1952,"active_offices":10644,"total_offices_in_hier":10952,"inactive_offices":308,"products":12,"days":30,"avg_articles_per_day":39578.1,"avg_rs_per_article":58.9716},"customer_mix":{"walk_in":737640,"bulk_bnpl":311559,"postal_service":100441,"commercial":37144,"other":572,"total":1187356},"products":[{"name":"Inland Speed Post Document","articles":944963,"business":36363483.67,"offices":10343,"business_cr":3.6363,"business_l":363.6348},{"name":"Speed Post Parcel Domestic","articles":97538,"business":15753314.85,"offices":1666,"business_cr":1.5753,"business_l":157.5331},{"name":"Indiapost parcel Retail","articles":127325,"business":9400319.3,"offices":2402,"business_cr":0.94,"business_l":94.0032},{"name":"Indiapost Parcel Contractual","articles":11918,"business":5266084.44,"offices":36,"business_cr":0.5266,"business_l":52.6608},{"name":"International Air Parcel","articles":282,"business":1312715.99,"offices":81,"business_cr":0.1313,"business_l":13.1272},{"name":"International Speed Post Merchandise","articles":180,"business":1205566.09,"offices":47,"business_cr":0.1206,"business_l":12.0557},{"name":"International Speed Post Document","articles":231,"business":415349.05,"offices":84,"business_cr":0.0415,"business_l":4.1535},{"name":"Gyan Post","articles":3643,"business":145139.73,"offices":60,"business_cr":0.0145,"business_l":1.4514},{"name":"International Tracked Packet Service","articles":148,"business":103579.01,"offices":23,"business_cr":0.0104,"business_l":1.0358},{"name":"International Registered Letter","articles":134,"business":42028,"offices":55,"business_cr":0.0042,"business_l":0.4203},{"name":"Magazine Post","articles":978,"business":11938,"offices":1,"business_cr":0.0012,"business_l":0.1194},{"name":"Blind Literature","articles":3,"business":0,"offices":1,"business_cr":0,"business_l":0}],"daily":[{"date":"2026-04-01","articles":59194,"business_l":36.8786},{"date":"2026-04-02","articles":57384,"business_l":56.0004},{"date":"2026-04-03","articles":1811,"business_l":1.02},{"date":"2026-04-04","articles":45091,"business_l":32.9599},{"date":"2026-04-05","articles":1104,"business_l":0.7498},{"date":"2026-04-06","articles":44670,"business_l":25.3256},{"date":"2026-04-07","articles":54078,"business_l":27.508},{"date":"2026-04-08","articles":50377,"business_l":25.148},{"date":"2026-04-09","articles":52220,"business_l":32.3489},{"date":"2026-04-10","articles":48177,"business_l":23.8121},{"date":"2026-04-11","articles":31539,"business_l":17.4366},{"date":"2026-04-12","articles":1201,"business_l":1.1194},{"date":"2026-04-13","articles":45433,"business_l":30.6808},{"date":"2026-04-14","articles":1987,"business_l":1.758},{"date":"2026-04-15","articles":51727,"business_l":30.4498},{"date":"2026-04-16","articles":53744,"business_l":31.9772},{"date":"2026-04-17","articles":52606,"business_l":25.3771},{"date":"2026-04-18","articles":53977,"business_l":33.6356},{"date":"2026-04-19","articles":5142,"business_l":3.5895},{"date":"2026-04-20","articles":43901,"business_l":24.4841},{"date":"2026-04-21","articles":59127,"business_l":35.5534},{"date":"2026-04-22","articles":51804,"business_l":26.1063},{"date":"2026-04-23","articles":51344,"business_l":25.8902},{"date":"2026-04-24","articles":41886,"business_l":21.1061},{"date":"2026-04-25","articles":45400,"business_l":28.9029},{"date":"2026-04-26","articles":1862,"business_l":2.3261},{"date":"2026-04-27","articles":43665,"business_l":23.3767},{"date":"2026-04-28","articles":46018,"business_l":24.1109},{"date":"2026-04-29","articles":44324,"business_l":24.5812},{"date":"2026-04-30","articles":46550,"business_l":25.9819}],"top_offices":[{"id":"11250001","name":"Speedpost Centre Vijayawada","articles":92102,"business":5636084.46,"products":2,"business_l":56.3608,"avg_rs":61.1939},{"id":"11260009","name":"Vijayawada BPC","articles":12251,"business":5014362.46,"products":2,"business_l":50.1436,"avg_rs":409.3023},{"id":"11440008","name":"Vijayawada PH","articles":26629,"business":3552755.06,"products":4,"business_l":35.5276,"avg_rs":133.4168},{"id":"11260008","name":"SPC Guntur","articles":32209,"business":2112897.14,"products":8,"business_l":21.129,"avg_rs":65.5996},{"id":"11260017","name":"Visakhapatnam SPCC","articles":38930,"business":1969541.05,"products":5,"business_l":19.6954,"avg_rs":50.5919},{"id":"11360016","name":"Tirupati H.O","articles":12772,"business":1135836.39,"products":9,"business_l":11.3584,"avg_rs":88.9318},{"id":"11360046","name":"Kakinada H.O","articles":15548,"business":1019023.79,"products":8,"business_l":10.1902,"avg_rs":65.5405},{"id":"11360056","name":"Waltair R S H.O","articles":9026,"business":649046.1,"products":9,"business_l":6.4905,"avg_rs":71.9085},{"id":"11360050","name":"Rajahmundry H.O","articles":13905,"business":620177.89,"products":9,"business_l":6.2018,"avg_rs":44.6011},{"id":"11360005","name":"Cuddapah H.O","articles":11137,"business":592345.62,"products":6,"business_l":5.9235,"avg_rs":53.1872},{"id":"11360044","name":"Anakapalle H.O","articles":9328,"business":532015.69,"products":7,"business_l":5.3202,"avg_rs":57.0343},{"id":"11360053","name":"Srikakulam H.O","articles":8416,"business":525592.61,"products":7,"business_l":5.2559,"avg_rs":62.4516},{"id":"11360031","name":"Nellore H.O","articles":8988,"business":508390.5,"products":8,"business_l":5.0839,"avg_rs":56.5633},{"id":"11661010","name":"Gandhinagaram S.O (Vijayawada)","articles":8692,"business":505008.17,"products":4,"business_l":5.0501,"avg_rs":58.1003},{"id":"11360039","name":"Vijayawada GPO","articles":11805,"business":497124.19,"products":7,"business_l":4.9712,"avg_rs":42.1113},{"id":"11360038","name":"Buckinghampet H.O","articles":9481,"business":496475.59,"products":9,"business_l":4.9648,"avg_rs":52.3653},{"id":"11260010","name":"Vijayawada Sub foreign Post office","articles":146,"business":481792.08,"products":5,"business_l":4.8179,"avg_rs":3299.9458},{"id":"11360010","name":"Kurnool H.O","articles":9907,"business":478572.24,"products":8,"business_l":4.7857,"avg_rs":48.3065},{"id":"11360025","name":"Mangalagiri H.O","articles":11953,"business":461800.87,"products":5,"business_l":4.618,"avg_rs":38.6347},{"id":"11360024","name":"Guntur H.O","articles":4963,"business":418800.72,"products":8,"business_l":4.188,"avg_rs":84.3846},{"id":"11360034","name":"Ongole H.O","articles":7567,"business":389976,"products":7,"business_l":3.8998,"avg_rs":51.5364},{"id":"11360057","name":"Vizianagaram H.O","articles":6154,"business":385388.19,"products":7,"business_l":3.8539,"avg_rs":62.624},{"id":"11661020","name":"Kamakotinagar S.O","articles":6553,"business":358588.4,"products":3,"business_l":3.5859,"avg_rs":54.7213},{"id":"11360028","name":"Narasaraopet H.O","articles":7835,"business":352367.78,"products":7,"business_l":3.5237,"avg_rs":44.9736},{"id":"11660086","name":"Kuppam S.O","articles":4379,"business":344478.2,"products":4,"business_l":3.4448,"avg_rs":78.666}],"peak_day":{"date":"2026-04-02","articles":57384,"business_l":56.0004},"trough_day":{"date":"2026-04-05","articles":1104,"business_l":0.7498}};
@@ -3887,7 +3912,7 @@ function renderOverview(d) {
   // Composite / % Prop. Achievement
   const cs = d.composite_score;
   if (isCircle) {
-    document.getElementById('ov-composite-label').textContent = '% Prop. Achievement for April 2026';
+    document.getElementById('ov-composite-label').textContent = '% Prop. Achievement · ' + getPeriodLabel();
     document.getElementById('ov-composite').innerHTML = Math.ceil(cs) + '<span class="unit">%</span>';
     document.getElementById('ov-composite-sub').innerHTML =
       `₹${fmt(d.actuals.Total,2)} Cr / ₹${fmt(d.pro_rata.Total,2)} Cr proportionate`;
@@ -3944,7 +3969,7 @@ function renderOverview(d) {
         <div class="gauge">
           <div class="pct">${fmt(pct,1)}<span class="pcsym">%</span></div>
         </div>
-        <div class="achieved">Apr: ₹${fmt(ach,2)} Cr ${v === 'POSB' ? '<br><em>*front-loaded</em>' : ''}</div>
+        <div class="achieved">${getPeriodShort()}: ₹${fmt(ach,2)} Cr ${v === 'POSB' ? '<br><em>*front-loaded</em>' : ''}</div>
       </div>`;
   });
   
@@ -3993,15 +4018,15 @@ function renderVerticals(d) {
       </div>`;
   });
   
-  document.getElementById('vert-caveat').innerHTML = '<strong>Reading note —</strong> Pro-rata target = 1/12 of annual. Booking-side verticals (MO/Parcel/IRGB) typically lag in April because previous-month BNPL bills haven\'t flowed in. POSB is front-loaded: silent + certificate revenue lands in April rather than being spread. PLI/RPLI shown here is eLekha-realised; underlying premium achievement is in the next tab.';
+  document.getElementById('vert-caveat').innerHTML = '<strong>Reading note —</strong> Pro-rata target = ' + getPeriodMonths() + '/12 of annual (' + getPeriodLabel() + '). Booking-side verticals (MO/Parcel/IRGB) typically lag early in the FY because previous-month BNPL bills haven\'t flowed in. POSB is front-loaded: silent + certificate revenue lands at the start of the year rather than being spread. PLI/RPLI shown here is eLekha-realised; underlying premium achievement is in the next tab.';
   
   const tbl = document.getElementById('vert-table');
   tbl.innerHTML = `
     <thead><tr>
       <th>Vertical</th>
       <th>FY 2026-27 Target (₹ Cr)</th>
-      <th>Ach. upto April-26 (₹ Cr)</th>
-      <th>Target · 1/12 (₹ Cr)</th>
+      <th>Ach. upto ${getPeriodLabel()} (₹ Cr)</th>
+      <th>Target · ${getPeriodMonths()}/12 (₹ Cr)</th>
       <th>% of Target</th>
       <th>% of Annual</th>
     </tr></thead><tbody>`;
@@ -4049,7 +4074,7 @@ function renderBooking(d, divName) {
     empty.id = 'bk-empty';
     empty.className = 'placeholder';
     empty.style.margin = '20px 0';
-    empty.innerHTML = '<strong>No booking activity recorded</strong>This unit has zero APT booking entries for April 2026.';
+    empty.innerHTML = '<strong>No booking activity recorded</strong>This unit has zero APT booking entries for ' + getPeriodLabel() + '.';
     bkTab.insertBefore(empty, bkTab.firstChild.nextSibling.nextSibling);
     document.getElementById('booking-count').textContent = '\u2014';
     const _sdSec = document.getElementById('bk-subdiv-section');
@@ -4068,7 +4093,7 @@ function renderBooking(d, divName) {
     : (divName || 'Division');
   document.getElementById('bk-title').textContent = titleLabel + ' \u2014 booking-side intelligence';
   document.getElementById('bk-daterange').style.display = 'block';
-  document.getElementById('bk-daterange').innerHTML = `<strong>${T.days} days</strong> APR 01 \u2013 APR 30, 2026 \u00b7 <strong>${fmtInt(T.active_offices)}</strong> ACTIVE OFFICES \u00b7 <strong>${T.products}</strong> PRODUCTS \u00b7 SCOPE: ${scopeLabel}`;
+  document.getElementById('bk-daterange').innerHTML = `<strong>${getPeriodLabel().toUpperCase()}</strong> \u00b7 <strong>${fmtInt(T.active_offices)}</strong> ACTIVE OFFICES \u00b7 <strong>${T.products}</strong> PRODUCTS \u00b7 SCOPE: ${scopeLabel}`;
   document.getElementById('booking-count').textContent = T.products + ' prods';
 
   // OFFICE NETWORK + NIL/LOW BOOKING FLAGS
@@ -4080,7 +4105,7 @@ function renderBooking(d, divName) {
 
   // KPI ROW
   document.getElementById('bk-business').innerHTML = '\u20b9' + fmt(T.business_cr, 2) + '<span class="unit"> Cr</span>';
-  document.getElementById('bk-business-sub').innerHTML = `From APT booking \u00b7 30-day window<br>Peak day: ${fmtDate(B.peak_day.date)} \u00b7 \u20b9${fmt(B.peak_day.business_l, 2)} L`;
+  document.getElementById('bk-business-sub').innerHTML = `From APT booking \u00b7 ${getPeriodLabel()}<br>Peak day: ${fmtDate(B.peak_day.date)} \u00b7 \u20b9${fmt(B.peak_day.business_l, 2)} L`;
   document.getElementById('bk-articles').innerHTML = (T.articles / 1e5).toFixed(2) + '<span class="unit"> L</span>';
   document.getElementById('bk-articles-sub').innerHTML = `Avg ARPU: \u20b9${fmt(T.avg_rs_per_article, 1)}/article<br>Avg ${fmtInt(Math.round(T.avg_articles_per_day))} articles/day`;
   const wiPct = cm.walk_in / cm.total * 100;
@@ -5367,9 +5392,14 @@ function sdToggleMore(btn) {
   }
 }
 
-// Initial render
-refreshActiveData();
-renderDivision('__CIRCLE__');
+// Initial render — call onMonthChange so CUR_MONTH_LABEL syncs with the dropdowns,
+// then renderDivision is invoked from inside it.
+if (typeof onMonthChange === 'function') {
+  onMonthChange();
+} else {
+  refreshActiveData();
+  renderDivision('__CIRCLE__');
+}
 
 </script>
 
