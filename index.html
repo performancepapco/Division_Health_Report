@@ -328,11 +328,10 @@ body {
 .kpi-row.cols-6 { grid-template-columns: repeat(6, 1fr); }
 .kpi {
   background: var(--paper);
-  padding: 18px 22px 20px;
+  padding: 16px 20px 18px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: 118px;
+  gap: 4px;
   position: relative;
 }
 .kpi.feature {
@@ -348,27 +347,26 @@ body {
 }
 .kpi-label {
   font-family: var(--font-mono);
-  font-size: 15.5px;
-  letter-spacing: 0.16em;
+  font-size: 14px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-soft);
   font-weight: 500;
-  margin-bottom: 10px;
 }
-.kpi.feature .kpi-label { color: oklch(0.78 0.04 80); }
+.kpi.feature .kpi-label { color: oklch(0.72 0.04 80); }
 .kpi-value {
   font-family: var(--font-serif);
-  font-size: 38px;
+  font-size: 32px;
   font-weight: 500;
   color: var(--ink-strong);
   line-height: 1;
   font-variation-settings: "opsz" 48;
-  letter-spacing: -0.018em;
+  letter-spacing: -0.02em;
   font-feature-settings: "tnum" 1, "lnum" 1;
 }
 .kpi.feature .kpi-value { color: var(--paper); }
 .kpi-value .unit {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--accent-deep);
   font-weight: 500;
   margin-left: 3px;
@@ -377,14 +375,14 @@ body {
 }
 .kpi.feature .kpi-value .unit { color: var(--accent); }
 .kpi-sub {
-  font-size: 15.5px;
-  color: var(--ink-soft);
-  margin-top: 8px;
-  line-height: 1.5;
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+  line-height: 1.45;
   font-family: var(--font-mono);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
 }
-.kpi.feature .kpi-sub { color: oklch(0.82 0.025 80); }
+.kpi.feature .kpi-sub { color: oklch(0.68 0.03 80); }
 .kpi-sub .pos { color: var(--green); font-weight: 600; }
 .kpi-sub .neg { color: var(--red); font-weight: 600; }
 
