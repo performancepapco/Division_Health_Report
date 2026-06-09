@@ -2479,8 +2479,6 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <button class="tab" onclick="showTab('pli', this)">PLI</button>
   <button class="tab" onclick="showTab('rpli', this)">RPLI</button>
   <button class="tab" onclick="showTab('subdiv', this); initSubdivTab();">Sub-Div Drilldown</button>
-  <button class="tab" onclick="showTab('service', this)">Service Quality</button>
-  <button class="tab" onclick="showTab('focus', this)">Focus Offices</button>
   <button class="tab" onclick="showTab('cost', this)">Cost &amp; ECR</button>
   <button class="tab" onclick="showTab('bolookup', this); initBOLookup();">BO Lookup</button>
   <button class="tab" onclick="showTab('notes', this)">Notes</button>
@@ -2774,43 +2772,6 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
 </div>
 <!-- === END SUBDIV TAB === -->
 
-
-<!-- ===== SERVICE QUALITY TAB ===== -->
-<div id="tab-service" class="tab-content">
-  <div class="section-head">
-    <h2>Mail monitoring · delivery performance</h2>
-    <span class="desc">As of 20.05.2026<br>Circle avg: eBO 95.30% · OBO 90.65%</span>
-  </div>
-  <div class="upload-bar" style="margin-bottom:8px;">
-    <button class="upload-btn" onclick="openMmuUpload()">Upload MMU Data</button>
-    <span id="mmu-data-date" class="data-date"></span>
-  </div>
-  <div id="mmu-content"></div>
-
-  <div class="section-head" style="margin-top: 32px;">
-    <h2>Complaints</h2>
-    <span class="desc">Centralized Customer Care data</span>
-  </div>
-  <div class="upload-bar" style="margin-bottom:8px;">
-    <button class="upload-btn" onclick="openComplaintsUpload()">Upload Complaints Data</button>
-    <span id="complaints-data-date" class="data-date"></span>
-  </div>
-  <div id="complaints-content"></div>
-  <div class="placeholder" id="complaints-placeholder">
-    <strong>Complaints integration pending</strong>
-    Daily/weekly upload from CCC spreadsheet will populate this section.<br>
-    Planned cards: open count, SLA breach %, avg resolution time, top complaint types, longest-pending tickets.
-  </div>
-</div>
-
-<!-- ===== FOCUS OFFICES TAB ===== -->
-<div id="tab-focus" class="tab-content">
-  <div class="section-head">
-    <h2>Focus offices for this division</h2>
-    <span class="desc">Named offices for SSPos<br>personal action · next 30 days</span>
-  </div>
-  <div id="focus-content"></div>
-</div>
 
 <!-- ===== COST & ECR TAB ===== -->
 <div id="tab-cost" class="tab-content">
@@ -3789,8 +3750,6 @@ function renderDivision(divName) {
   renderPOSBTab(d, divName);
   renderPLITab(d, divName);
   renderRPLITab(d, divName);
-  renderService(d, divName);
-  renderFocus(d, divName);
   renderCost(d, divName);
 }
 
@@ -4726,207 +4685,6 @@ function renderRPLITab(d, divName) {
 }
 // ============ END POSB / PLI / RPLI ============
 
-function renderService(d, divName) {
-  const el = document.getElementById('mmu-content');
-
-  // Prefer localStorage MMU data over embedded DATA
-  const lsEbo = JSON.parse(localStorage.getItem('mmu_ebo') || 'null');
-  const lsObo = JSON.parse(localStorage.getItem('mmu_obo') || 'null');
-  let mmuEbo = d.mmu?.ebo;
-  let mmuObo = d.mmu?.obo;
-  let eboDate = null, oboDate = null;
-
-  if (lsEbo) {
-    const key = divName;
-    if (d.isAggregate) {
-      // Aggregate: sum up all member divisions
-      const memberNames = d.aggMembers || Object.keys(DATA);
-      let sumI=0, sumDl=0, sumR=0, sumRd=0, sumDp=0;
-      let any = false;
-      memberNames.forEach(n => {
-        const x = lsEbo.byDivision[n]; if (!x) return; any=true;
-        sumI+=x.Invoiced||0; sumDl+=x.Delivered||0; sumR+=x.Returned||0; sumRd+=x.Redirected||0; sumDp+=x.Deposit||0;
-      });
-      mmuEbo = any ? { Invoiced:sumI, Delivered:sumDl, Returned:sumR, Redirected:sumRd, Deposit:sumDp, DP:sumI>0?sumDl/sumI*100:0 } : null;
-    } else {
-      mmuEbo = lsEbo.byDivision[key] || null;
-    }
-    eboDate = lsEbo.date;
-  }
-  if (lsObo) {
-    const key = divName;
-    if (d.isAggregate) {
-      const memberNames = d.aggMembers || Object.keys(DATA);
-      let sumI=0, sumDl=0, sumR=0, sumRd=0, sumDp=0;
-      let any = false;
-      memberNames.forEach(n => {
-        const x = lsObo.byDivision[n]; if (!x) return; any=true;
-        sumI+=x.Invoiced||0; sumDl+=x.Delivered||0; sumR+=x.Returned||0; sumRd+=x.Redirected||0; sumDp+=x.Deposit||0;
-      });
-      mmuObo = any ? { Invoiced:sumI, Delivered:sumDl, Returned:sumR, Redirected:sumRd, Deposit:sumDp, DP:sumI>0?sumDl/sumI*100:0 } : null;
-    } else {
-      mmuObo = lsObo.byDivision[key] || null;
-    }
-    oboDate = lsObo.date;
-  }
-
-  // Update date badge
-  const dateBadge = document.getElementById('mmu-data-date');
-  if (dateBadge) {
-    const dateStr = eboDate || oboDate;
-    dateBadge.textContent = dateStr ? 'Data as of ' + fmtDate(dateStr) : '';
-  }
-
-  if (!mmuEbo && !mmuObo) {
-    el.innerHTML = '<div class="placeholder"><strong>No MMU data for this division</strong></div>';
-    if (typeof renderComplaints === 'function') renderComplaints(d, divName);
-    return;
-  }
-  const mmuHeader = (eboDate || oboDate) ? ` (as of ${fmtDate(eboDate || oboDate)})` : '';
-  let html = '<h4 style="font-size:13px; font-weight:600; margin-bottom:12px;">Service Quality — MMU' + mmuHeader + '</h4>';
-  html += '<div class="delivery-block">';
-  if (mmuEbo) {
-    const e = mmuEbo;
-    const diff = e.DP - CIRCLE.mean_ebo_dp;
-    const cls = e.DP >= 95 ? 'green' : e.DP >= 90 ? 'amber' : 'red';
-    html += `
-      <div class="delivery-stat" style="border-top: 4px solid var(--${cls});">
-        <h5>Excluding Branch Post Offices (EBOs)</h5>
-        <div class="big" style="color: var(--${cls});">${fmt(e.DP,2)}<span style="font-size:18px; opacity:0.7;">%</span></div>
-        <div class="vs">vs Circle avg ${fmt(CIRCLE.mean_ebo_dp,2)}% · <span style="color:var(--${diff>=0?'green':'red'});">${diff>=0?'+':''}${fmt(diff,2)}%</span></div>
-        <div class="breakdown">
-          <span class="l">Invoiced</span><span class="v">${fmtInt(e.Invoiced)}</span>
-          <span class="l">Delivered</span><span class="v">${fmtInt(e.Delivered)}</span>
-          <span class="l">Returned</span><span class="v">${fmtInt(e.Returned)}</span>
-          <span class="l">Redirected</span><span class="v">${fmtInt(e.Redirected)}</span>
-          <span class="l">In deposit</span><span class="v">${fmtInt(e.Deposit)}</span>
-        </div>
-      </div>`;
-  } else {
-    html += '<div class="delivery-stat"><h5>EBO — no data</h5></div>';
-  }
-  if (mmuObo) {
-    const o = mmuObo;
-    const diff = o.DP - CIRCLE.mean_obo_dp;
-    const cls = o.DP >= 95 ? 'green' : o.DP >= 90 ? 'amber' : 'red';
-    html += `
-      <div class="delivery-stat" style="border-top: 4px solid var(--${cls});">
-        <h5>Only Branch Post Offices (OBOs)</h5>
-        <div class="big" style="color: var(--${cls});">${fmt(o.DP,2)}<span style="font-size:18px; opacity:0.7;">%</span></div>
-        <div class="vs">vs Circle avg ${fmt(CIRCLE.mean_obo_dp,2)}% · <span style="color:var(--${diff>=0?'green':'red'});">${diff>=0?'+':''}${fmt(diff,2)}%</span></div>
-        <div class="breakdown">
-          <span class="l">Invoiced</span><span class="v">${fmtInt(o.Invoiced)}</span>
-          <span class="l">Delivered</span><span class="v">${fmtInt(o.Delivered)}</span>
-          <span class="l">Returned</span><span class="v">${fmtInt(o.Returned)}</span>
-          <span class="l">Redirected</span><span class="v">${fmtInt(o.Redirected)}</span>
-          <span class="l">In deposit</span><span class="v">${fmtInt(o.Deposit)}</span>
-        </div>
-      </div>`;
-  } else {
-    html += '<div class="delivery-stat"><h5>OBO — no data</h5></div>';
-  }
-  html += '</div>';
-  
-  if (mmuObo && mmuObo.DP < 90) {
-    html += `<div class="caveat" style="border-left-color:var(--red);"><strong>OBO delivery alert —</strong> ${fmt(mmuObo.DP,2)}% is below 90% threshold. ${fmtInt(mmuObo.Invoiced - mmuObo.Delivered)} of ${fmtInt(mmuObo.Invoiced)} invoiced articles not delivered. Suggest beat reorganisation + postman load audit.</div>`;
-  }
-  if (mmuEbo && mmuEbo.DP < 95) {
-    html += `<div class="caveat"><strong>EBO delivery flag —</strong> ${fmt(mmuEbo.DP,2)}% is below 95% — typical eBO operations expect higher delivery rates. Returns analysis recommended.</div>`;
-  }
-  el.innerHTML = html;
-  if (typeof renderComplaints === 'function') renderComplaints(d, divName);
-}
-
-function renderFocus(d, divName) {
-  const el = document.getElementById('focus-content');
-  // Derived focus list logic
-  const items = [];
-  
-  // Tier-2 SPO uplift candidates
-  const t2 = d.booking.top_offices.filter(o => 
-    o.type === 'SPO' && o.revenue_lakhs >= 2 && o.revenue_lakhs <= 10
-  );
-  if (t2.length > 0) {
-    items.push({
-      title: 'Tier-2 SPOs ready to grow',
-      desc: 'Already doing ₹2-10 L · cross-sell missing products to push into Tier-1',
-      severity: 'p2',
-      offices: t2.slice(0, 5).map(o => `${o.name} (₹${fmt(o.revenue_lakhs,2)} L)`),
-    });
-  }
-  
-  // Top BPC/BNP if any
-  const bpc = d.booking.top_offices.filter(o => o.type === 'BPC' || o.type === 'BNP');
-  if (bpc.length > 0) {
-    items.push({
-      title: 'BNPL anchor offices to protect',
-      desc: 'High-revenue contractual centres · single-point-of-failure if disrupted',
-      severity: 'p1',
-      offices: bpc.map(o => `${o.name} (₹${fmt(o.revenue_lakhs,2)} L)`),
-    });
-  }
-  
-  // Inactive offices
-  if (d.booking.inactive_offices > 0) {
-    items.push({
-      title: 'Inactive offices to activate',
-      desc: `${d.booking.inactive_offices} offices in hierarchy with zero APT booking in April`,
-      severity: 'p2',
-      offices: [`${d.booking.inactive_offices} offices — verify operational status, revive or de-list`],
-    });
-  }
-  
-  // POSB FY26 low achievers
-  if (d.posb_hist && d.posb_hist.fy26_pct_ach < 80) {
-    items.push({
-      title: 'POSB Net Addition gap from FY25-26',
-      desc: `Only ${fmt(d.posb_hist.fy26_pct_ach,1)}% achieved last year · risk of repeat in FY 2026-27`,
-      severity: 'p1',
-      offices: [`Need ${fmtInt(d.posb_tgt.net_add_target_FY27 - d.posb_hist.fy26_ach)} more net adds than last year's actual to hit FY 2026-27 target`],
-    });
-  }
-  
-  // IRGB if vertical attainment is very low
-  if (d.attainments['IR & GB'] < 50) {
-    items.push({
-      title: 'IRGB activation needed',
-      desc: `International revenue at ${fmt(d.attainments['IR & GB'],1)}% of pro-rata · 4× growth ask circle-wide`,
-      severity: 'p1',
-      offices: ['Identify HPOs and large SPOs not yet booking international · activate counters'],
-    });
-  }
-  
-  // OBO delivery
-  if (d.mmu.obo && d.mmu.obo.DP < 90) {
-    items.push({
-      title: 'OBO delivery performance',
-      desc: `${fmt(d.mmu.obo.DP,2)}% delivery rate · below 90% threshold`,
-      severity: 'p2',
-      offices: [`${fmtInt(d.mmu.obo.Invoiced - d.mmu.obo.Delivered)} articles undelivered out of ${fmtInt(d.mmu.obo.Invoiced)} invoiced`],
-    });
-  }
-  
-  if (items.length === 0) {
-    el.innerHTML = '<div class="placeholder"><strong>No urgent focus offices flagged</strong>This division is operating without major exception triggers this month. Keep monitoring monthly trends.</div>';
-    return;
-  }
-  
-  let html = '<div class="office-list">';
-  items.forEach((item, i) => {
-    const sevColor = item.severity === 'p1' ? 'var(--red)' : item.severity === 'p2' ? 'var(--amber)' : 'var(--blue)';
-    html += `
-      <div style="border-bottom: 1px solid var(--rule); padding: 14px 16px;">
-        <div style="display: flex; gap: 10px; align-items: baseline; margin-bottom: 4px;">
-          <span style="font-family: var(--font-mono); font-size: 15.5px; font-weight: 700; padding: 2px 6px; border-radius: 2px; color: white; background: ${sevColor};">${item.severity.toUpperCase()}</span>
-          <strong style="font-family: var(--font-serif); font-size: 17px; color: var(--ink);">${item.title}</strong>
-        </div>
-        <div style="font-size: 15.5px; color: var(--ink-soft); margin-bottom: 8px; font-style: italic;">${item.desc}</div>
-        <ul style="padding-left: 20px; font-size: 16px; line-height: 1.6;">${item.offices.map(o => '<li>' + o + '</li>').join('')}</ul>
-      </div>`;
-  });
-  html += '</div>';
-  el.innerHTML = html;
-}
 
 function renderCost(d, divName) {
   const el = document.getElementById('swap-content');
