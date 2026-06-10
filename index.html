@@ -316,6 +316,43 @@ body {
   line-height: 1.4;
 }
 
+/* ============ SOURCE DOWNLOADS ============ */
+.source-downloads {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin: -6px 0 18px;
+  padding: 10px 14px;
+  background: var(--paper-warm, #f7f3ec);
+  border: 1px solid var(--ink-strong, #2a2a2a);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.source-downloads .src-label {
+  color: var(--ink-soft, #555);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.source-downloads .src-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: #fff;
+  color: var(--ink-strong, #1a1a1a);
+  text-decoration: none;
+  border: 1px solid var(--ink-strong, #2a2a2a);
+  border-radius: 3px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.source-downloads .src-link:hover {
+  background: var(--ink-strong, #1a1a1a);
+  color: #fff;
+}
+
 /* ============ KPI GRIDS ============ */
 .kpi-row {
   display: grid;
@@ -2478,7 +2515,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
     </select>
   </div>
   <div class="picker-cell meta-cell">
-    <div class="meta-label">Composite Rank</div>
+    <div class="meta-label">Achievement Rank</div>
     <div class="rank-cell">
       <strong id="rank-display">—</strong>
       <div class="rank-sub" id="rank-label">of 33</div>
@@ -2534,10 +2571,10 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <div class="kpi-row cols-5">
     <div class="kpi feature">
       <div>
-        <div class="kpi-label" id="ov-composite-label">Composite Score</div>
+        <div class="kpi-label" id="ov-composite-label">% Proportionate Achievement</div>
         <div class="kpi-value" id="ov-composite">—</div>
       </div>
-      <div class="kpi-sub" id="ov-composite-sub">Weighted attainment across all verticals</div>
+      <div class="kpi-sub" id="ov-composite-sub">Actual revenue vs pro-rata target (2/12 of annual)</div>
     </div>
     <div class="kpi">
       <div>
@@ -2578,7 +2615,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <!-- AGGREGATE ONLY: Division ranking -->
   <div class="agg-only" id="agg-ranking-section">
     <div class="section-head">
-      <h2>Division ranking · composite attainment</h2>
+      <h2>Division ranking · proportionate achievement</h2>
       <span class="desc">Sorted highest to lowest<br>Bar = % of pro-rata target</span>
     </div>
     <div class="div-rank-legend" id="div-rank-legend" style="display:none;"></div>
@@ -2589,7 +2626,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <div class="agg-only">
     <div class="section-head">
       <h2>Performance distribution</h2>
-      <span class="desc">How divisions cluster<br>by composite score</span>
+      <span class="desc">How divisions cluster<br>by % proportionate achievement</span>
     </div>
     <div class="dist-grid" id="agg-distribution"></div>
   </div>
@@ -2772,6 +2809,11 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
     <h2>PLI — Policies Procured &amp; Premium</h2>
     <span class="desc">Postal Life Insurance · Division-wise<br>Use month selector above to change period</span>
   </div>
+  <div class="source-downloads">
+    <span class="src-label">Source sheets:</span>
+    <a class="src-link" href="uploads/may_2026/PLI_APR2026_Drilldown.xlsx" download>⬇ PLI Apr-26 Drilldown (.xlsx)</a>
+    <a class="src-link" href="uploads/may_2026/PLI_MAY2026_Drilldown.xlsx" download>⬇ PLI May-26 Drilldown (.xlsx)</a>
+  </div>
   <div id="pli-kpi-content"></div>
   <div class="section-head" style="margin-top:28px; margin-bottom:12px;">
     <h2>Division-wise PLI performance</h2>
@@ -2787,6 +2829,11 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
   <div class="section-head">
     <h2>RPLI — Policies Procured &amp; Premium</h2>
     <span class="desc">Rural Postal Life Insurance · Division-wise<br>Use month selector above to change period</span>
+  </div>
+  <div class="source-downloads">
+    <span class="src-label">Source sheets:</span>
+    <a class="src-link" href="uploads/may_2026/RPLI_APR2026_Drilldown.xlsx" download>⬇ RPLI Apr-26 Drilldown (.xlsx)</a>
+    <a class="src-link" href="uploads/may_2026/RPLI_MAY2026_Drilldown.xlsx" download>⬇ RPLI May-26 Drilldown (.xlsx)</a>
   </div>
 
 
@@ -3952,20 +3999,21 @@ function renderAggregateOnly(d, members, aggType) {
 
 function renderOverview(d) {
   const isCircle = d.isAggregate && d.aggLabel === 'AP Circle';
-  // Composite / % Prop. Achievement
+  // % Proportionate Achievement (actual revenue / pro-rata target × 100)
   const cs = d.composite_score;
   if (isCircle) {
-    document.getElementById('ov-composite-label').textContent = '% Prop. Achievement · ' + getPeriodLabel();
+    document.getElementById('ov-composite-label').textContent = '% Proportionate Achievement · ' + getPeriodLabel();
     document.getElementById('ov-composite').innerHTML = Math.ceil(cs) + '<span class="unit">%</span>';
     document.getElementById('ov-composite-sub').innerHTML =
       `₹${fmt(d.actuals.Total,2)} Cr / ₹${fmt(d.pro_rata.Total,2)} Cr proportionate`;
   } else {
-    document.getElementById('ov-composite-label').textContent = 'Composite Score';
-    document.getElementById('ov-composite').innerHTML = fmt(cs, 1);
+    document.getElementById('ov-composite-label').textContent = '% Proportionate Achievement · ' + getPeriodLabel();
+    document.getElementById('ov-composite').innerHTML = fmt(cs, 1) + '<span class="unit">%</span>';
     let csNote = '';
-    if (cs >= 100) csNote = `<span class="pos">Strong</span> — top quartile`;
-    else if (cs >= 80) csNote = `On track`;
-    else csNote = `<span class="neg">Below circle average</span>`;
+    if (cs >= 100) csNote = `<span class="pos">Strong</span> — meeting or exceeding pro-rata target`;
+    else if (cs >= 80) csNote = `On track — close to pro-rata target`;
+    else csNote = `<span class="neg">Below pro-rata target</span>`;
+    csNote += ` &nbsp;·&nbsp; ₹${fmt(d.actuals.Total,2)} Cr / ₹${fmt(d.pro_rata.Total,2)} Cr proportionate`;
     document.getElementById('ov-composite-sub').innerHTML = csNote;
   }
   
@@ -5353,33 +5401,30 @@ if (typeof onMonthChange === 'function') {
     <span class="desc">Reference material for this dashboard</span>
   </div>
 
-  <!-- Composite Score formula -->
+  <!-- % Proportionate Achievement formula -->
   <div class="card-box" style="max-width:760px; margin-bottom:28px;">
-    <h4>Composite Score <span style="font-size:12px; font-weight:500; color:var(--ink-soft);">(used on Division views only — Circle view uses % Prop. Achievement)</span></h4>
-    <pre style="font-family:var(--font-mono); font-size:12px; line-height:1.7; background:var(--paper-warm); padding:14px 16px; border-radius:4px; overflow-x:auto; white-space:pre-wrap;">For each vertical V in [MO, Parcel, IR&amp;GB, CCS, POSB, PLI/RPLI]:
-  pro_rata[V]    = annual_target[V] / 12
-  attainment[V]  = (april_actual[V] / pro_rata[V]) × 100
+    <h4>% Proportionate Achievement <span style="font-size:12px; font-weight:500; color:var(--ink-soft);">(used on both Circle and Division views)</span></h4>
+    <pre style="font-family:var(--font-mono); font-size:12px; line-height:1.7; background:var(--paper-warm); padding:14px 16px; border-radius:4px; overflow-x:auto; white-space:pre-wrap;">months_elapsed   = number of months in the selected period (e.g. Apr–May = 2)
+pro_rata_target  = annual_revenue_target × (months_elapsed / 12)
+actual_revenue   = sum of actual revenue earned in the selected period
 
-  # POSB special handling — silent + certificate revenue is fully booked in
-  # April rather than spread over 12 months. Adjust by 1.5× to neutralise
-  # this front-loading and prevent every division showing 150%+ attainment.
-  if V == 'POSB':
-      attainment[V] = (april_actual[V] / (pro_rata[V] × 1.5)) × 100
-
-target_share[V] = annual_target[V] / Total annual target
-
-composite_score = Σ ( attainment[V] × target_share[V] )</pre>
+% Proportionate Achievement = (actual_revenue / pro_rata_target) × 100</pre>
     <p style="font-size:12.5px; margin-top:10px; color:var(--ink-soft);">
-      <strong>Score bands:</strong>&nbsp;
-      <span style="color:var(--green);">≥ 100 — Strong</span>&nbsp;·&nbsp;
-      <span>80–99 — On track</span>&nbsp;·&nbsp;
-      <span style="color:var(--amber);">60–79 — Needs attention</span>&nbsp;·&nbsp;
-      <span style="color:var(--red);">&lt; 60 — At risk</span>
+      <strong>Bands:</strong>&nbsp;
+      <span style="color:var(--green);">≥ 100% — Strong (meeting or beating pro-rata)</span>&nbsp;·&nbsp;
+      <span>80–99% — On track</span>&nbsp;·&nbsp;
+      <span style="color:var(--amber);">60–79% — Needs attention</span>&nbsp;·&nbsp;
+      <span style="color:var(--red);">&lt; 60% — At risk</span>
     </p>
     <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">
-      <strong>Caveats:</strong> Heavily weighted by POSB (66% of typical division target).
-      RMS units score artificially low — they don't operate POSB / PLI / RPLI.
-      Vijayawada Division can score low despite high absolute revenue because its targets are also the largest.
+      <strong>Why this metric:</strong> It tells a Divisional Head, at a glance, where the division stands
+      against where it should be at this point in the financial year. 100% means the division is exactly
+      on its annual pace.
+    </p>
+    <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">
+      <strong>Caveats:</strong> Heavily weighted by POSB (≈ 66% of typical division target), so POSB
+      front-loading can lift the early-FY number. RMS units appear low — they don't operate POSB / PLI / RPLI.
+      Vijayawada Division can show a lower % despite high absolute revenue because its targets are also the largest.
     </p>
   </div>
 
