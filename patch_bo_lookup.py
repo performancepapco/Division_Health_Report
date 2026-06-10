@@ -48,6 +48,9 @@ def short_region(s):
     return str(s).replace(" Region", "").strip() if s else ""
 
 
+# Schemes in POSB Sheet 1 — column order: <scheme> Opened, <scheme> Closed, Net <scheme>
+POSB_SCHEMES = ["MIS","PPFGP","SSA","RD","SBBAS","SBSGP","SCSS","TD","PRFTS","KVN","NSC8","MSSC"]
+
 # ─── 1. POSB master + activity ────────────────────────────────────────────────
 def read_posb():
     print("  Reading POSB Sheet 2 (BO Totals)...")
@@ -69,6 +72,7 @@ def read_posb():
             "region":       short_region(row[11]),
             "pincode":      None,
             "posb": {"opened": int(row[8] or 0), "closed": int(row[9] or 0), "net": int(row[10] or 0)},
+            "posb_schemes": {},  # filled from Sheet 1 below
             "pli":  {"policies": 0, "premium": 0},
             "rpli": {"policies": 0, "premium": 0},
             "booking": {"total_articles": 0, "total_amount": 0, "products": []},
@@ -77,6 +81,30 @@ def read_posb():
         name_map[(rec["division"], norm_name(rec["name"]))] = oid
 
     print(f"    {len(lookup)} offices indexed from POSB report")
+
+    # Scheme-wise data — Sheet 1, columns 9..44 in groups of 3 (Opened, Closed, Net)
+    print("  Reading POSB Sheet 1 (Scheme-wise Detail)...")
+    ws1 = wb["1. Scheme-wise Detail"]
+    n_sch = 0
+    for row in ws1.iter_rows(min_row=2, values_only=True):
+        if not row[1]:
+            continue
+        oid = str(row[1])
+        if oid not in lookup:
+            continue
+        schemes = {}
+        for i, name in enumerate(POSB_SCHEMES):
+            base = 8 + i * 3   # MIS Opened at col 9 (index 8)
+            o = int(row[base] or 0)
+            c = int(row[base + 1] or 0)
+            n = int(row[base + 2] or 0)
+            if o == 0 and c == 0 and n == 0:
+                continue
+            schemes[name] = {"o": o, "c": c, "n": n}
+        if schemes:
+            lookup[oid]["posb_schemes"] = schemes
+            n_sch += 1
+    print(f"    Scheme-wise rows captured for {n_sch} offices")
 
     # Pincode from Sheet 9
     try:
@@ -327,6 +355,15 @@ NEW_CSS = """
   color: var(--ink-faint); padding: 14px;
   background: var(--paper-warm); border-left: 3px solid var(--rule);
 }
+.bolu-scheme-table td.pos { color: var(--green); font-weight: 500; }
+.bolu-scheme-table td.neg { color: var(--red);   font-weight: 500; }
+.bolu-scheme-table td.nil { color: var(--ink-faint); }
+.bolu-scheme-table tbody tr td:first-child {
+  font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: 0.06em; color: var(--ink-soft); white-space: nowrap;
+}
+.bolu-scheme-table th { text-align: right; }
+.bolu-scheme-table th:first-child { text-align: left; }
 
 .bolu-kpi-strip {
   display: grid; gap: 1px;
@@ -517,6 +554,34 @@ NEW_JS = r"""
       + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Closed</div><div class="val">'+fmtN(posb.closed)+'</div><div class="sub">In Apr–May 2026</div></div>'
       + '<div class="bolu-kpi-cell"><div class="lbl">Net Addition</div><div class="val '+netCls+'">'+(posb.net>0?'+':'')+fmtN(posb.net)+'</div><div class="sub">'+(posb.net>0?'Positive ✓':posb.net<0?'Negative ✗':'Flat')+'</div></div>'
       + '</div>';
+
+    // Scheme-wise breakdown — horizontal table (schemes as columns)
+    var schemes = r.posb_schemes || {};
+    var schKeys = Object.keys(schemes);
+    if (schKeys.length) {
+      var hdr = '<th>Scheme</th>';
+      var rowOpen = '<td>Accounts Opened</td>';
+      var rowClose = '<td>Accounts Closed</td>';
+      var rowNet = '<td>Net Addition</td>';
+      schKeys.forEach(function(k){
+        var s = schemes[k];
+        hdr += '<th>'+k+'</th>';
+        rowOpen  += '<td>'+fmtN(s.o)+'</td>';
+        rowClose += '<td>'+fmtN(s.c)+'</td>';
+        var ncls = s.n>0?'pos':s.n<0?'neg':'nil';
+        rowNet   += '<td class="'+ncls+'">'+(s.n>0?'+':'')+fmtN(s.n)+'</td>';
+      });
+      posbPane +=
+        '<div class="bolu-section-h">Scheme-wise Breakdown</div>'
+        + '<div style="overflow-x:auto;">'
+        + '<table class="bolu-table bolu-scheme-table">'
+        + '<thead><tr>'+hdr+'</tr></thead>'
+        + '<tbody>'
+        + '<tr>'+rowOpen+'</tr>'
+        + '<tr>'+rowClose+'</tr>'
+        + '<tr>'+rowNet+'</tr>'
+        + '</tbody></table></div>';
+    }
 
     // Insurance pane
     var nilPli  = pli.policies === 0;
