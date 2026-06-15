@@ -3531,18 +3531,40 @@ function recomputeRanks() {
     return res;
   }
 
+  var REGION_DIVS = {};   // region -> {division:1}
+
+  function populateDivisions(region) {
+    var divSel = document.getElementById("bolu-division");
+    if (!divSel) return;
+    divSel.innerHTML = '<option value="">All Divisions</option>';
+    var divs;
+    if (region && REGION_DIVS[region]) {
+      divs = Object.keys(REGION_DIVS[region]);
+    } else {
+      divs = {};
+      Object.keys(REGION_DIVS).forEach(function(rg){
+        Object.keys(REGION_DIVS[rg]).forEach(function(d){ divs[d]=1; });
+      });
+      divs = Object.keys(divs);
+    }
+    divs.sort().forEach(function(dv){
+      var o = document.createElement("option"); o.value = dv; o.textContent = dv; divSel.appendChild(o);
+    });
+  }
+
   function populateFilters() {
     var regSel = document.getElementById("bolu-region");
-    var divSel = document.getElementById("bolu-division");
     if (!regSel || regSel.options.length > 1) return;
-    var regs = {}, divs = {};
-    BO_SEARCH.forEach(function(r){ regs[r.r]=1; divs[r.d]=1; });
+    var regs = {};
+    BO_SEARCH.forEach(function(r){
+      regs[r.r]=1;
+      if (!REGION_DIVS[r.r]) REGION_DIVS[r.r] = {};
+      REGION_DIVS[r.r][r.d] = 1;
+    });
     Object.keys(regs).sort().forEach(function(rg){
       var o = document.createElement("option"); o.value = rg; o.textContent = rg; regSel.appendChild(o);
     });
-    Object.keys(divs).sort().forEach(function(dv){
-      var o = document.createElement("option"); o.value = dv; o.textContent = dv; divSel.appendChild(o);
-    });
+    populateDivisions("");
   }
 
   function renderMatches() {
@@ -3735,6 +3757,7 @@ function recomputeRanks() {
     STATE.query = ""; STATE.region = ""; STATE.division = "";
     document.getElementById("bolu-search").value = "";
     document.getElementById("bolu-region").value = "";
+    populateDivisions("");
     document.getElementById("bolu-division").value = "";
     document.getElementById("bolu-card").innerHTML = "";
     renderMatches();
@@ -3750,7 +3773,12 @@ function recomputeRanks() {
     var rg = document.getElementById("bolu-region");
     var dv = document.getElementById("bolu-division");
     if (rg && !rg.dataset.bound) {
-      rg.addEventListener("change", function(){ STATE.region = rg.value; renderMatches(); });
+      rg.addEventListener("change", function(){
+        STATE.region = rg.value;
+        STATE.division = "";
+        populateDivisions(rg.value);
+        renderMatches();
+      });
       rg.dataset.bound = "1";
     }
     if (dv && !dv.dataset.bound) {
