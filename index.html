@@ -2871,7 +2871,6 @@ table.brief tr.total:hover td { background: var(--paper-warm); }
     </select>
   </div>
   <div id="subdiv-tab-content"></div>
-  <div id="subdiv-inline-rpli"></div>
 
 </div>
 <!-- === END SUBDIV TAB === -->
@@ -4937,7 +4936,6 @@ function renderPLITab(d, divName) {
 function renderRPLITab(d, divName) {
   var p = getPeriodKey();
   renderInsuranceTab('rpli', RPLI_POLICIES, p.from, p.to, divName, d);
-  if (typeof renderSubdivInline === 'function') renderSubdivInline(divName, 'rpli', 'subdiv-inline-rpli');
 }
 // ============ END POSB / PLI / RPLI ============
 
