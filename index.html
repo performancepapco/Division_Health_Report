@@ -3372,8 +3372,13 @@ function recomputeRanks() {
       var s = subs[sd];
       var seg = s[segment];
       if (segment === 'posb') {
+        var posbBos = s.bos || [];
+        var nonOp = posbBos.filter(function(b){ return b.posb_opened === 0; }).length;
+        var posbBadge = nonOp > 0
+          ? '<span class="badge '+(nonOp/s.offices>0.7?'danger':'warn')+'">'+nonOp+' nil</span>'
+          : '';
         html += '<tr data-div="'+division+'" data-sd="'+sd+'" data-seg="posb" onclick="toggleBOList(this)">'
-              + '<td>' + sd + '</td>'
+              + '<td>' + sd + ' ' + posbBadge + '</td>'
               + '<td>' + s.offices + '</td>'
               + '<td>' + fmtN(s.posb.opened) + '</td>'
               + '<td>' + fmtN(s.posb.closed) + '</td>'
@@ -3437,11 +3442,12 @@ function recomputeRanks() {
     if (seg === 'posb') {
       headRow = '<tr><th>Office</th><th>Code</th><th>Type</th><th>Opened</th><th>Closed</th><th>Net</th></tr>';
       bos.forEach(function(b){
-        var nil = (b.posb_opened === 0 && b.posb_closed === 0);
+        var nil = (b.posb_opened === 0);
         bodyRows += '<tr class="'+(nil?'nil-row':'')+'">'
           + '<td>'+b.name+'</td><td>'+b.code+'</td><td>'+b.type+'</td>'
-          + '<td>'+fmtN(b.posb_opened)+'</td><td>'+fmtN(b.posb_closed)+'</td>'
-          + '<td class="'+(nil?'flag':'num '+cls(b.posb_net))+'">'+(nil?'nil':(b.posb_net>=0?'+':'')+fmtN(b.posb_net))+'</td>'
+          + '<td class="'+(nil?'flag':'')+'">'+(nil?'nil':fmtN(b.posb_opened))+'</td>'
+          + '<td>'+fmtN(b.posb_closed)+'</td>'
+          + '<td class="num '+cls(b.posb_net)+'">'+(b.posb_net>=0?'+':'')+fmtN(b.posb_net)+'</td>'
           + '</tr>';
       });
     } else {
@@ -3460,11 +3466,11 @@ function recomputeRanks() {
     var newRow = document.createElement('tr');
     newRow.className = 'bo-list-row';
     var nonCount = (seg === 'posb')
-      ? bos.filter(function(b){return b.posb_opened===0 && b.posb_closed===0;}).length
+      ? bos.filter(function(b){return b.posb_opened===0;}).length
       : bos.filter(function(b){return b[seg+'_policies']===0;}).length;
     newRow.innerHTML = '<td colspan="'+ncolspan+'" style="padding:0; background:transparent;">'
       + '<div class="bo-list-wrap">'
-      + '<h5>'+sd+' · Branch Offices ('+bos.length+' total · '+nonCount+' with nil '+(seg==='posb'?'activity':'procurement')+')</h5>'
+      + '<h5>'+sd+' · Branch Offices ('+bos.length+' total · '+nonCount+' with nil '+(seg==='posb'?'opening':'procurement')+')</h5>'
       + '<table class="bo-list-table"><thead>'+headRow+'</thead><tbody>'+bodyRows+'</tbody></table>'
       + '</div></td>';
     tr.parentElement.insertBefore(newRow, tr.nextSibling);
