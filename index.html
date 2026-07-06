@@ -2643,6 +2643,9 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
     <div class="region-split" id="agg-region-split"></div>
   </div>
 
+  <!-- DIVISION ONLY: Target / Pro-rata / Achievement summary (mirrors the Circle's agg-circle-summary) -->
+  <div class="kpi-row cols-5" id="div-target-summary" style="display:none; margin-bottom:24px;"></div>
+
   <div class="section-head">
     <h2 id="ov-title">Headline position</h2>
     <span class="desc" id="ov-headline-desc">Apr–Jun 2026 actuals (cumulative)<br>FY 2026-27 · 3 months elapsed</span>
@@ -4025,6 +4028,7 @@ function renderDivision(divName) {
     document.getElementById('rank-label').textContent = aggType === 'circle' ? 'DIVISIONS & RMS UNITS' : 'UNITS IN REGION';
     document.getElementById('ov-title').textContent = `${aggLabel} \u2014 consolidated position`;
     document.getElementById('agg-region-split-section').style.display = aggType === 'circle' ? 'block' : 'none';
+    document.getElementById('div-target-summary').style.display = 'none';
     renderAggregateOnly(d, members, aggType);
   } else {
     document.getElementById('rank-display').textContent = '#' + d.rank;
@@ -4032,6 +4036,7 @@ function renderDivision(divName) {
     document.getElementById('ov-title').textContent = 'Headline position';
     // When a single division is selected, suppress the Region Split — division-level analysis is sufficient.
     document.getElementById('agg-region-split-section').style.display = 'none';
+    renderDivisionTargetSummary(d);
   }
 
   renderOverview(d);
@@ -4041,6 +4046,50 @@ function renderDivision(divName) {
   renderPLITab(d, divName);
   renderRPLITab(d, divName);
   renderCost(d, divName);
+}
+
+// Division-view equivalent of the Circle's agg-circle-summary KPI row.
+function renderDivisionTargetSummary(d) {
+  const el = document.getElementById('div-target-summary');
+  if (!el) return;
+  const totalTarget = d.targets.Total;
+  const totalProRata = d.pro_rata.Total;
+  const totalAch = d.actuals.Total;
+  const pctProp = totalProRata > 0 ? totalAch / totalProRata * 100 : 0;
+  const pctTotal = totalTarget > 0 ? totalAch / totalTarget * 100 : 0;
+  const endMonth = getPeriodEndRaw();
+  el.style.display = '';
+  el.innerHTML = `
+    <div class="kpi">
+      <div>
+        <div class="kpi-label">Total Target · FY 2026-27</div>
+        <div class="kpi-value">₹${fmt(totalTarget,2)}<span class="unit"> Cr</span></div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div>
+        <div class="kpi-label">Prop. Target upto ${endMonth}</div>
+        <div class="kpi-value">₹${fmt(totalProRata,2)}<span class="unit"> Cr</span></div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div>
+        <div class="kpi-label">Achievement upto ${endMonth}</div>
+        <div class="kpi-value">₹${fmt(totalAch,2)}<span class="unit"> Cr</span></div>
+      </div>
+    </div>
+    <div class="kpi feature">
+      <div>
+        <div class="kpi-label">% Prop. Ach.</div>
+        <div class="kpi-value"><span class="hl-pct">${Math.ceil(pctProp)}</span><span class="unit">%</span></div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div>
+        <div class="kpi-label">% Total Ach.</div>
+        <div class="kpi-value">${fmt(pctTotal,1)}<span class="unit">%</span></div>
+      </div>
+    </div>`;
 }
 
 function renderAggregateOnly(d, members, aggType) {
@@ -4285,7 +4334,7 @@ function renderOverview(d) {
           Target for FY 2026-27: <strong>₹${fmt(d.targets[v],2)} Cr</strong><br>
           Prop. Target up to ${getPeriodEndRaw()}: <strong>₹${fmt(pro,2)} Cr</strong><br>
           Achievement upto ${getPeriodEndRaw()}: <strong>₹${fmt(ach,2)} Cr</strong><br>
-          Yet to be achieved: <strong>₹${fmt(d.targets[v] - pro, 2)} Cr</strong>
+          Yet to be achieved: <strong>₹${fmt(d.targets[v] - ach, 2)} Cr</strong>
         </div>
         ${v === 'POSB' ? '<div class="achieved"><em>*front-loaded</em></div>' : ''}
       </div>`;
