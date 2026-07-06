@@ -423,6 +423,11 @@ body {
   font-variation-settings: "opsz" 18;
 }
 .kpi.feature .kpi-value .unit { color: var(--accent); }
+.hl-pct {
+  font-weight: 700;
+  border-bottom: 3px solid currentColor;
+  padding-bottom: 1px;
+}
 .kpi-sub {
   font-size: 13px;
   color: var(--ink-faint);
@@ -476,11 +481,12 @@ body {
   margin-bottom: 14px;
   letter-spacing: 0.04em;
 }
+.light .target strong { color: var(--ink-strong); font-weight: 700; }
 .light .gauge {
-  flex: 1;
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   gap: 8px;
+  margin-bottom: 10px;
 }
 .light .pct {
   font-family: var(--font-serif);
@@ -2520,9 +2526,9 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
 
 <header class="masthead">
   <div class="masthead-left">
-    <div class="crest-line">Office of the CPMG</div>
-    <div>Andhra Pradesh Postal Circle</div>
-    <div>India Post · Department of Posts</div>
+    <div class="crest-line">Department of Posts</div>
+    <div>O/o Chief Postmaster General</div>
+    <div>Andhra Pradesh Circle</div>
   </div>
   <div class="masthead-center">
     <h1>Division <em>Health Card</em></h1>
@@ -2627,6 +2633,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
 
   <!-- AGGREGATE ONLY: Region split (Circle view) -->
   <div class="agg-only" id="agg-region-split-section" style="display:none;">
+    <div class="kpi-row cols-5" id="agg-circle-summary" style="margin-bottom:24px;"></div>
     <div class="section-head">
       <h2 id="agg-overview-title">Regional split — % of Proportionate Target</h2>
       <span class="desc" id="agg-region-split-desc">Ranked by % achievement vs pro-rata<br>Apr–May 2026</span>
@@ -3059,6 +3066,13 @@ function getPeriodShort() {
   var p = _periodPair();
   if (p[0] === p[1]) return _MONTH_SHORT[p[0]] || p[0];
   return (_MONTH_SHORT[p[0]] || p[0]) + '–' + (_MONTH_SHORT[p[1]] || p[1]);
+}
+function getPeriodEndRaw() {
+  return _periodPair()[1];
+}
+function getPeriodEndPretty() {
+  var p = _periodPair();
+  return _MONTH_NAME[p[1]] || p[1];
 }
 let CUR_DIV_NAME = '__CIRCLE__';
 
@@ -4099,6 +4113,43 @@ function renderAggregateOnly(d, members, aggType) {
     </div>`;
 
   if (aggType === 'circle') {
+    const totalTarget = d.targets.Total;
+    const totalProRata = d.pro_rata.Total;
+    const totalAch = d.actuals.Total;
+    const pctProp = totalProRata > 0 ? totalAch / totalProRata * 100 : 0;
+    const pctTotal = totalTarget > 0 ? totalAch / totalTarget * 100 : 0;
+    const endMonth = getPeriodEndRaw();
+    document.getElementById('agg-circle-summary').innerHTML = `
+      <div class="kpi">
+        <div>
+          <div class="kpi-label">Total Target · FY 2026-27</div>
+          <div class="kpi-value">₹${fmt(totalTarget,2)}<span class="unit"> Cr</span></div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div>
+          <div class="kpi-label">Prop. Target upto ${endMonth}</div>
+          <div class="kpi-value">₹${fmt(totalProRata,2)}<span class="unit"> Cr</span></div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div>
+          <div class="kpi-label">Achievement upto ${endMonth}</div>
+          <div class="kpi-value">₹${fmt(totalAch,2)}<span class="unit"> Cr</span></div>
+        </div>
+      </div>
+      <div class="kpi feature">
+        <div>
+          <div class="kpi-label">% Prop. Ach.</div>
+          <div class="kpi-value"><span class="hl-pct">${Math.ceil(pctProp)}</span><span class="unit">%</span></div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div>
+          <div class="kpi-label">% Total Ach.</div>
+          <div class="kpi-value">${fmt(pctTotal,1)}<span class="unit">%</span></div>
+        </div>
+      </div>`;
     const splitEl = document.getElementById('agg-region-split');
     const regs = ['Vijayawada', 'Visakhapatnam', 'Kurnool'];
     const regData = regs.map(reg => {
@@ -4120,8 +4171,8 @@ function renderAggregateOnly(d, members, aggType) {
           <div class="r-sub" style="font-size:11px; color:var(--${cls}); font-weight:600; margin-bottom:6px;">of proportionate target</div>
           <div class="r-rev">
             <div>FY 2026-27 Target: <strong>₹${fmt(agg.targets.Total,2)} Cr</strong></div>
-            <div>${getPeriodShort()} Achievement: <strong>₹${fmt(agg.actuals.Total,2)} Cr</strong></div>
             <div>Prop. Target: <strong>₹${fmt(agg.pro_rata.Total,2)} Cr</strong></div>
+            <div>${getPeriodShort()} Achievement: <strong>₹${fmt(agg.actuals.Total,2)} Cr</strong></div>
           </div>
         </div>`;
     }).join('');
@@ -4133,10 +4184,10 @@ function renderOverview(d) {
   // % Proportionate Achievement (actual revenue / pro-rata target × 100)
   const cs = d.composite_score;
   if (isCircle) {
-    document.getElementById('ov-composite-label').textContent = '% Proportionate Achievement · ' + getPeriodLabel();
-    document.getElementById('ov-composite').innerHTML = Math.ceil(cs) + '<span class="unit">%</span>';
+    document.getElementById('ov-composite-label').textContent = `% Prop. Ach. upto ${getPeriodEndPretty()} for FY 2026-27`;
+    document.getElementById('ov-composite').innerHTML = `<span class="hl-pct">${Math.ceil(cs)}</span><span class="unit">%</span>`;
     document.getElementById('ov-composite-sub').innerHTML =
-      `₹${fmt(d.actuals.Total,2)} Cr / ₹${fmt(d.pro_rata.Total,2)} Cr proportionate`;
+      `Target: ₹${fmt(d.targets.Total,2)} Cr<br>Prop. Target: ₹${fmt(d.pro_rata.Total,2)} Cr`;
   } else {
     document.getElementById('ov-composite-label').textContent = '% Proportionate Achievement · ' + getPeriodLabel();
     document.getElementById('ov-composite').innerHTML = fmt(cs, 1) + '<span class="unit">%</span>';
@@ -4163,7 +4214,7 @@ function renderOverview(d) {
   const proRataTotal = d.pro_rata.Total;
   const pctOfPro = proRataTotal > 0 ? d.actuals.Total / proRataTotal * 100 : 0;
   document.getElementById('ov-revenue-sub').innerHTML = isAggCircle
-    ? `Entire AP Circle · ${getPeriodLabel()}<br>33-div sum: ₹${fmt(d.actuals.Total,2)} Cr · admin: ₹${fmt(displayRev - d.actuals.Total,2)} Cr`
+    ? `${getPeriodLabel()}<br>33-div sum: ₹${fmt(d.actuals.Total,2)} Cr<br>Admin: ₹${fmt(displayRev - d.actuals.Total,2)} Cr`
     : `vs ₹${fmt(proRataTotal,2)} Cr proportionate · ${fmt(pctOfPro,1)}% of target<br>FY 2026-27 target: ₹${fmt(d.targets.Total,2)} Cr`;
 
   // Total Expenditure
@@ -4172,13 +4223,13 @@ function renderOverview(d) {
   const swapTotalN = (displaySwap.Pension || 0) + sal + (displaySwap.Wages || 0) + (displaySwap.Allowances || 0);
   const swapShare = displayExp > 0 ? swapTotalN / displayExp * 100 : 0;
   document.getElementById('ov-expenditure-sub').innerHTML = isAggCircle
-    ? `Entire AP Circle · ${getPeriodLabel()}<br>Pension share: ${fmt(displayExp > 0 ? displayPen/displayExp*100 : 0, 1)}% · SWAP share: ${fmt(swapShare,1)}%`
+    ? `${getPeriodLabel()}<br>Pension share: ${fmt(displayExp > 0 ? displayPen/displayExp*100 : 0, 1)}%<br>SWAP share: ${fmt(swapShare,1)}%`
     : `Pension share: ${fmt(displayExp > 0 ? displayPen/displayExp*100 : 0, 1)}%<br>SWAP share: ${fmt(swapShare,1)}% · ${getPeriodLabel()}`;
 
   // ECR — for AP Circle show entire-circle consolidated; for divisions show vs circle-mean
   document.getElementById('ov-ecr-with').innerHTML = fmt(displayEcrW, 2) + '<span class="unit">%</span>';
   if (isAggCircle) {
-    document.getElementById('ov-ecr-with-sub').innerHTML = 'Entire AP Circle <strong>consolidated</strong><br>₹' + fmt(displayRev,2) + ' Cr / ₹' + fmt(displayExp,2) + ' Cr expenditure';
+    document.getElementById('ov-ecr-with-sub').innerHTML = '<strong>Consolidated</strong><br>₹' + fmt(displayRev,2) + ' Cr / ₹' + fmt(displayExp,2) + ' Cr expenditure';
   } else {
     const ecrWVsCircle = displayEcrW - CIRCLE.mean_ecr_with_pension;
     document.getElementById('ov-ecr-with-sub').innerHTML = (ecrWVsCircle >= 0 ? '<span class="pos">+' : '<span class="neg">') + fmt(ecrWVsCircle,2) + '% vs circle avg</span><br>Circle avg: ' + fmt(CIRCLE.mean_ecr_with_pension,2) + '%';
@@ -4187,7 +4238,7 @@ function renderOverview(d) {
   document.getElementById('ov-ecr-without').innerHTML = fmt(displayEcrWo, 2) + '<span class="unit">%</span>';
   if (isAggCircle) {
     const exMinusPen = displayExp - displayPen;
-    document.getElementById('ov-ecr-without-sub').innerHTML = 'Entire AP Circle <strong>consolidated</strong><br>₹' + fmt(displayRev,2) + ' Cr / ₹' + fmt(exMinusPen,2) + ' Cr (excl. pension)';
+    document.getElementById('ov-ecr-without-sub').innerHTML = '<strong>Consolidated</strong><br>₹' + fmt(displayRev,2) + ' Cr / ₹' + fmt(exMinusPen,2) + ' Cr (excl. pension)';
   } else {
     const ecrWoVsCircle = displayEcrWo - CIRCLE.mean_ecr_without_pension;
     document.getElementById('ov-ecr-without-sub').innerHTML = (ecrWoVsCircle >= 0 ? '<span class="pos">+' : '<span class="neg">') + fmt(ecrWoVsCircle,2) + '% vs circle avg</span><br>Operational efficiency view';
@@ -4213,15 +4264,16 @@ function renderOverview(d) {
     lights.innerHTML += `
       <div class="light ${cls}">
         <div class="name">${aliases[v]}</div>
-        <div class="target" style="font-size:10.5px; line-height:1.7;">
-          Target for FY 2026-27: ₹${fmt(d.targets[v],2)} Cr<br>
-          Prop. Target up to ${CUR_MONTH_LABEL}: ₹${fmt(pro,2)} Cr<br>
-          Difference: ₹${fmt(d.targets[v] - pro, 2)} Cr
-        </div>
         <div class="gauge">
-          <div class="pct">${fmt(pct,1)}<span class="pcsym">%</span></div>
+          <div class="pct"><span class="hl-pct">${fmt(pct,1)}</span><span class="pcsym">%</span></div>
         </div>
-        <div class="achieved">${getPeriodShort()}: ₹${fmt(ach,2)} Cr ${v === 'POSB' ? '<br><em>*front-loaded</em>' : ''}</div>
+        <div class="target" style="font-size:10.5px; line-height:1.7;">
+          Target for FY 2026-27: <strong>₹${fmt(d.targets[v],2)} Cr</strong><br>
+          Prop. Target up to ${getPeriodEndRaw()}: <strong>₹${fmt(pro,2)} Cr</strong><br>
+          Achievement upto ${getPeriodEndRaw()}: <strong>₹${fmt(ach,2)} Cr</strong><br>
+          Yet to be achieved: <strong>₹${fmt(d.targets[v] - pro, 2)} Cr</strong>
+        </div>
+        ${v === 'POSB' ? '<div class="achieved"><em>*front-loaded</em></div>' : ''}
       </div>`;
   });
   
