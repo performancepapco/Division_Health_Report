@@ -38,7 +38,13 @@ COL_TOT_R = 31  # Total revenue
 COL_TOT_E = 34  # Exp. For ECR calculation
 COL_PEN   = 36  # 320107 (pension component)
 
-S_DIV, S_SAL, S_WAGES, S_ALLOW, S_PEN, S_OTHER, S_PLAN, S_TOTAL = range(8)
+# SWAP sheet column order is NOT stable between monthly files (June re-ordered
+# and renamed columns vs May) — look columns up by header name instead of index.
+SWAP_HEADERS = {
+    "Salaries": "Salaries", "Wages": "Wages", "Allowances": "Allowances",
+    "Pension": "Pension", "Plan": "Plan Expnditure ", "Total": "Total expenditure",
+}
+SWAP_OTHER_CANDIDATES = ["Others", "Others than swap"]
 
 
 def to_cr(v):
@@ -68,18 +74,25 @@ def read_ecr():
             "total_exp": to_cr(row[COL_TOT_E]),
         }
 
+    swap_headers = [c.value for c in next(swap_ws.iter_rows(min_row=1, max_row=1))]
+    other_header = next((h for h in SWAP_OTHER_CANDIDATES if h in swap_headers), None)
+    if other_header is None:
+        raise SystemExit(f"ERROR: no 'Others' column found in SWAP sheet headers: {swap_headers}")
+    col_idx = {label: swap_headers.index(hdr) for label, hdr in SWAP_HEADERS.items()}
+    col_idx["Other"] = swap_headers.index(other_header)
+
     for row in swap_ws.iter_rows(min_row=2, values_only=True):
-        name = row[S_DIV]
+        name = row[0]
         if not name or name not in DIVISIONS or name not in out:
             continue
         out[name]["swap"] = {
-            "Salaries":   to_cr(row[S_SAL]),
-            "Wages":      to_cr(row[S_WAGES]),
-            "Pension":    to_cr(row[S_PEN]),
-            "Allowances": to_cr(row[S_ALLOW]),
-            "Plan":       to_cr(row[S_PLAN]),
-            "Other":      to_cr(row[S_OTHER]),
-            "Total":      to_cr(row[S_TOTAL]),
+            "Salaries":   to_cr(row[col_idx["Salaries"]]),
+            "Wages":      to_cr(row[col_idx["Wages"]]),
+            "Pension":    to_cr(row[col_idx["Pension"]]),
+            "Allowances": to_cr(row[col_idx["Allowances"]]),
+            "Plan":       to_cr(row[col_idx["Plan"]]),
+            "Other":      to_cr(row[col_idx["Other"]]),
+            "Total":      to_cr(row[col_idx["Total"]]),
         }
 
     return out
