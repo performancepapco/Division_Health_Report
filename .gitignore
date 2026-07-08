@@ -5,6 +5,7 @@
 
 # Build & patch scripts, intermediate JSON data caches
 *.py
+__pycache__/
 _*.json
 office_hierarchy.json
 
