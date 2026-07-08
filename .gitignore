@@ -1,0 +1,36 @@
+# This repo is used purely to host index.html via GitHub Pages.
+# Everything below is local dev tooling / raw source data that index.html
+# does not reference at runtime (all report data is inlined into index.html
+# by the build/patch scripts before committing) — keep it local, not on GitHub.
+
+# Build & patch scripts, intermediate JSON data caches
+*.py
+_*.json
+office_hierarchy.json
+
+# Old duplicate report versions, superseded by index.html
+Division Health Card (Standalone).html
+Division Health Card (source).html
+
+# Local logs, archives, screenshots
+server.log
+*.rar
+verify_*.png
+
+# Raw source data used only to build index.html locally
+uploads/*.html
+uploads/*.csv
+uploads/*.xlsx
+uploads/*.md
+uploads/april_2026/
+uploads/may_2026/
+uploads/new*
+uploads/june_2026/*.csv
+uploads/june_2026/*.xlsx
+uploads/june_2026/POSB/
+
+# ...except the PLI/RPLI source files that index.html's download links point to
+!uploads/june_2026/PLI_June2026_Distribution.xlsx
+!uploads/june_2026/PLI_AprToJune2026_Cumulative_Distribution.xlsx
+!uploads/june_2026/RPLI_June2026_Distribution.xlsx
+!uploads/june_2026/RPLI_AprToJune2026_Cumulative_Distribution.xlsx
