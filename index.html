@@ -2519,6 +2519,173 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
 }
 /* === END BOOKING MONTH-SWITCHER STYLES === */
 
+
+/* ================================================================
+   RESPONSIVE / MOBILE — additive overrides only.
+   Nothing above this block is modified. Rules here are scoped to
+   max-width (mobile) or a 768–1023px band (tablet); anything at
+   1024px+ falls through untouched to the desktop rules above, so
+   desktop appearance is unaffected. No IDs/classes used by JS are
+   renamed — only new classes/selectors are added.
+   ================================================================ */
+
+/* ---------- TABLET: 768px–1023px ---------- */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .frame { padding: 24px 24px 64px; }
+  .kpi-row.cols-5, .kpi-row.cols-6, .lights { grid-template-columns: repeat(3, 1fr); }
+  .kpi-row.cols-4, .ins-kpi-strip.cols-4, .bolu-kpi-strip.cols-4 { grid-template-columns: repeat(3, 1fr); }
+  .sd-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+}
+
+/* ---------- MOBILE: below 768px (base = mobile layout) ---------- */
+@media (max-width: 767.98px) {
+  /* ---- Global / frame ---- */
+  body { font-size: 15px; }
+  .frame { padding: 16px 16px 56px; }
+  h1, h2, h3 { word-break: break-word; }
+
+  /* ---- Touch targets ---- */
+  button, select, .src-link, .of-show-list, .dist-more, .sd-more-btn {
+    min-height: 44px;
+  }
+  #month-from, #month-to, .bo-filters select, .bolu-field select, .bolu-field input {
+    min-height: 40px;
+    padding: 8px !important;
+    font-size: 14px !important;
+  }
+  .of-show-list, .dist-more { display: inline-flex; align-items: center; }
+
+  /* ---- Masthead ---- */
+  .masthead {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 12px;
+    padding: 16px 0 14px;
+  }
+  .masthead-left, .masthead-right { text-align: center; align-items: center; font-size: 12px; }
+  .masthead-right { order: 3; }
+  .masthead-center h1 {
+    font-size: clamp(26px, 9vw, 34px);
+    white-space: normal;
+  }
+  .masthead-center .kicker { font-size: 10.5px; padding: 3px 10px; letter-spacing: 0.14em; }
+
+  /* ---- Picker ---- */
+  .picker { grid-template-columns: 1fr; }
+  .picker-cell {
+    border-right: 0;
+    border-bottom: 1px solid oklch(0.30 0.04 258);
+    padding: 14px 16px;
+  }
+  .picker-cell:last-child { border-bottom: 0; }
+  .picker select { font-size: 17px; }
+  .picker .rank-cell, .picker .meta-cell, #month-range-cell {
+    min-width: 0 !important;
+  }
+  .picker .rank-cell strong { font-size: 40px; }
+
+  /* ---- Tabs: horizontally scrollable strip ---- */
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-bottom: 20px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 0 0 auto;
+    padding: 13px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+  }
+  .sd-tabs, .bolu-subtabs, .bk-month-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .sd-tabs::-webkit-scrollbar, .bolu-subtabs::-webkit-scrollbar, .bk-month-tabs::-webkit-scrollbar { display: none; }
+  .sd-tab, .bolu-subtab, .bk-month-tab { flex: 0 0 auto; }
+
+  /* ---- Section headers ---- */
+  .section-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .section-head .desc { margin-left: 0; text-align: left; }
+  .section-head h2 { font-size: 20px; }
+
+  /* ---- KPI / card grids: 2 columns on mobile ---- */
+  .kpi-row.cols-3, .kpi-row.cols-4, .kpi-row.cols-5, .kpi-row.cols-6,
+  .lights,
+  .region-split, .dist-grid,
+  .ins-kpi-strip.cols-2, .ins-kpi-strip.cols-3, .ins-kpi-strip.cols-4,
+  .reg-cards, .ins-two-col,
+  .bolu-kpi-strip.cols-3, .bolu-kpi-strip.cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .three-col, .insights, .sd-grid { grid-template-columns: 1fr; }
+  .month-compare { grid-template-columns: 1fr; }
+  .colophon { grid-template-columns: 1fr; gap: 6px; text-align: center; }
+  .colophon .right { text-align: center; }
+
+  /* ---- Fixed-width containers that would force overflow ---- */
+  .modal-box { min-width: 0; width: 92%; padding: 22px 20px; }
+  .proc-rate-label { width: 108px; font-size: 12px; }
+  .proc-rate-pct { width: 38px; }
+
+  /* ---- Dense row-grids: allow horizontal scroll instead of squishing ---- */
+  .div-rank, .prod-list, .ins-div-bars, .bolu-matches {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .div-rank-row { grid-template-columns: 30px 130px 1fr 56px 60px; min-width: 460px; gap: 8px; font-size: 13px; }
+  .prod-row { grid-template-columns: 160px 70px 64px 70px 56px; min-width: 480px; gap: 8px; font-size: 13px; }
+  .ins-bar-row { grid-template-columns: 120px 1fr 60px 56px; min-width: 380px; gap: 6px; }
+  .bolu-match-row { grid-template-columns: 160px 90px 56px 120px 120px 96px; min-width: 600px; }
+  .office-row { grid-template-columns: 30px 1fr auto; gap: 8px; }
+  .office-row .arts { display: none; }
+
+  /* ---- Data tables: scroll + sticky first column + smaller (but readable) type ---- */
+  table.brief, .subdiv-table, .bolu-table, .bo-list-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+  /* Cells have their own explicit font-size in the base styles (higher
+     specificity than a plain `.table-class` rule), so th/td are targeted
+     directly here to actually take effect on mobile. */
+  table.brief, table.brief th, table.brief td { font-size: 13px; }
+  .subdiv-table, .bolu-table, .bo-list-table { font-size: 12px; }
+  .subdiv-table th, .bolu-table th, .bo-list-table th { font-size: 12px; }
+  .bo-list-table td { font-size: 12px; }
+  table.brief th:first-child, table.brief td:first-child,
+  .subdiv-table th:first-child, .subdiv-table td:first-child,
+  .bolu-table th:first-child, .bolu-table td:first-child,
+  .bo-list-table th:first-child, .bo-list-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--paper);
+  }
+  table.brief tr.total td:first-child { background: var(--paper-warm); }
+
+  /* ---- ECR division chart: scroll instead of shrinking to illegible size ---- */
+  .ecr-chart-wrap { padding: 16px 0 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ecr-svg { width: 760px; height: auto; }
+  .ecr-chart-legend { flex-wrap: wrap; gap: 10px 16px; padding-left: 16px; }
+  .ecr-chart-caption { padding-left: 16px; }
+
+  /* ---- Booking / search forms: stack fields ---- */
+  .bolu-search-bar { grid-template-columns: 1fr; }
+  .bo-filters { flex-wrap: wrap; }
+
+  /* ---- Misc spacing ---- */
+  .card-box { padding: 16px 16px; }
+  .placeholder { padding: 24px 16px; }
+  .modal-box { max-height: 88vh; overflow-y: auto; }
+}
 </style>
 </head>
 <body>
