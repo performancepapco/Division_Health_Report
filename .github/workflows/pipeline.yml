@@ -1,0 +1,148 @@
+name: Data Pipeline
+
+# Three triggers, all first-class:
+#   1. repository_dispatch (data-upload) — fires on each branch upload via
+#      Apps Script (see docs/APPS_SCRIPT_SETUP.md, Phase 5). Builds just the
+#      section that was uploaded (plus its sibling if it's a booking file).
+#   2. workflow_dispatch — manual "update now", with an optional `month`
+#      input (defaults to current month). Rebuilds every section that has a
+#      file on Drive for that month. Trigger from the GitHub mobile app:
+#      Repo -> Actions tab -> "Data Pipeline" -> Run workflow -> fill in
+#      month (or leave blank) -> Run workflow.
+#   3. schedule — daily safety net at 12:00 IST (06:30 UTC), in case an
+#      upload's dispatch event never fired. Rebuilds the current month.
+#
+# Never deploys on validation failure — ci_build_sections.py exits non-zero
+# and data/latest.json is left untouched; this workflow's later steps are
+# gated on the build step succeeding.
+
+on:
+  repository_dispatch:
+    types: [data-upload]
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "Month to rebuild (YYYY-MM). Leave blank for the current month."
+        required: false
+        type: string
+  schedule:
+    - cron: "30 6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dhc-data-pipeline
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - run: pip install -r requirements.txt
+
+      - name: Determine target month
+        id: month
+        env:
+          INPUT_MONTH: ${{ github.event.inputs.month }}
+          DISPATCH_MONTH: ${{ github.event.client_payload.month }}
+        run: |
+          if [ -n "$INPUT_MONTH" ]; then
+            echo "month=$INPUT_MONTH" >> "$GITHUB_OUTPUT"
+          elif [ -n "$DISPATCH_MONTH" ]; then
+            echo "month=$DISPATCH_MONTH" >> "$GITHUB_OUTPUT"
+          else
+            echo "month=$(date -u +%Y-%m)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull files from Drive
+        env:
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+          MONTH: ${{ steps.month.outputs.month }}
+        run: python drive_pull.py --month "$MONTH" --dest downloads/
+
+      - name: Build & assemble
+        id: build
+        env:
+          MONTH: ${{ steps.month.outputs.month }}
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_SECTION: ${{ github.event.client_payload.section }}
+        run: |
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            python ci_build_sections.py --month "$MONTH" --downloads downloads/ --only-section "$DISPATCH_SECTION"
+          else
+            python ci_build_sections.py --month "$MONTH" --downloads downloads/
+          fi
+
+      - name: Commit updated data
+        if: success()
+        env:
+          MONTH: ${{ steps.month.outputs.month }}
+        run: |
+          git config user.name "dhc-pipeline-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "Update dashboard data for $MONTH [skip ci]"
+          git push
+
+      - name: Stage public files
+        # Only index.html + data/ are meant to be served — deploying the
+        # whole repo root would also publish pipeline/ source, raw
+        # uploaded Excel files under uploads/, pipeline_config.yaml, etc.
+        # Even with Access gating the whole domain, that's unnecessary
+        # bloat and a messier surface than it needs to be.
+        if: success()
+        run: |
+          mkdir -p dist/data
+          cp index.html dist/
+          cp data/latest.json dist/data/
+
+      - name: Deploy to staging
+        if: success()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler pages deploy dist --project-name=dhc-staging --branch=staging
+
+      - name: Auto-promote to production
+        # Off by default (native GitHub Environment approval isn't available
+        # on the Free plan for a private repo — see promote-production.yml
+        # for the manual gate). Flip the AUTO_PROMOTE repo variable to
+        # 'true' (Settings -> Secrets and variables -> Actions -> Variables)
+        # once you're comfortable trusting validation alone.
+        if: success() && vars.AUTO_PROMOTE == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler pages deploy dist --project-name=dhc-production --branch=main
+
+      - name: Render uploader error email
+        if: failure() && github.event.client_payload.uploader_email != ''
+        env:
+          MONTH: ${{ steps.month.outputs.month }}
+        run: python render_error_email.py --month "$MONTH" --out email_body.txt
+
+      - name: Email uploader on failure
+        if: failure() && github.event.client_payload.uploader_email != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_ADDRESS }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "Division Health Card — upload issue (${{ github.event.client_payload.section }}, ${{ steps.month.outputs.month }})"
+          to: ${{ github.event.client_payload.uploader_email }}
+          from: Division Health Card Pipeline <${{ secrets.GMAIL_ADDRESS }}>
+          body: file://email_body.txt
