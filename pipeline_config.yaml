@@ -1,0 +1,237 @@
+# pipeline_config.yaml
+# ─────────────────────
+# Single source of truth for the Division Health Card data pipeline.
+# Both `generate_templates.py` (/templates/*.xlsx) and the CI validation gate
+# (pipeline/validate.py) read this file, so the blank templates handed to
+# branches and the header checks that gate deployment can never drift apart.
+#
+# Editing this file is how you add/change a section's expected columns —
+# no code changes needed for header/sheet changes, only for new extraction
+# *logic* (which lives in pipeline/sections/<name>.py).
+
+circle:
+  name: "AP Circle"
+  # Master office roster — NOT a monthly branch upload. Changes rarely
+  # (roster changes, not activity), maintained centrally, kept out of the
+  # Form entirely. See pipeline/common.py:load_roster().
+  master_roster_file: "uploads/Hierarchy_data.xlsx"
+  master_roster_sheet: "Worksheet"
+  real_office_types: ["BPO", "SPO", "HPO"]
+
+# Anchors reused by both PLI and RPLI (identical sheet shapes).
+_pli_rpli_division_headers: &pli_rpli_division_headers
+  header_row: dynamic   # first row where column A == "Sl."
+  required_headers:
+    - name: "Sl."
+    - name: "Division"
+    - name: "Region"
+    - name: "Total Offices"
+    - name: "Offices Procured"
+    - name: "Nil"
+    - name: "1-5"
+    - name: "6-10"
+    - name: "11-20"
+    - name: "21-50"
+    - name: "51-100"
+    - name: "100+"
+    - name: "Total Policies"
+    - name: "Total Premium (Rs.)"
+
+_pli_rpli_detail_headers: &pli_rpli_detail_headers
+  header_row: dynamic   # "Sl." row repeats once per division band block
+  required_headers:
+    - name: "Sl."
+    - name: "Office Code"
+    - name: "Office Name"
+    - name: "Office Type"
+    - name: "Policies"
+    - name: "Premium (Rs.)"
+
+sections:
+
+  ecr:
+    label: "ECR — Revenue & Expenditure"
+    canonical_filename: "ECR.xlsx"
+    file_type: xlsx
+    # The uploaded file already reports cumulative-to-date figures (not a
+    # standalone month) — the source system computes the running total, so
+    # the pipeline does NOT sum this section across months; each month's
+    # file simply replaces the previous cumulative value.
+    cumulative_mode: source
+    row_count_band: [0.7, 1.4]
+    known_divisions:
+      - Amalapuram
+      - Anakapalle
+      - Anantapur
+      - Bhimavaram
+      - Chittoor
+      - Cuddapah
+      - Eluru
+      - Gudivada
+      - Gudur
+      - Guntur
+      - Hindupur
+      - Kakinada
+      - Kurnool
+      - Machilipatnam
+      - Markapur
+      - Nandyal
+      - Narasaraopet
+      - Nellore
+      - Parvathipuram
+      - Prakasam
+      - Proddatur
+      - "RMS AG"
+      - "RMS TP"
+      - "RMS V"
+      - "RMS Y"
+      - Rajahmundry
+      - Srikakulam
+      - Tadepalligudem
+      - Tenali
+      - Tirupati
+      - Vijayawada
+      - Visakhapatnam
+      - Vizianagaram
+    # CIRCLE_FULL (circle-wide consolidated position) sums the 33 known
+    # divisions/RMS units above PLUS these 6 admin/regional/PSD rows, which
+    # DATA_BY_MONTH's per-division view deliberately excludes. Reverse
+    # engineered from patch_june2026_circle_full.py; verified to reproduce
+    # its committed values exactly.
+    circle_full_extra_rows:
+      - "AP GM (Finance)"
+      - "Andhra Pradesh Circle"
+      - "PSD Vijayawada"
+      - "Kurnool Region"
+      - "Vijayawada Region"
+      - "Visakhapatnam Region"
+    sheets:
+      ECR:
+        header_row: 1
+        required_headers:
+          - name: "Division"
+            column: 0
+          # This header legitimately changes every month ("...up to
+          # <Month>-<Year>") — match by prefix, not exact text.
+          - name: "Total rev on sbcc up to <current month>"
+            column: 8
+            match: prefix
+            prefix: "Total rev on sbcc"
+          - name: "Total PLI/RPLI Rev."
+            column: 24
+          - name: "Parcel"
+            column: 25
+          - name: "MO"
+            column: 26
+          - name: "IRGB"
+            column: 27
+          - name: "CCS"
+            column: 28
+          - name: "Total revenue"
+            column: 31
+          - name: "Exp. For ECR calculation"
+            column: 34
+          # Header cell literally contains the GL code, not text.
+          - name: "320107"
+            column: 36
+            match: numeric
+      SWAP:
+        header_row: 1
+        required_headers:
+          - name: "Salaries"
+          - name: "Wages"
+          - name: "Allowances"
+          - name: "Pension"
+          - name: "Plan Expnditure "
+          - name: "Total expenditure"
+          # Source system has spelled this two different ways across months.
+          - name: "Others"
+            alternates: ["Others than swap"]
+
+  posb:
+    label: "POSB — Accounts Opened/Closed"
+    canonical_filename: "POSB.xlsx"
+    file_type: xlsx
+    cumulative_mode: computed
+    # Activity-only sheet (offices with zero activity are simply absent),
+    # so month-to-month row counts swing more than other sections.
+    row_count_band: [0.5, 1.6]
+    sheets:
+      "2. BO Totals":
+        header_row: 1
+        required_headers:
+          - name: "Sl."
+          - name: "Office ID"
+          - name: "BO Code"
+          - name: "Month"
+          - name: "Name of the BO"
+          - name: "Name of the Sub Division"
+          - name: "Name of the Division"
+          - name: "Accounts Opened"
+          - name: "Accounts Closed"
+          - name: "Net Addition of the Accounts"
+          - name: "Region"
+
+  pli:
+    label: "PLI — Policy Distribution"
+    canonical_filename: "PLI.xlsx"
+    file_type: xlsx
+    cumulative_mode: computed
+    row_count_band: [0.7, 1.4]
+    sheets:
+      "PLI Division Distribution": *pli_rpli_division_headers
+      "PLI Detail": *pli_rpli_detail_headers
+
+  rpli:
+    label: "RPLI — Policy Distribution"
+    canonical_filename: "RPLI.xlsx"
+    file_type: xlsx
+    cumulative_mode: computed
+    row_count_band: [0.7, 1.4]
+    sheets:
+      "RPLI Division Distribution": *pli_rpli_division_headers
+      "RPLI Detail": *pli_rpli_detail_headers
+
+  booking_productwise:
+    label: "Booking — Product-wise"
+    canonical_filename: "Booking_Productwise.csv"
+    file_type: csv
+    cumulative_mode: computed
+    row_count_band: [0.5, 1.8]
+    csv_headers:
+      required:
+        - "office-id"
+        - "office-name"
+        - "booking-date"
+        - "product-name"
+        - "article-count"
+        - "total_amount"
+
+  booking_booktypewise:
+    label: "Booking — Book-type-wise (daily)"
+    canonical_filename: "Booking_BookTypewise_Datewise.csv"
+    file_type: csv
+    cumulative_mode: computed
+    row_count_band: [0.5, 1.8]
+    csv_headers:
+      required:
+        - "Office ID"
+        - "Walk-in Customer"
+        - "Walk-in Non-Commercial"
+        - "Walk-in Commercial"
+        - "Walk-in E-commerce"
+        - "Registered Bulk"
+        - "Bulk Non-Commercial"
+        - "Bulk Commercial"
+        - "Bulk E-commerce"
+        - "On Postal Service"
+        - "Govt Service"
+        - "Inter FPO"
+        - "Commercial"
+        - "E-commerce"
+        - "Non-Commercial"
+        - "Others"
+        - "PIDPI"
+        - "Student Mail"
+        - "BO Rebooking"
+        - "Free Active Service"

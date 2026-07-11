@@ -1,13 +1,25 @@
-# This repo is used purely to host index.html via GitHub Pages.
-# Everything below is local dev tooling / raw source data that index.html
-# does not reference at runtime (all report data is inlined into index.html
-# by the build/patch scripts before committing) — keep it local, not on GitHub.
+# NOTE: this repo is moving to a private-repo + CI pipeline model (see
+# pipeline_config.yaml / build_dataset.py) — the automated pipeline code
+# (pipeline/, build_dataset.py, generate_templates.py) and its output
+# (data/) MUST be tracked so GitHub Actions can run it. Only truly-local
+# scratch/cache files are ignored below.
 
-# Build & patch scripts, intermediate JSON data caches
-*.py
 __pycache__/
+
+# wrangler's local cache/session state (created by `npx wrangler ...`) —
+# never committed, may hold account/session data once `wrangler login` runs.
+.wrangler/
+
+# Legacy per-month build/patch scripts and their intermediate JSON caches —
+# superseded by pipeline/ (see pipeline_config.yaml). Left local until the
+# old scripts are fully replaced and removed.
+build_*.py
+!build_dataset.py
+patch_*.py
+!patch_async_loader.py
+inject_*.py
+fix_subdiv_visibility.py
 _*.json
-office_hierarchy.json
 
 # Old duplicate report versions, superseded by index.html
 Division Health Card (Standalone).html
@@ -35,3 +47,8 @@ uploads/june_2026/POSB/
 !uploads/june_2026/PLI_AprToJune2026_Cumulative_Distribution.xlsx
 !uploads/june_2026/RPLI_June2026_Distribution.xlsx
 !uploads/june_2026/RPLI_AprToJune2026_Cumulative_Distribution.xlsx
+
+# ...and the master office roster — a required pipeline input (see
+# pipeline/common.py:Roster), maintained centrally and rarely, not a monthly
+# branch upload, but it must reach CI.
+!uploads/Hierarchy_data.xlsx
