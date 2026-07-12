@@ -1,5 +1,15 @@
 # Cloudflare cutover checklist — ehealthcard.in
 
+> **Current status:** `ehealthcard.in` is **public, no login** — a
+> deliberate decision (10,600+ offices' worth of employees made an
+> individual email allowlist impractical), made after originally
+> completing this checklist with Access enabled. The `DHC Custom Domain`
+> Access application from step 7.3 was later **deleted** to make this
+> happen. See **§11** at the bottom for how to restrict it again —
+> either back to an explicit list or (recommended at this scale) an
+> email-domain match, so every employee self-serves without per-person
+> admin work.
+
 Every step here is in an external console (Cloudflare, GoDaddy, GitHub
 settings) — none of it is something I can do for you, so this is written
 as an exact, ordered checklist rather than code.
@@ -91,6 +101,11 @@ Confirm it worked: open `https://dhc-production.pages.dev` in an incognito windo
 3. Add a second Access application for `ehealthcard.in` itself (repeat step 6's process once more, application name `DHC Custom Domain`, same email list) — a custom domain is a different hostname from `dhc-production.pages.dev`, so it needs its own Access application even though it points at the same Pages project.
 4. Wait a minute or two for the certificate to provision, then visit `https://ehealthcard.in` — you should hit the same Access login page, then the dashboard after entering a valid email + PIN.
 
+   **(Later reversed — see the status note at the top.)** `DHC Custom
+   Domain` was deleted to make the site public. `dhc-production.pages.dev`
+   and `dhc-staging.pages.dev` still have their own Access applications
+   and remain login-gated; only the custom domain is open.
+
 (Optional) If you also want `www.ehealthcard.in` to work, repeat step 7.1–7.2 for that hostname too.
 
 ## 8. Flip the GitHub repo to private
@@ -106,3 +121,18 @@ Confirm it worked: open `https://dhc-production.pages.dev` in an incognito windo
 ## 10. Ongoing: promoting to production
 
 Day to day, the pipeline deploys to staging automatically. When you're happy with what's on `dhc-staging.pages.dev`, promote it: **Actions** tab → **Promote to Production** → **Run workflow**. See `docs/GITHUB_ACTIONS_SETUP.md` for the `AUTO_PROMOTE` flag if you later want to skip this manual step.
+
+## 11. Restricting `ehealthcard.in` again, when you're ready
+
+Two ways to do this, pick based on how you want to manage the list:
+
+**A. Explicit email list** (fine for a small, fixed set of people):
+1. Cloudflare dashboard → **Zero Trust → Access → Applications → Add an application → Self-hosted**.
+2. **Application name**: `DHC Custom Domain`, **Application domain**: `ehealthcard.in`.
+3. **Next** → policy **Allowed viewers**, **Action: Allow**, **Include → Emails** → list every allowed address → **Add application**.
+
+**B. Email-domain match** (recommended at 10,600+ offices' scale — nobody needs to be added individually):
+1. Same steps as A, but under **Include**, choose **Emails ending in** instead of **Emails**, and enter your organizational domain (e.g. `@indiapost.gov.in` — use the real one).
+2. Anyone with an email on that domain can self-serve a login (email → one-time PIN) with zero admin work per person; anyone without it can't get in even with the URL.
+
+Either way, confirm afterward in an incognito window: `https://ehealthcard.in` should show the Access login page again instead of loading directly.
