@@ -33,6 +33,16 @@ POSB_SCHEMES = ["MIS", "PPFGP", "SSA", "RD", "SBBAS", "SBSGP", "SCSS", "TD",
                 "PRFTS", "KVN", "NSC8", "MSSC"]
 
 
+def _header_map(ws) -> dict:
+    """name -> column index, read from row 1. Column *positions* aren't
+    trustworthy across sources — e.g. the uploader's own POSB export has an
+    extra "Office Type" column the Directorate's template doesn't — so every
+    reader in this module looks columns up by header name instead of a
+    hardcoded index."""
+    header = next(ws.iter_rows(min_row=1, max_row=1, values_only=True))
+    return {str(h).strip(): i for i, h in enumerate(header) if h is not None}
+
+
 def validate(section_cfg: dict, path, month_iso: str) -> list[ValidationError]:
     sheet_cfg = section_cfg["sheets"][SHEET]
     errors = validate_xlsx_sheet("posb", "POSB file", path, SHEET, sheet_cfg)
@@ -44,11 +54,12 @@ def validate(section_cfg: dict, path, month_iso: str) -> list[ValidationError]:
     # the declared month for the first data row (all rows share one range).
     wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
     ws = wb[SHEET]
+    month_idx = _header_map(ws)["Month"]
     rows = ws.iter_rows(min_row=2, values_only=True)
     first = next(rows, None)
     if first is None:
         return [ValidationError("posb", "POSB file: no data rows found below the header.")]
-    month_col = first[3]
+    month_col = first[month_idx]
     m = re.search(r"-(\d{2})-(\d{4})", str(month_col) or "")
     if m:
         file_month, file_year = m.group(1), m.group(2)
@@ -72,16 +83,19 @@ def _read_schemes(wb) -> dict:
     if SCHEME_SHEET not in wb.sheetnames:
         return {}
     ws = wb[SCHEME_SHEET]
+    hmap = _header_map(ws)
+    oid_idx, code_idx = hmap["Office ID"], hmap["BO Code"]
+    scheme_cols = [(hmap[f"{name} Opened"], hmap[f"{name} Closed"], hmap[f"Net {name}"])
+                   for name in POSB_SCHEMES]
     schemes = defaultdict(dict)
     for row in ws.iter_rows(min_row=2, values_only=True):
-        oid, code = row[1], row[2]
+        oid, code = row[oid_idx], row[code_idx]
         if not oid and not code:
             continue
         oid = str(oid) if oid else f"BOCODE_{code}"
         sch = {}
-        for i, name in enumerate(POSB_SCHEMES):
-            base = 7 + i * 3
-            o, c, n = int(row[base] or 0), int(row[base + 1] or 0), int(row[base + 2] or 0)
+        for name, (oi, ci, ni) in zip(POSB_SCHEMES, scheme_cols):
+            o, c, n = int(row[oi] or 0), int(row[ci] or 0), int(row[ni] or 0)
             if o == 0 and c == 0 and n == 0:
                 continue
             sch[name] = {"o": o, "c": c, "n": n}
@@ -93,6 +107,16 @@ def _read_schemes(wb) -> dict:
 def extract(section_cfg: dict, path, month_iso: str) -> dict:
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb[SHEET]
+    hmap = _header_map(ws)
+    oid_idx = hmap["Office ID"]
+    code_idx = hmap["BO Code"]
+    name_idx = hmap["Name of the BO"]
+    sub_div_idx = hmap["Name of the Sub Division"]
+    div_idx = hmap["Name of the Division"]
+    opened_idx = hmap["Accounts Opened"]
+    closed_idx = hmap["Accounts Closed"]
+    net_idx = hmap["Net Addition of the Accounts"]
+    region_idx = hmap["Region"]
 
     offices = {}
     by_div = defaultdict(lambda: {"region": "", "offices": 0, "opened": 0, "closed": 0, "net": 0})
@@ -100,14 +124,14 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
     circle = {"offices": 0, "opened": 0, "closed": 0, "net": 0}
 
     for row in ws.iter_rows(min_row=2, values_only=True):
-        oid = row[1]
-        code_fallback = row[2]
+        oid = row[oid_idx]
+        code_fallback = row[code_idx]
         if not oid and not code_fallback:
             continue
         oid = str(oid) if oid else f"BOCODE_{code_fallback}"
         code, name, sub_div, div, opened, closed, net, region = (
-            row[2], row[4], row[5], row[6],
-            row[7] or 0, row[8] or 0, row[9] or 0, row[10] or ""
+            row[code_idx], row[name_idx], row[sub_div_idx], row[div_idx],
+            row[opened_idx] or 0, row[closed_idx] or 0, row[net_idx] or 0, row[region_idx] or ""
         )
         div_s = short_div(div)
         reg_s = short_region(region)
