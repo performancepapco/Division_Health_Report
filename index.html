@@ -983,6 +983,214 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
   font-feature-settings: "tnum";
 }
 
+/* ============ DIVISION-WISE ACHIEVEMENT HEATMAP ============ */
+.hm-section-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: -6px 0 14px;
+}
+.hm-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.hm-legend-ramp {
+  display: inline-block;
+  width: 90px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--rule-strong);
+}
+.hm-legend-ramp.hm-legend-diverging { background: linear-gradient(to right, var(--red), var(--amber), var(--green-pale), var(--green)); }
+.hm-legend-ramp.hm-legend-sequential { background: linear-gradient(to right, var(--paper-warm), var(--blue)); }
+.hm-toggle {
+  display: inline-flex;
+  border: 1px solid var(--ink-strong);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.hm-toggle-btn {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0 14px;
+  min-height: 40px;
+  border: 0;
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.hm-toggle-btn + .hm-toggle-btn { border-left: 1px solid var(--ink-strong); }
+.hm-toggle-btn:hover { color: var(--ink-strong); background: var(--paper-warm); }
+.hm-toggle-btn.active { background: var(--ink-strong); color: var(--paper); }
+
+.hm-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.heatmap-wrap {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--rule);
+  max-height: 640px;
+  position: relative;
+}
+table.heatmap-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14.5px;
+  background: var(--paper);
+}
+table.heatmap-table th {
+  padding: 0;
+  border-bottom: 1.5px solid var(--ink-strong);
+  background: var(--paper);
+  text-align: right;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+table.heatmap-table th.hm-th-division { text-align: left; }
+table.heatmap-table th.hm-th-rank { text-align: left; left: 0; z-index: 4; }
+table.heatmap-table th.hm-th-division { position: sticky; z-index: 4; }
+.hm-th-btn {
+  display: block;
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  padding: 10px 10px 8px;
+  text-align: inherit;
+  white-space: nowrap;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  user-select: none;
+}
+.hm-th-btn:hover { color: var(--ink-strong); }
+.hm-sort-ind { display: inline-block; width: 10px; font-size: 9px; margin-left: 2px; color: var(--accent-deep); }
+table.heatmap-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rule);
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink);
+  font-feature-settings: "tnum";
+  white-space: nowrap;
+}
+table.heatmap-table tbody tr:nth-child(even) td { background-color: oklch(0.96 0.008 82); }
+table.heatmap-table tbody tr:hover td { box-shadow: var(--shadow-row); position: relative; z-index: 2; }
+table.heatmap-table td.hm-cell { cursor: default; font-weight: 500; }
+table.heatmap-table td.hm-rank,
+table.heatmap-table td.hm-division {
+  text-align: left;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--ink-strong);
+  position: sticky;
+  z-index: 1;
+  background: var(--paper);
+}
+table.heatmap-table td.hm-rank { left: 0; }
+table.heatmap-table tbody tr:nth-child(even) td.hm-rank,
+table.heatmap-table tbody tr:nth-child(even) td.hm-division { background: oklch(0.96 0.008 82); }
+
+.hm-rank-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12.5px;
+  background: var(--paper-warm);
+  color: var(--ink-soft);
+}
+.hm-rank-chip.gold   { background: oklch(0.82 0.09 85);  color: oklch(0.32 0.06 70); }
+.hm-rank-chip.silver { background: oklch(0.86 0.008 255); color: oklch(0.30 0.01 255); }
+.hm-rank-chip.bronze { background: oklch(0.76 0.06 55);  color: oklch(0.28 0.05 45); }
+
+.hm-region-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--paper-warm);
+  color: var(--ink-soft);
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: 6px;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+tr.hm-circle-row td {
+  font-weight: 700;
+  border-top: 3px double var(--ink-strong);
+  background: var(--paper-warm) !important;
+  color: var(--ink-strong);
+}
+
+.hm-footnote {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Tooltip: click/tap AND hover (existing [data-tip] pattern is hover-only, no touch support) */
+.hm-tooltip {
+  position: fixed;
+  background: var(--ink-strong);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  padding: 8px 11px;
+  border-radius: 3px;
+  z-index: 50;
+  pointer-events: none;
+  max-width: 240px;
+  box-shadow: var(--shadow-card);
+  display: none;
+}
+.hm-tooltip.show { display: block; }
+
+@media print {
+  .heatmap-wrap { overflow: visible; max-height: none; }
+  table.heatmap-table th, table.heatmap-table td { position: static !important; }
+  table.heatmap-table, table.heatmap-table th, table.heatmap-table td, tr.hm-circle-row td {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .hm-tooltip { display: none !important; }
+}
+
 /* Region split block */
 .region-split {
   display: grid;
@@ -2673,6 +2881,13 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
   }
   table.brief tr.total td:first-child { background: var(--paper-warm); }
 
+  /* ---- Division-wise Achievement heatmap: sticky Rank+Division already handle
+     horizontal scroll (see base styles); here just force scroll instead of
+     squishing 12 columns illegibly, and shrink type to match other tables. ---- */
+  table.heatmap-table { min-width: 760px; }
+  table.heatmap-table, table.heatmap-table th, table.heatmap-table td { font-size: 12px; }
+  .hm-section-controls { justify-content: space-between; }
+
   /* ---- ECR division chart: scroll instead of shrinking to illegible size ---- */
   .ecr-chart-wrap { padding: 16px 0 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .ecr-svg { width: 760px; height: auto; }
@@ -2871,6 +3086,26 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
     </div>
     <div class="div-rank-legend" id="div-rank-legend" style="display:none;"></div>
     <div class="div-rank" id="agg-div-rank"></div>
+  </div>
+
+  <!-- AGGREGATE ONLY (CIRCLE ONLY): Division-wise Achievement heatmap -->
+  <div class="agg-only" id="agg-heatmap-section" style="display:none;">
+    <div class="section-head">
+      <h2 id="heatmap-title">Division-wise Achievement — FY 2026-27</h2>
+      <span class="desc">One-glance ranking &middot; all 33 divisions</span>
+    </div>
+    <div class="hm-section-controls">
+      <div class="hm-legend" id="heatmap-legend"></div>
+      <div class="hm-toggle" id="heatmap-toggle"></div>
+    </div>
+    <div class="heatmap-wrap">
+      <table class="heatmap-table" id="heatmap-table">
+        <caption class="hm-sr-only">Division-wise achievement ranking table: 33 divisions and RMS units plus an AP Circle total row, with Rank, Division, the six revenue verticals (MO, Parcel, IR&amp;GB, CCS, POSB, PLI/RPLI), Total Revenue, Total Expenditure, and ECR with and without pension. Column headers are buttons that sort the table; Rank stays fixed to its division regardless of sort.</caption>
+        <thead id="heatmap-thead"></thead>
+        <tbody id="heatmap-tbody"></tbody>
+      </table>
+    </div>
+    <div class="hm-footnote" id="heatmap-footnote">Prop. Target = Annual Target &times; (months elapsed in FY &divide; 12). Rank = position by % Proportionate Achievement on Total Revenue; ties use standard competition ranking (1, 2, 2, 4).</div>
   </div>
 
   <!-- AGGREGATE ONLY: Distribution of divisions -->
@@ -3455,6 +3690,12 @@ function onMonthChange() {
 // ============ MULTI-MONTH DATA ENGINE ============
 const MONTH_ORDER = ['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27'];
 
+// Single source of truth for the FY prorated-target formula, so it can later
+// switch to department-phased monthly targets without touching call sites.
+const PRORATION_CONFIG = {
+  compute: function(annualTarget, monthsElapsed) { return (annualTarget || 0) * monthsElapsed / 12; }
+};
+
 function refreshActiveData() {
   DATA = getViewData();
   recomputeRanks();
@@ -3498,7 +3739,7 @@ function applyProRata(snapshot, numMonths) {
     const act = d.actuals || {};
     const pr  = {};
     ['Parcel','Mail Operations','IR & GB','CCS','POSB','PLI/RPLI','Total'].forEach(v => {
-      pr[v] = (tgt[v] || 0) * numMonths / 12;
+      pr[v] = PRORATION_CONFIG.compute(tgt[v], numMonths);
     });
     out[k] = { ...d, pro_rata: pr, ...recalcDerived(act, pr, d.total_exp || 0, d.swap ? d.swap.Pension || 0 : 0) };
   });
@@ -3568,7 +3809,7 @@ function subtractDivSnapshot(c, p) {
 
 function calcProRata(tgt, n) {
   var pr = {};
-  if (tgt) Object.keys(tgt).forEach(function(k) { pr[k] = (tgt[k] || 0) * n / 12; });
+  if (tgt) Object.keys(tgt).forEach(function(k) { pr[k] = PRORATION_CONFIG.compute(tgt[k], n); });
   return pr;
 }
 
@@ -4389,7 +4630,7 @@ function renderAggregateOnly(d, members, aggType) {
           <div class="kpi-value">${fmt(pctTotal,1)}<span class="unit">%</span></div>
         </div>
       </div>
-      <div style="grid-column:1/-1; font-size:11.5px; color:var(--ink-soft); margin-top:2px;">
+      <div style="grid-column:1/-1; font-size:11.5px; color:var(--ink); margin-top:2px;">
         *33-division/RMS sum only. Entire-circle revenue (below) is ₹${fmt(CIRCLE_FULL.actuals.Total,2)} Cr — the ₹${fmt(CIRCLE_FULL.actuals.Total - totalAch,2)} Cr difference is revenue credited to Administrative offices (AP GM Finance, AP Circle HQ, the 3 Regions, PSD Vijayawada), which sit outside the 33 divisions/RMS units.
       </div>`;
     const splitEl = document.getElementById('agg-region-split');
@@ -4418,8 +4659,441 @@ function renderAggregateOnly(d, members, aggType) {
           </div>
         </div>`;
     }).join('');
+
+    renderHeatmap(visibleMembers);
+  } else {
+    hmHideSection();
   }
 }
+
+// ============ DIVISION-WISE ACHIEVEMENT HEATMAP (Overview tab, Circle view only) ============
+const HM_VERTICALS = [
+  { key: 'Mail Operations', label: 'MO' },
+  { key: 'Parcel',          label: 'Parcel' },
+  { key: 'IR & GB',         label: 'IR&GB' },
+  { key: 'CCS',             label: 'CCS' },
+  { key: 'POSB',            label: 'POSB' },
+  { key: 'PLI/RPLI',        label: 'PLI/RPLI' },
+];
+const HM_STATE = { mode: 'pct', sortKey: 'rank', sortDir: 'asc' };
+let HM_LAST_MEMBERS = null;
+
+function hmHideSection() {
+  const el = document.getElementById('agg-heatmap-section');
+  if (el) el.style.display = 'none';
+}
+
+function hmClamp01(x) { return Math.max(0, Math.min(1, x)); }
+function hmLerp(a, b, t) { return a + (b - a) * t; }
+
+// WCAG-accurate text-color picker. A fixed lightness threshold (the previous
+// approach) leaves narrow "dead zones" on any smooth ramp where neither ink
+// nor paper text clears 4.5:1 — confirmed by Lighthouse against real ECR
+// values in the 76-80% and 128-132% range. Instead: compute the background's
+// actual relative luminance (OKLCH -> linear sRGB -> WCAG luminance), try the
+// on-brand --ink-strong/--paper tokens first, and fall back to pure black/white
+// only where neither token clears 4.5 — provably always >=4.58:1 (the worst
+// case, a mid-gray bg equidistant from black and white, still clears 4.5).
+function hmOklchToRelLum(L, C, Hdeg) {
+  const h = Hdeg * Math.PI / 180;
+  const a = C * Math.cos(h), b = C * Math.sin(h);
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+  const l = l_ ** 3, m = m_ ** 3, s = s_ ** 3;
+  const r = hmClamp01(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s);
+  const g = hmClamp01(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s);
+  const bl = hmClamp01(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+}
+function hmContrast(l1, l2) { const hi = Math.max(l1, l2), lo = Math.min(l1, l2); return (hi + 0.05) / (lo + 0.05); }
+const HM_PAPER_LUM = hmOklchToRelLum(0.975, 0.006, 85);
+const HM_INK_LUM = hmOklchToRelLum(0.16, 0.04, 258);
+function hmTextFor(L, C, H) {
+  const bgLum = hmOklchToRelLum(L, C, H);
+  const cPaper = hmContrast(bgLum, HM_PAPER_LUM);
+  const cInk = hmContrast(bgLum, HM_INK_LUM);
+  if (cPaper >= 4.55 || cInk >= 4.55) return cPaper > cInk ? 'var(--paper)' : 'var(--ink-strong)';
+  return hmContrast(bgLum, 1) > hmContrast(bgLum, 0) ? '#fff' : '#000';
+}
+
+// Diverging red->amber->green ramp anchored at 100% (the prorated-target line).
+// Used for the 6 verticals + Total Revenue in % mode, and always for the two ECR columns
+// (ECR's natural "break-even" line is 100% too: revenue == expenditure).
+function hmDivergingColor(pct) {
+  const stops = [
+    { v: 0,   L: 0.42, C: 0.15, H: 25  },
+    { v: 60,  L: 0.50, C: 0.135,H: 25  },
+    { v: 90,  L: 0.62, C: 0.11, H: 70  },
+    { v: 100, L: 0.74, C: 0.08, H: 140 },
+    { v: 130, L: 0.55, C: 0.11, H: 155 },
+    { v: 170, L: 0.40, C: 0.12, H: 155 },
+  ];
+  const v = Math.max(0, Math.min(170, pct || 0));
+  let s0 = stops[0], s1 = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (v >= stops[i].v && v <= stops[i + 1].v) { s0 = stops[i]; s1 = stops[i + 1]; break; }
+  }
+  const span = s1.v - s0.v;
+  const t = span > 0 ? (v - s0.v) / span : 0;
+  const L = hmLerp(s0.L, s1.L, t);
+  const C = hmLerp(s0.C, s1.C, t);
+  const H = hmLerp(s0.H, s1.H, t);
+  return { bg: `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${H.toFixed(1)})`, text: hmTextFor(L, C, H) };
+}
+
+// Neutral single-hue magnitude ramp, column-normalized (min->max), never diverging.
+// hue 155 (green) reused for verticals/Total Revenue in ₹ mode (raw magnitude, not a score);
+// hue 245 (blue) for Total Expenditure always — expenditure is context, not a score.
+function hmSequentialColor(value, min, max, hue) {
+  const t = max > min ? hmClamp01((value - min) / (max - min)) : 0;
+  const L = hmLerp(0.93, 0.42, t);
+  const C = hmLerp(0.02, 0.12, t);
+  return { bg: `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${hue})`, text: hmTextFor(L, C, hue) };
+}
+
+function hmPct(row, key) {
+  const pr = (row.pro_rata && row.pro_rata[key]) || 0;
+  return pr > 0 ? ((row.actuals[key] || 0) / pr * 100) : 0;
+}
+
+function hmColumnExtent(rows, valueFn) {
+  let min = Infinity, max = -Infinity;
+  rows.forEach(r => { const v = valueFn(r); if (v < min) min = v; if (v > max) max = v; });
+  if (!isFinite(min)) { min = 0; max = 0; }
+  return { min, max };
+}
+
+// Rows: exactly the 33 real divisions (offices already excluded by the caller).
+// Rank = standard competition ranking (1,2,2,4) by composite_score, tiebreak by
+// absolute achievement — a stricter tie rule than the shared recomputeRanks()
+// (which is fine for the rest of the app but doesn't dedupe exact ties), kept
+// local to this table so it doesn't change #rank displayed elsewhere.
+function computeHeatmapRows(members) {
+  const rows = members.filter(n => DATA[n]).map(name => {
+    const d = DATA[name];
+    return {
+      name, region: d.region,
+      targets: d.targets || {}, actuals: d.actuals || {}, pro_rata: d.pro_rata || {},
+      total_exp: d.total_exp || 0,
+      pension: (d.swap && d.swap.Pension) || 0,
+      ecr_with: d.ecr_with_pension || 0,
+      ecr_without: d.ecr_without_pension || 0,
+      composite: d.composite_score || 0,
+    };
+  });
+  rows.sort((a, b) => (b.composite - a.composite) || ((b.actuals.Total || 0) - (a.actuals.Total || 0)));
+  let rank = 0;
+  rows.forEach((r, i) => {
+    if (i === 0 || r.composite !== rows[i - 1].composite) rank = i + 1;
+    r.rank = rank;
+  });
+  return rows;
+}
+
+// Circle total row = sum of exactly the rows shown above it (not the wider
+// aggregateData() circle object, which also folds in admin/RO/PSD residual
+// entries) — so the pinned total visually reconciles with the 33 rows on screen.
+function hmAggregateCircleRow(rows) {
+  const keys = HM_VERTICALS.map(v => v.key).concat(['Total']);
+  const targets = {}, actuals = {}, pro_rata = {};
+  keys.forEach(k => {
+    targets[k]  = rows.reduce((a, r) => a + ((r.targets  && r.targets[k])  || 0), 0);
+    actuals[k]  = rows.reduce((a, r) => a + ((r.actuals  && r.actuals[k])  || 0), 0);
+    pro_rata[k] = rows.reduce((a, r) => a + ((r.pro_rata && r.pro_rata[k]) || 0), 0);
+  });
+  const total_exp = rows.reduce((a, r) => a + (r.total_exp || 0), 0);
+  const pension   = rows.reduce((a, r) => a + (r.pension || 0), 0);
+  const revenue   = actuals.Total || 0;
+  return {
+    name: 'AP Circle', region: null,
+    targets, actuals, pro_rata, total_exp, pension,
+    ecr_with:    total_exp > 0          ? revenue / total_exp * 100         : 0,
+    ecr_without: (total_exp - pension) > 0 ? revenue / (total_exp - pension) * 100 : 0,
+    composite: pro_rata.Total > 0 ? revenue / pro_rata.Total * 100 : 0,
+    rank: null,
+  };
+}
+
+function hmDefaultDir(key) {
+  return (key === 'rank' || key === 'Division') ? 'asc' : 'desc';
+}
+
+function hmSort(key) {
+  if (HM_STATE.sortKey === key) {
+    HM_STATE.sortDir = HM_STATE.sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    HM_STATE.sortKey = key;
+    HM_STATE.sortDir = hmDefaultDir(key);
+  }
+  if (HM_LAST_MEMBERS) renderHeatmap(HM_LAST_MEMBERS);
+}
+
+function hmSetMode(mode) {
+  if (HM_STATE.mode === mode) return;
+  HM_STATE.mode = mode;
+  if (HM_LAST_MEMBERS) renderHeatmap(HM_LAST_MEMBERS);
+}
+
+function hmSortValue(row, key) {
+  if (key === 'rank') return row.rank;
+  if (key === 'exp') return row.total_exp;
+  if (key === 'ecr_with') return row.ecr_with;
+  if (key === 'ecr_without') return row.ecr_without;
+  return HM_STATE.mode === 'pct' ? hmPct(row, key) : ((row.actuals && row.actuals[key]) || 0);
+}
+
+function sortHeatmapRows(rows) {
+  const { sortKey, sortDir } = HM_STATE;
+  const dir = sortDir === 'asc' ? 1 : -1;
+  const sorted = rows.slice();
+  if (sortKey === 'Division') {
+    sorted.sort((a, b) => dir * a.name.localeCompare(b.name));
+  } else {
+    sorted.sort((a, b) => dir * (hmSortValue(a, sortKey) - hmSortValue(b, sortKey)));
+  }
+  return sorted;
+}
+
+function renderHmLegend() {
+  const el = document.getElementById('heatmap-legend');
+  if (!el) return;
+  el.innerHTML = HM_STATE.mode === 'pct'
+    ? '<span class="hm-legend-ramp hm-legend-diverging"></span><span>&lt;60%</span><span>100%</span><span>&ge;130%</span>'
+    : '<span class="hm-legend-ramp hm-legend-sequential"></span><span>Lowest</span><span>Highest</span>';
+}
+
+function renderHmToggle() {
+  const el = document.getElementById('heatmap-toggle');
+  if (!el) return;
+  if (el.dataset.built !== '1') {
+    el.setAttribute('role', 'group');
+    el.setAttribute('aria-label', 'Achievement display mode');
+    el.innerHTML =
+      '<button type="button" class="hm-toggle-btn" data-mode="pct" onclick="hmSetMode(\'pct\')">% Prop. Ach.</button>' +
+      '<button type="button" class="hm-toggle-btn" data-mode="rupee" onclick="hmSetMode(\'rupee\')">Ach. in ₹</button>';
+    el.dataset.built = '1';
+  }
+  el.querySelectorAll('.hm-toggle-btn').forEach(b => {
+    const active = b.dataset.mode === HM_STATE.mode;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function renderHmHead() {
+  const thead = document.getElementById('heatmap-thead');
+  if (!thead) return;
+  if (thead.dataset.built !== '1') {
+    const cols = [
+      { id: 'rank', label: 'Rank', cls: 'hm-th-rank' },
+      { id: 'Division', label: 'Division', cls: 'hm-th-division' },
+      ...HM_VERTICALS.map(v => ({ id: v.key, label: v.label })),
+      { id: 'Total', label: 'Total Revenue' },
+      { id: 'exp', label: 'Total Expenditure' },
+      { id: 'ecr_with', label: 'ECR w/ Pension' },
+      { id: 'ecr_without', label: 'ECR w/o Pension' },
+    ];
+    const tr = document.createElement('tr');
+    cols.forEach(c => {
+      const th = document.createElement('th');
+      th.setAttribute('scope', 'col');
+      if (c.cls) th.className = c.cls;
+      th.dataset.key = c.id;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'hm-th-btn';
+      btn.onclick = () => hmSort(c.id);
+      btn.innerHTML = `${c.label}<span class="hm-sort-ind" data-ind="${c.id}"></span>`;
+      th.appendChild(btn);
+      tr.appendChild(th);
+    });
+    thead.innerHTML = '';
+    thead.appendChild(tr);
+    thead.dataset.built = '1';
+  }
+  thead.querySelectorAll('th[data-key]').forEach(th => {
+    const key = th.dataset.key;
+    const isSorted = key === HM_STATE.sortKey;
+    th.setAttribute('aria-sort', isSorted ? (HM_STATE.sortDir === 'asc' ? 'ascending' : 'descending') : 'none');
+    const ind = th.querySelector('.hm-sort-ind');
+    if (ind) ind.textContent = isSorted ? (HM_STATE.sortDir === 'asc' ? '▲' : '▼') : '';
+  });
+}
+
+function hmMedalClass(rank) {
+  if (rank === 1) return 'gold';
+  if (rank === 2) return 'silver';
+  if (rank === 3) return 'bronze';
+  return '';
+}
+
+function hmVerticalTip(row, key) {
+  const target = (row.targets && row.targets[key]) || 0;
+  const pro = (row.pro_rata && row.pro_rata[key]) || 0;
+  const ach = (row.actuals && row.actuals[key]) || 0;
+  const pct = hmPct(row, key);
+  return `Target: ₹${fmt(target,2)} Cr<br>Prop. Target: ₹${fmt(pro,2)} Cr<br>Achievement: ₹${fmt(ach,2)} Cr<br>% Ach.: ${fmt(pct,2)}%`;
+}
+
+function hmBuildRow(r, extents, isCircle) {
+  const tr = document.createElement('tr');
+  if (isCircle) tr.className = 'hm-circle-row';
+
+  const tdRank = document.createElement('td');
+  tdRank.className = 'hm-rank';
+  if (isCircle) {
+    tdRank.textContent = '—';
+  } else {
+    const medal = hmMedalClass(r.rank);
+    tdRank.innerHTML = medal ? `<span class="hm-rank-chip ${medal}">${r.rank}</span>` : String(r.rank);
+  }
+  tr.appendChild(tdRank);
+
+  const tdDiv = document.createElement('td');
+  tdDiv.className = 'hm-division';
+  if (isCircle) {
+    tdDiv.textContent = 'AP Circle (Total)';
+  } else {
+    tdDiv.textContent = r.name;
+    if (r.region) {
+      const tag = document.createElement('span');
+      tag.className = 'hm-region-tag';
+      tag.textContent = REG_ABBR[r.region] || r.region.substring(0, 3).toUpperCase();
+      tdDiv.appendChild(tag);
+    }
+  }
+  tr.appendChild(tdDiv);
+
+  HM_VERTICALS.concat([{ key: 'Total', label: 'Total Revenue' }]).forEach(v => {
+    const rupee = (r.actuals && r.actuals[v.key]) || 0;
+    const pct = hmPct(r, v.key);
+    const td = document.createElement('td');
+    td.className = 'hm-cell';
+    if (!isCircle) {
+      let color;
+      if (HM_STATE.mode === 'pct') {
+        color = hmDivergingColor(pct);
+        td.textContent = fmt(pct, 2) + '%';
+      } else {
+        const ext = extents[v.key];
+        color = hmSequentialColor(rupee, ext.min, ext.max, 155);
+        td.textContent = '₹' + fmt(rupee, 2);
+      }
+      td.style.backgroundColor = color.bg;
+      td.style.color = color.text;
+      td.setAttribute('data-tip', hmVerticalTip(r, v.key));
+    } else {
+      td.textContent = HM_STATE.mode === 'pct' ? (fmt(pct, 2) + '%') : ('₹' + fmt(rupee, 2));
+    }
+    tr.appendChild(td);
+  });
+
+  const tdExp = document.createElement('td');
+  tdExp.className = 'hm-cell';
+  tdExp.textContent = '₹' + fmt(r.total_exp, 2);
+  if (!isCircle) {
+    const ext = extents.exp;
+    const color = hmSequentialColor(r.total_exp, ext.min, ext.max, 245);
+    tdExp.style.backgroundColor = color.bg;
+    tdExp.style.color = color.text;
+    tdExp.setAttribute('data-tip', `Total Expenditure: ₹${fmt(r.total_exp,2)} Cr<br>Pension component: ₹${fmt(r.pension,2)} Cr`);
+  }
+  tr.appendChild(tdExp);
+
+  [['ecr_with', r.ecr_with, false], ['ecr_without', r.ecr_without, true]].forEach(([key, val, excludePension]) => {
+    const td = document.createElement('td');
+    td.className = 'hm-cell';
+    td.textContent = fmt(val, 2) + '%';
+    if (!isCircle) {
+      const color = hmDivergingColor(val);
+      td.style.backgroundColor = color.bg;
+      td.style.color = color.text;
+      const expShown = excludePension ? (r.total_exp - r.pension) : r.total_exp;
+      td.setAttribute('data-tip', `Revenue: ₹${fmt((r.actuals && r.actuals.Total) || 0,2)} Cr<br>Expenditure${excludePension ? ' (excl. pension)' : ''}: ₹${fmt(expShown,2)} Cr<br>ECR: ${fmt(val,2)}%`);
+    }
+    tr.appendChild(td);
+  });
+
+  return tr;
+}
+
+function renderHmBody(sorted, extents, circleRow) {
+  const tbody = document.getElementById('heatmap-tbody');
+  if (!tbody) return;
+  const frag = document.createDocumentFragment();
+  sorted.forEach(r => frag.appendChild(hmBuildRow(r, extents, false)));
+  frag.appendChild(hmBuildRow(circleRow, extents, true));
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+function renderHeatmap(members) {
+  const section = document.getElementById('agg-heatmap-section');
+  if (!section) return;
+  const rows = computeHeatmapRows(members);
+  if (!rows.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  HM_LAST_MEMBERS = members;
+
+  const titleEl = document.getElementById('heatmap-title');
+  if (titleEl) titleEl.textContent = `Division-wise Achievement — FY 2026-27 (up to ${getPeriodEndRaw()})`;
+
+  renderHmLegend();
+  renderHmToggle();
+  renderHmHead();
+
+  const extents = {};
+  HM_VERTICALS.forEach(v => { extents[v.key] = hmColumnExtent(rows, r => (r.actuals && r.actuals[v.key]) || 0); });
+  extents.Total = hmColumnExtent(rows, r => (r.actuals && r.actuals.Total) || 0);
+  extents.exp = hmColumnExtent(rows, r => r.total_exp || 0);
+
+  const sorted = sortHeatmapRows(rows);
+  const circleRow = hmAggregateCircleRow(rows);
+  renderHmBody(sorted, extents, circleRow);
+}
+
+// Tap+hover tooltip for heatmap cells (the existing [data-tip] pattern elsewhere
+// in this dashboard is CSS :hover-only and doesn't support touch/tablets).
+(function initHmTooltip() {
+  const tipEl = document.createElement('div');
+  tipEl.className = 'hm-tooltip';
+  tipEl.id = 'hm-tooltip';
+  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(tipEl));
+
+  function place(x, y) {
+    const maxLeft = Math.max(8, window.innerWidth - tipEl.offsetWidth - 12);
+    tipEl.style.left = Math.min(x + 12, maxLeft) + 'px';
+    tipEl.style.top = (y + 14) + 'px';
+  }
+  function show(cell, x, y) {
+    const tip = cell.getAttribute('data-tip');
+    if (!tip) return;
+    tipEl.innerHTML = tip;
+    tipEl.classList.add('show');
+    place(x, y);
+  }
+  function hide() { tipEl.classList.remove('show'); tipEl.dataset.forCell = ''; }
+
+  document.addEventListener('mouseover', e => {
+    const cell = e.target.closest('table.heatmap-table td.hm-cell');
+    if (cell) show(cell, e.clientX, e.clientY);
+  });
+  document.addEventListener('mouseout', e => {
+    const cell = e.target.closest('table.heatmap-table td.hm-cell');
+    if (cell) hide();
+  });
+  document.addEventListener('click', e => {
+    const cell = e.target.closest('table.heatmap-table td.hm-cell');
+    if (!cell) { hide(); return; }
+    const tip = cell.getAttribute('data-tip');
+    if (!tip) return;
+    if (tipEl.classList.contains('show') && tipEl.dataset.forCell === tip) { hide(); return; }
+    e.stopPropagation();
+    show(cell, e.clientX || 0, e.clientY || 0);
+    tipEl.dataset.forCell = tip;
+  });
+})();
 
 function renderOverview(d) {
   const isCircle = d.isAggregate && d.aggLabel === 'AP Circle';
