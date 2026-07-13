@@ -1011,6 +1011,22 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
 }
 .hm-legend-ramp.hm-legend-diverging { background: linear-gradient(to right, var(--red), var(--amber), var(--green-pale), var(--green)); }
 .hm-legend-ramp.hm-legend-sequential { background: linear-gradient(to right, var(--paper-warm), var(--blue)); }
+.hm-export-btn {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 0 12px;
+  min-height: 40px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.hm-export-btn:hover { color: var(--ink-strong); border-color: var(--ink-strong); background: var(--paper-warm); }
+.hm-export-btn:disabled { opacity: 0.5; cursor: default; }
 .hm-toggle {
   display: inline-flex;
   border: 1px solid var(--ink-strong);
@@ -3096,6 +3112,7 @@ tr.hm-circle-row td {
     </div>
     <div class="hm-section-controls">
       <div class="hm-legend" id="heatmap-legend"></div>
+      <button type="button" class="hm-export-btn" id="heatmap-export" onclick="hmExportPng()">Export PNG</button>
       <div class="hm-toggle" id="heatmap-toggle"></div>
     </div>
     <div class="heatmap-wrap">
@@ -5051,6 +5068,183 @@ function renderHeatmap(members) {
   const sorted = sortHeatmapRows(rows);
   const circleRow = hmAggregateCircleRow(rows);
   renderHmBody(sorted, extents, circleRow);
+}
+
+// Vanilla export: redraw the table onto a <canvas> cell-by-cell, reading each
+// cell's live computed style (font, color, background) so the PNG always
+// matches whatever's on screen — no charting/dom-to-image library needed.
+// (An earlier version tried SVG <foreignObject> -> <img> -> canvas, which is
+// less code, but Chrome/Firefox both taint any canvas drawn from an image
+// containing foreignObject content, even same-origin — canvas.toBlob throws
+// a SecurityError. Manual redraw is the only dependency-free way around that.)
+function hmMeasureExportLayout(liveTable) {
+  // Lay out a full, unscrolled, unstuck clone off-screen so column widths
+  // and row heights come from normal flow, not from whatever happens to be
+  // scrolled/sticky in the visible, height-capped .heatmap-wrap.
+  const clone = liveTable.cloneNode(true);
+  clone.removeAttribute('id');
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:absolute; left:-99999px; top:0; visibility:hidden;';
+  holder.appendChild(clone);
+  document.body.appendChild(holder);
+
+  const theadRow = clone.querySelector('thead tr');
+  const bodyRows = [...clone.querySelectorAll('tbody tr')];
+  const headCells = [...theadRow.children];
+  const colX = [];
+  let x = 0;
+  headCells.forEach(th => { colX.push(x); x += th.getBoundingClientRect().width; });
+  const totalWidth = x;
+
+  const rowSpecs = [theadRow, ...bodyRows].map(tr => ({
+    height: tr.getBoundingClientRect().height,
+    isCircle: tr.classList.contains('hm-circle-row'),
+    isHead: tr === theadRow,
+    cells: [...tr.children].map((cell, i) => {
+      const cs = getComputedStyle(cell);
+      // Header text/font styling now lives on the nested sort <button> (added
+      // for keyboard a11y), not the <th> itself — read that one for color/font.
+      const thBtn = cell.querySelector('.hm-th-btn');
+      const textCs = thBtn ? getComputedStyle(thBtn) : cs;
+      const chip = cell.querySelector('.hm-rank-chip');
+      const tag = cell.querySelector('.hm-region-tag');
+      return {
+        x: colX[i], width: headCells[i].getBoundingClientRect().width,
+        text: chip ? chip.textContent.trim() : (tag ? cell.firstChild.textContent.trim() : cell.textContent.trim()),
+        tagText: tag ? tag.textContent.trim() : null,
+        chipClass: chip ? [...chip.classList].find(c => c !== 'hm-rank-chip') : null,
+        bg: cs.backgroundColor, color: textCs.color, font: textCs.font, textAlign: cs.textAlign,
+      };
+    }),
+  }));
+
+  document.body.removeChild(holder);
+  return { totalWidth, rowSpecs };
+}
+
+function hmExportPng() {
+  const table = document.getElementById('heatmap-table');
+  const btn = document.getElementById('heatmap-export');
+  if (!table) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Exporting…'; }
+  const resetBtn = () => { if (btn) { btn.disabled = false; btn.textContent = 'Export PNG'; } };
+
+  try {
+    const { totalWidth, rowSpecs } = hmMeasureExportLayout(table);
+    const titleText = (document.getElementById('heatmap-title') || {}).textContent || 'Division-wise Achievement';
+    const footnoteText = (document.getElementById('heatmap-footnote') || {}).textContent || '';
+    const pad = 18, titleH = 28, footnoteLineH = 15;
+
+    const scale = 2;
+    const probeCanvas = document.createElement('canvas');
+    const probeCtx = probeCanvas.getContext('2d');
+    probeCtx.font = "12px 'Geist', sans-serif";
+    const footnoteMaxWidth = totalWidth;
+    const footnoteWords = footnoteText.split(' ');
+    const footnoteLines = [];
+    let line = '';
+    footnoteWords.forEach(w => {
+      const test = line ? line + ' ' + w : w;
+      if (probeCtx.measureText(test).width > footnoteMaxWidth && line) { footnoteLines.push(line); line = w; }
+      else { line = test; }
+    });
+    if (line) footnoteLines.push(line);
+
+    const tableHeight = rowSpecs.reduce((a, r) => a + r.height, 0);
+    const canvasW = totalWidth + pad * 2;
+    const canvasH = titleH + tableHeight + pad * 2 + footnoteLines.length * footnoteLineH + 10;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasW * scale;
+    canvas.height = canvasH * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#f8f5ef';
+    ctx.fillRect(0, 0, canvasW, canvasH);
+
+    ctx.fillStyle = '#2b2118';
+    ctx.font = "600 17px 'Newsreader', Georgia, serif";
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(titleText, pad, pad + 14);
+
+    let y = pad + titleH;
+    rowSpecs.forEach(row => {
+      row.cells.forEach(cell => {
+        ctx.fillStyle = cell.bg;
+        ctx.fillRect(pad + cell.x, y, cell.width, row.height);
+      });
+      y += row.height;
+    });
+
+    y = pad + titleH;
+    rowSpecs.forEach(row => {
+      row.cells.forEach(cell => {
+        const cx = pad + cell.x;
+        ctx.font = cell.font;
+        ctx.fillStyle = cell.color;
+        ctx.textBaseline = 'middle';
+        const midY = y + row.height / 2 + 1;
+        if (cell.chipClass !== undefined && cell.chipClass !== null) {
+          const cx2 = cx + cell.width / 2, r = 11;
+          const chipColors = {
+            gold: ['#d9b35c', '#4a2f10'], silver: ['#c7c9cf', '#26272b'], bronze: ['#c98a4b', '#3d2410'],
+          };
+          const [chipBg, chipFg] = chipColors[cell.chipClass] || ['#e7ddc8', cell.color];
+          ctx.beginPath(); ctx.arc(cx2, midY - 1, r, 0, Math.PI * 2);
+          ctx.fillStyle = chipBg; ctx.fill();
+          ctx.fillStyle = chipFg;
+          ctx.font = "700 12px 'JetBrains Mono', monospace";
+          ctx.textAlign = 'center';
+          ctx.fillText(cell.text, cx2, midY);
+          ctx.textAlign = 'left';
+        } else if (cell.textAlign === 'right') {
+          ctx.textAlign = 'right';
+          ctx.fillText(cell.text, cx + cell.width - 10, midY);
+          ctx.textAlign = 'left';
+        } else {
+          ctx.fillText(cell.text, cx + 10, midY);
+          if (cell.tagText) {
+            const nameWidth = ctx.measureText(cell.text).width;
+            const tagX = cx + 10 + nameWidth + 8, tagW = ctx.measureText(cell.tagText).width + 10;
+            ctx.fillStyle = '#efe7d6';
+            ctx.fillRect(tagX, midY - 8, tagW, 16);
+            ctx.fillStyle = '#6b6252';
+            ctx.font = "600 9px 'JetBrains Mono', monospace";
+            ctx.fillText(cell.tagText, tagX + 5, midY);
+          }
+        }
+        // hairline row separator, matching the on-screen border-bottom
+        ctx.strokeStyle = '#d8cfbb';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx, y + row.height - 0.5);
+        ctx.lineTo(cx + cell.width, y + row.height - 0.5);
+        ctx.stroke();
+      });
+      y += row.height;
+    });
+
+    ctx.fillStyle = '#7a7062';
+    ctx.font = "italic 12px 'Geist', sans-serif";
+    ctx.textBaseline = 'alphabetic';
+    let fy = y + pad + 12;
+    footnoteLines.forEach(l => { ctx.fillText(l, pad, fy); fy += footnoteLineH; });
+
+    canvas.toBlob(pngBlob => {
+      if (!pngBlob) { resetBtn(); alert('PNG export failed — please use a screenshot instead.'); return; }
+      const monthTo = (document.getElementById('month-to') || {}).value || 'export';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(pngBlob);
+      a.download = `division-achievement-${monthTo}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      resetBtn();
+    }, 'image/png');
+  } catch (e) {
+    resetBtn();
+    alert('PNG export failed — please use a screenshot instead.');
+  }
 }
 
 // Tap+hover tooltip for heatmap cells (the existing [data-tip] pattern elsewhere
