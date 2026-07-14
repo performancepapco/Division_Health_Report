@@ -136,11 +136,19 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
     swap_cfg = section_cfg["sheets"]["SWAP"]
     col = _col_map(ecr_cfg)
     known_divisions = set(section_cfg["known_divisions"])
+    # Circle/region/PSD residual rows (e.g. "AP GM (Finance)") are extracted
+    # alongside the 33 known divisions, keyed by the same row names the
+    # front end's OFFICE_ENTRIES/applyEcrMonth patcher expects — so those
+    # residuals get refreshed every month same as any division, instead of
+    # staying frozen at their hand-authored April baseline forever. See
+    # circle_full_extra_rows in pipeline_config.yaml.
+    extra_rows = set(section_cfg["circle_full_extra_rows"])
+    all_rows = known_divisions | extra_rows
 
     out = {}
     for row in ecr_ws.iter_rows(min_row=ecr_cfg["header_row"] + 1, values_only=True):
         name = row[col["Division"]]
-        if not name or name not in known_divisions:
+        if not name or name not in all_rows:
             continue
         out[name] = {
             "actuals": {
@@ -160,7 +168,7 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
     other_key = "Others" if "Others" in swap_col else None
     for row in swap_ws.iter_rows(min_row=2, values_only=True):
         name = row[0]
-        if not name or name not in known_divisions or name not in out:
+        if not name or name not in all_rows or name not in out:
             continue
         out[name]["swap"] = {
             "Salaries":   _to_cr(row[swap_col["Salaries"]]),
@@ -176,7 +184,6 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
     if missing:
         print(f"  WARNING: missing in Excel: {sorted(missing)}")
 
-    all_rows = known_divisions | set(section_cfg["circle_full_extra_rows"])
     circle_full = _extract_circle_full(section_cfg, path, all_rows)
 
     return {"divisions": out, "circle_full": circle_full}
