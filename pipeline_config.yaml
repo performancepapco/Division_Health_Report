@@ -117,23 +117,30 @@ sections:
             column: 8
             match: prefix
             prefix: "Total rev on sbcc"
-          - name: "Total PLI/RPLI Rev."
+          # Revenue component of PLI — added June 2026. Folded into "Total
+          # PLI/RPLI Rev." by the source file itself (not summed separately
+          # by the pipeline), which is why it isn't read into `actuals` on
+          # its own; every column from here on shifted right by one to make
+          # room for it.
+          - name: "PLI Online Apportionment"
             column: 24
-          - name: "Parcel"
+          - name: "Total PLI/RPLI Rev."
             column: 25
-          - name: "MO"
+          - name: "Parcel"
             column: 26
-          - name: "IRGB"
+          - name: "MO"
             column: 27
-          - name: "CCS"
+          - name: "IRGB"
             column: 28
+          - name: "CCS"
+            column: 29
           - name: "Total revenue"
-            column: 31
+            column: 32
           - name: "Exp. For ECR calculation"
-            column: 34
+            column: 35
           # Header cell literally contains the GL code, not text.
           - name: "320107"
-            column: 36
+            column: 37
             match: numeric
       SWAP:
         header_row: 1
