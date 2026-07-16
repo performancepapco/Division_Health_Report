@@ -37,6 +37,44 @@ def _write_xlsx_sheet(ws, sheet_cfg: dict):
             ws.cell(row=header_row, column=i + 1, value=spec["name"])
 
 
+def generate_posb_silent_template(section_cfg: dict):
+    """posb_silent's meta/data shape doesn't fit the header-row model every
+    other section uses (see pipeline/sections/posb_silent.py) — the meta
+    sheet here is left blank apart from labels, since schema_version,
+    row_count, and data_sha256_16 all have to be computed from the
+    operator's own finished data sheet, not filled in by hand."""
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)
+
+    meta_ws = wb.create_sheet("meta")
+    meta_ws.append(["key", "value"])
+    for key, note in [
+        ("schema_version", "1"),
+        ("as_of_month", "YYYY-MM, e.g. 2026-06"),
+        ("fy_start", "YYYY-MM, e.g. 2026-04"),
+        ("months_covered", "comma-separated, e.g. 2026-04,2026-05,2026-06"),
+        ("row_count", "must equal the data sheet's actual row count"),
+        ("data_sha256_16", "first 16 hex chars of sha256 of the data sheet as CSV (headers, no index)"),
+        ("generated", "YYYY-MM-DD HH:MM"),
+    ]:
+        meta_ws.append([key, note])
+
+    data_ws = wb.create_sheet("data")
+    data_ws.append(section_cfg["required_data_columns"])
+
+    info = wb.create_sheet("README", 0)
+    info["A1"] = f"{section_cfg['label']} — upload template"
+    info["A2"] = (
+        "This file's meta sheet must be generated programmatically, not filled in by hand — "
+        "row_count and data_sha256_16 have to match the data sheet exactly or the upload is "
+        "rejected. Fill in the data sheet, then run your generator script to (re)write the meta "
+        "sheet from it before uploading."
+    )
+    out = TEMPLATES_DIR / "posb_silent.xlsx"
+    wb.save(out)
+    return out
+
+
 def generate_xlsx_template(name: str, section_cfg: dict):
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
@@ -63,6 +101,10 @@ def main():
     cfg = load_config()
     TEMPLATES_DIR.mkdir(exist_ok=True)
     for name, section_cfg in cfg["sections"].items():
+        if name == "posb_silent":
+            out = generate_posb_silent_template(section_cfg)
+            print(f"  Wrote {out.relative_to(BASE)}")
+            continue
         file_type = section_cfg.get("file_type", "xlsx")
         if file_type == "xlsx":
             out = generate_xlsx_template(name, section_cfg)

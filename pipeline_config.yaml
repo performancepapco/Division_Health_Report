@@ -199,6 +199,42 @@ sections:
       "RPLI Division Distribution": *pli_rpli_division_headers
       "RPLI Detail": *pli_rpli_detail_headers
 
+  posb_silent:
+    label: "BO Lookup — Silent Accounts"
+    canonical_filename: "BO_Lookup_Upload.xlsx"
+    file_type: xlsx
+    # Not month-range activity like posb/pli/rpli — every upload is a full
+    # stock snapshot (~10,600 offices) as of one point in time. Offices
+    # missing from a given month's upload keep their last known snapshot
+    # (see pipeline/sections/posb_silent.py merge_cumulative), so row count
+    # should stay close to the full office universe every month.
+    cumulative_mode: snapshot_merge
+    row_count_band: [0.9, 1.1]
+    # This file's own meta/data sheet shape (schema_version, checksum,
+    # as_of_month) doesn't fit the generic header-row validation every
+    # other section uses — see pipeline/sections/posb_silent.py validate()
+    # and generate_templates.py's special case for this section's template.
+    schema_version: "1"
+    meta_sheet: "meta"
+    data_sheet: "data"
+    required_data_columns:
+      - code
+      - office_id
+      - office_name
+      - office_type
+      - so_name
+      - sub_division
+      - division
+      - region
+      - silent_accounts
+      - sbbas_silent
+      - sbgen_silent
+      - live_accounts
+      - live_sb
+      - silent_ratio_pct
+      - fy_revival_approx
+      - revival_basis
+
   booking_productwise:
     label: "Booking — Product-wise"
     canonical_filename: "Booking_Productwise.csv"

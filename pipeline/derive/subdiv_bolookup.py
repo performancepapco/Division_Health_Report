@@ -119,6 +119,26 @@ def _distribute_ins_to_offices(cum: dict, name_to_oids: dict):
     return per_office, unmatched
 
 
+def _load_posb_silent_snapshot(months: list[str]) -> dict:
+    """posb_silent is a persistent snapshot (see pipeline/sections/
+    posb_silent.py), not per-month activity to sum like POSB/PLI/booking
+    above — so this just needs the latest month's already-merged
+    cumulative rows, keyed by BO Code/SOL ID (falling back to a synthetic
+    OID_<office_id> key for rows with no code)."""
+    for month in reversed(months):
+        section = _load_dataset_sections(month).get("posb_silent")
+        if section and section.get("cumulative"):
+            return section["cumulative"].get("rows", {})
+    return {}
+
+
+def _load_dataset_sections(month_iso: str) -> dict:
+    p = DATA_DIR / f"dataset_{month_iso}.json"
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text(encoding="utf-8")).get("sections", {})
+
+
 def _read_booking_cumulative(months: list[str]):
     cum = defaultdict(lambda: defaultdict(lambda: {"articles": 0, "amount": 0.0}))
     for month in months:
@@ -227,6 +247,36 @@ def build(cfg: dict, months: list[str] | None = None) -> dict:
     if extra:
         print(f"    NOTE: {extra} offices had POSB activity but aren't in the filtered master roster "
               f"(kept anyway, e.g. hierarchy drift)")
+
+    print("  Joining POSB Silent Accounts snapshot...")
+    silent_rows = _load_posb_silent_snapshot(months)
+    code_to_oid = {str(r["code"]): oid for oid, r in bo_lookup.items() if r.get("code")}
+    silent_matched, silent_unmatched = 0, []
+    for key, srec in silent_rows.items():
+        code_val = None if key.startswith("OID_") else key
+        oid = code_to_oid.get(code_val) if code_val else None
+        if oid is None and srec.get("office_id") in bo_lookup:
+            oid = srec["office_id"]
+        if oid is None:
+            silent_unmatched.append(key)
+            continue
+        bo_lookup[oid]["posb_silent"] = {
+            "as_of": srec["as_of"],
+            "silent_accounts": srec["silent_accounts"],
+            "sbbas_silent": srec["sbbas_silent"],
+            "sbgen_silent": srec["sbgen_silent"],
+            "live_accounts": srec["live_accounts"],
+            "live_sb": srec["live_sb"],
+            "silent_ratio_pct": srec["silent_ratio_pct"],
+            "fy_revival_approx": srec["fy_revival_approx"],
+            "revival_basis": srec["revival_basis"],
+            "fy_months": srec["fy_months"],
+        }
+        silent_matched += 1
+    if silent_rows:
+        print(f"    {silent_matched:,} offices matched"
+              + (f", {len(silent_unmatched)} upload rows had no matching office in BO_LOOKUP (logged, not created)"
+                 if silent_unmatched else ""))
 
     for key, v in pli_unmatched:
         div_s, _ = key

@@ -2713,6 +2713,76 @@ tr.hm-circle-row td {
   color: var(--ink-soft); margin: 18px 0 8px;
   padding-bottom: 5px; border-bottom: 1px solid var(--rule);
 }
+
+/* ---- Silent Accounts & Revival (posb_silent) ---- */
+.bolu-silent-section { margin: 2px 0 20px; }
+.bolu-silent-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-bottom: 14px;
+}
+.bolu-silent-cell {
+  border-radius: 10px; border: 1px solid var(--rule);
+  padding: 15px 18px; position: relative;
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+.bolu-silent-cell:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); z-index: 2; }
+.bolu-silent-cell .lbl {
+  font-family: var(--font-mono); font-size: 11.5px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  display: block; margin-bottom: 6px; opacity: 0.9;
+}
+.bolu-silent-cell .val {
+  font-family: var(--font-serif); font-size: 29px; font-weight: 600;
+  line-height: 1; letter-spacing: -0.02em;
+  font-variation-settings: "opsz" 32;
+}
+.bolu-silent-cell .cap {
+  font-family: var(--font-mono); font-size: 11.5px;
+  margin-top: 6px; letter-spacing: 0.02em; opacity: 0.85;
+}
+.bolu-silent-cell.tone-green { background: var(--green-pale); border-color: oklch(0.50 0.10 155 / 0.32); }
+.bolu-silent-cell.tone-green .lbl, .bolu-silent-cell.tone-green .val { color: oklch(0.34 0.10 155); }
+.bolu-silent-cell.tone-amber { background: var(--amber-pale); border-color: oklch(0.55 0.12 75 / 0.32); }
+.bolu-silent-cell.tone-amber .lbl, .bolu-silent-cell.tone-amber .val { color: oklch(0.38 0.12 75); }
+.bolu-silent-cell.tone-red { background: var(--red-pale); border-color: oklch(0.48 0.14 25 / 0.32); }
+.bolu-silent-cell.tone-red .lbl, .bolu-silent-cell.tone-red .val { color: oklch(0.36 0.13 25); }
+.bolu-silent-cell.tone-blue { background: var(--blue-pale); border-color: oklch(0.46 0.10 245 / 0.32); }
+.bolu-silent-cell.tone-blue .lbl, .bolu-silent-cell.tone-blue .val { color: oklch(0.32 0.10 245); }
+.bolu-silent-cell.tone-gold { background: var(--accent-pale); border-color: oklch(0.62 0.135 55 / 0.4); }
+.bolu-silent-cell.tone-gold .lbl, .bolu-silent-cell.tone-gold .val { color: var(--accent-deep); }
+
+.bolu-silent-chips { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.bolu-silent-chip {
+  font-family: var(--font-mono); font-size: 11px;
+  padding: 3px 10px; border-radius: 999px;
+  background: var(--paper); border: 1px solid var(--rule-strong);
+  color: var(--ink-soft); letter-spacing: 0.03em; white-space: nowrap;
+}
+.bolu-silent-chip.chip-gen {
+  font-weight: 700; color: var(--accent-deep);
+  border-color: var(--accent-deep); background: var(--accent-pale);
+}
+
+.bolu-silent-ratiobar { margin: 2px 0 14px; }
+.bolu-silent-ratiobar .track {
+  display: flex; height: 14px; border-radius: 7px; overflow: hidden;
+  border: 1px solid var(--rule-strong); background: var(--paper-warm);
+}
+.bolu-silent-ratiobar .seg-live { background: var(--blue); opacity: 0.55; }
+.bolu-silent-ratiobar.tone-green .seg-silent { background: var(--green); }
+.bolu-silent-ratiobar.tone-amber .seg-silent { background: var(--amber); }
+.bolu-silent-ratiobar.tone-red .seg-silent { background: var(--red); }
+.bolu-silent-ratiobar .legend {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 11.5px;
+  color: var(--ink-soft); margin-top: 5px;
+}
+.bolu-silent-ratiobar .legend strong { color: var(--ink-strong); }
+
+.bolu-silent-asof {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--ink-faint); margin-top: 2px; text-align: right;
+}
 /* === END BO LOOKUP STYLES === */
 
 
@@ -2850,6 +2920,7 @@ tr.hm-circle-row td {
   .bolu-kpi-strip.cols-3, .bolu-kpi-strip.cols-4 {
     grid-template-columns: repeat(2, 1fr);
   }
+  .bolu-silent-cards { grid-template-columns: 1fr; }
   .three-col, .insights, .sd-grid { grid-template-columns: 1fr; }
   .month-compare { grid-template-columns: 1fr; }
   .colophon { grid-template-columns: 1fr; gap: 6px; text-align: center; }
@@ -4043,6 +4114,73 @@ function recomputeRanks() {
     return "₹" + Math.round(n).toLocaleString("en-IN");
   }
 
+  var MONTH_FULL = ["January","February","March","April","May","June",
+                     "July","August","September","October","November","December"];
+  function monthYearFull(iso) {
+    if (!iso) return "";
+    var parts = iso.split("-"), y = parts[0], m = +parts[1];
+    return (MONTH_FULL[m - 1] || "") + " " + y;
+  }
+  function silentTone(pct) {
+    if (pct > 75) return "red";
+    if (pct >= 50) return "amber";
+    return "green";
+  }
+
+  function buildSilentSection(r) {
+    var s = r.posb_silent;
+    if (!s) {
+      return '<div class="bolu-silent-section"><div class="bolu-empty">Silent account data not yet available.</div></div>';
+    }
+    var tone = silentTone(s.silent_ratio_pct);
+    var fyStartYear = (s.fy_months || "").split(",")[0].split("-")[0] || "";
+    var revivalCap = "Apr " + fyStartYear + " – " + monthYearFull(s.as_of);
+    var revivalLabel = "Total Revival (FY)" + (s.revival_basis === "delta-estimate" ? " (Approx.)" : "");
+    var livePct = Math.max(0, Math.min(100, 100 - s.silent_ratio_pct));
+
+    var cards =
+      '<div class="bolu-silent-cards">'
+      + '<div class="bolu-silent-cell tone-' + tone + '">'
+        + '<span class="lbl">Silent Accounts</span>'
+        + '<div class="val">' + fmtN(s.silent_accounts) + '</div>'
+        + '<div class="cap">' + s.silent_ratio_pct.toFixed(2) + '% of SB book</div>'
+        + '<div class="bolu-silent-chips">'
+          + '<span class="bolu-silent-chip chip-bas">Basic: ' + fmtN(s.sbbas_silent) + '</span>'
+          + '<span class="bolu-silent-chip chip-gen">General: ' + fmtN(s.sbgen_silent) + '</span>'
+        + '</div>'
+      + '</div>'
+      + '<div class="bolu-silent-cell tone-blue">'
+        + '<span class="lbl">Live Accounts</span>'
+        + '<div class="val">' + fmtN(s.live_accounts) + '</div>'
+        + '<div class="cap">of which ' + fmtN(s.live_sb) + ' savings</div>'
+      + '</div>'
+      + '<div class="bolu-silent-cell tone-gold">'
+        + '<span class="lbl">' + revivalLabel + '</span>'
+        + '<div class="val">' + fmtN(s.fy_revival_approx) + '</div>'
+        + '<div class="cap">' + revivalCap + '</div>'
+      + '</div>'
+      + '</div>';
+
+    var bar =
+      '<div class="bolu-silent-ratiobar tone-' + tone + '">'
+      + '<div class="track">'
+        + '<div class="seg-silent" style="width:' + s.silent_ratio_pct + '%"></div>'
+        + '<div class="seg-live" style="width:' + livePct + '%"></div>'
+      + '</div>'
+      + '<div class="legend">'
+        + '<span>Silent <strong>' + fmtN(s.silent_accounts) + '</strong> (' + s.silent_ratio_pct.toFixed(2) + '%)</span>'
+        + '<span>Live SB <strong>' + fmtN(s.live_sb) + '</strong> (' + (100 - s.silent_ratio_pct).toFixed(2) + '%)</span>'
+      + '</div>'
+      + '</div>';
+
+    var asOf = '<div class="bolu-silent-asof">As of ' + monthYearFull(s.as_of) + '</div>';
+
+    return '<div class="bolu-silent-section">'
+      + '<div class="bolu-section-h">Silent Accounts &amp; Revival</div>'
+      + cards + bar + asOf
+      + '</div>';
+  }
+
   function applyFilters() {
     var q = nrm(STATE.query);
     var reg = STATE.region, div = STATE.division;
@@ -4205,6 +4343,8 @@ function recomputeRanks() {
       + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Closed</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.closed)+'</div><div class="sub">In Apr–Jun 2026</div></div>'
       + '<div class="bolu-kpi-cell"><div class="lbl">Net Addition</div><div class="val '+netCls+'">'+(posb.net>0?'+':'')+fmtN(posb.net)+'</div><div class="sub">'+(nilPosb?'NIL':posb.net>0?'Positive ✓':posb.net<0?'Negative ✗':'Flat')+'</div></div>'
       + '</div>';
+
+    posbPane += buildSilentSection(r);
 
     // Scheme-wise breakdown — horizontal table (schemes as columns)
     var schemes = r.posb_schemes || {};

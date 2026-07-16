@@ -47,6 +47,7 @@ var SECTION_LABEL_TO_KEY = {
   'RPLI — Policy Distribution': 'rpli',
   'Booking — Product-wise': 'booking_productwise',
   'Booking — Book-type-wise (daily)': 'booking_booktypewise',
+  'BO Lookup — Silent Accounts': 'posb_silent',
 };
 
 var SECTION_CANONICAL_FILENAME = {
@@ -56,6 +57,7 @@ var SECTION_CANONICAL_FILENAME = {
   rpli: 'RPLI.xlsx',
   booking_productwise: 'Booking_Productwise.csv',
   booking_booktypewise: 'Booking_BookTypewise.csv',
+  posb_silent: 'BO_Lookup_Upload.xlsx',
 };
 
 // 'April 2026' -> '2026-04', one fiscal year (Apr-26..Mar-27) — matches

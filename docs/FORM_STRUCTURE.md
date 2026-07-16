@@ -30,12 +30,19 @@ One submission per section per month. If you need to correct a mistake,
 just submit again with the corrected file — the newest submission for
 that section+month replaces the previous one.
 
+Exception: **BO Lookup — Silent Accounts** is a snapshot file, not a
+correctable monthly report — resubmitting the same or an older
+Reporting Month for it is rejected outright (not silently replaced),
+since offices absent from a given month's file are meant to keep last
+month's figures untouched. A genuine correction needs an admin to
+re-process it manually from staging.
+
 Questions? Contact [your name/email here].
 ```
 
 **Template links:** the templates live in `/templates` in the GitHub repo,
 but the repo is private (from Phase 6 onward) and your ~5 uploaders likely
-don't have GitHub accounts. Simplest fix: copy the 6 files from
+don't have GitHub accounts. Simplest fix: copy the files from
 `/templates` into a small **read-only shared Drive folder** (e.g.
 `DHC Templates`, shared "Anyone with the link — Viewer") and link that
 folder here instead of GitHub. Re-copy the files there whenever
@@ -76,6 +83,7 @@ first).
   RPLI — Policy Distribution
   Booking — Product-wise
   Booking — Book-type-wise (daily)
+  BO Lookup — Silent Accounts
   ```
 
 ### Question 2: Reporting Month

@@ -53,7 +53,14 @@ _HEADLINE = {
     "booking": lambda d: ("Booking articles (circle, cumulative)",
                            (d.get("BOOKING_BY_MONTH", {}).get("Cumulative", {}).get("circle", {})
                             .get("totals", {}) or {}).get("articles")),
+    "posb_silent": lambda d: ("Silent accounts (circle, offices matched)", _posb_silent_headline(d)),
 }
+
+
+def _posb_silent_headline(d):
+    lookup = d.get("BO_LOOKUP") or {}
+    total = sum(r["posb_silent"]["silent_accounts"] for r in lookup.values() if r.get("posb_silent"))
+    return total or None
 
 
 def _posb_headline(d):
@@ -136,6 +143,14 @@ def main():
             all_errors += [{"section": "booking", "message": m} for m in msgs]
         else:
             built_sections.append("booking")
+
+    silent_path = downloaded.get("posb_silent")
+    if silent_path:
+        exit_code, msgs = build_dataset.run_posb_silent(args.month, silent_path)
+        if exit_code != 0:
+            all_errors += [{"section": "posb_silent", "message": m} for m in msgs]
+        else:
+            built_sections.append("posb_silent")
 
     summary_text = ""
     old_latest = None
