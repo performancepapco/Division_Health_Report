@@ -3567,12 +3567,19 @@ function getPeriodShort() {
   if (p[0] === p[1]) return _MONTH_SHORT[p[0]] || p[0];
   return (_MONTH_SHORT[p[0]] || p[0]) + '–' + (_MONTH_SHORT[p[1]] || p[1]);
 }
-function getPeriodEndRaw() {
-  return _periodPair()[1];
-}
 function getPeriodEndPretty() {
   var p = _periodPair();
   return _MONTH_NAME[p[1]] || p[1];
+}
+// "upto <month>" only reads correctly when the window starts at FY start
+// (Apr-26) — genuinely cumulative-to-date. Any other "From" isolates a
+// standalone window (e.g. "May to May" = May's own contribution, not
+// Apr+May combined), so label it "for <period>" instead to avoid implying
+// cumulative-since-FY-start figures it isn't showing.
+function getPeriodPhrase() {
+  var p = _periodPair();
+  if (p[0] === 'Apr-26') return 'upto ' + getPeriodEndPretty();
+  return 'for ' + getPeriodLabel();
 }
 let CUR_DIV_NAME = '__CIRCLE__';
 
@@ -4631,7 +4638,6 @@ function renderDivisionTargetSummary(d) {
   const totalAch = d.actuals.Total;
   const pctProp = totalProRata > 0 ? totalAch / totalProRata * 100 : 0;
   const pctTotal = totalTarget > 0 ? totalAch / totalTarget * 100 : 0;
-  const endMonth = getPeriodEndRaw();
   el.style.display = '';
   el.innerHTML = `
     <div class="kpi">
@@ -4642,13 +4648,13 @@ function renderDivisionTargetSummary(d) {
     </div>
     <div class="kpi">
       <div>
-        <div class="kpi-label">Prop. Target upto ${endMonth}</div>
+        <div class="kpi-label">Prop. Target ${getPeriodPhrase()}</div>
         <div class="kpi-value">₹${fmt(totalProRata,2)}<span class="unit"> Cr</span></div>
       </div>
     </div>
     <div class="kpi">
       <div>
-        <div class="kpi-label">Achievement upto ${endMonth}</div>
+        <div class="kpi-label">Achievement ${getPeriodPhrase()}</div>
         <div class="kpi-value">₹${fmt(totalAch,2)}<span class="unit"> Cr</span></div>
       </div>
     </div>
@@ -4755,7 +4761,6 @@ function renderAggregateOnly(d, members, aggType) {
     const totalAch = d.actuals.Total;
     const pctProp = totalProRata > 0 ? totalAch / totalProRata * 100 : 0;
     const pctTotal = totalTarget > 0 ? totalAch / totalTarget * 100 : 0;
-    const endMonth = getPeriodEndRaw();
     document.getElementById('agg-circle-summary').innerHTML = `
       <div class="kpi">
         <div>
@@ -4765,13 +4770,13 @@ function renderAggregateOnly(d, members, aggType) {
       </div>
       <div class="kpi">
         <div>
-          <div class="kpi-label">Prop. Target upto ${endMonth}</div>
+          <div class="kpi-label">Prop. Target ${getPeriodPhrase()}</div>
           <div class="kpi-value">₹${fmt(totalProRata,2)}<span class="unit"> Cr</span></div>
         </div>
       </div>
       <div class="kpi">
         <div>
-          <div class="kpi-label">Achievement upto ${endMonth}</div>
+          <div class="kpi-label">Achievement ${getPeriodPhrase()}</div>
           <div class="kpi-value">₹${fmt(totalAch,2)}<span class="unit"> Cr</span></div>
         </div>
       </div>
@@ -5191,7 +5196,7 @@ function renderHeatmap(members) {
   HM_LAST_MEMBERS = members;
 
   const titleEl = document.getElementById('heatmap-title');
-  if (titleEl) titleEl.textContent = `Division-wise Achievement — FY 2026-27 (up to ${getPeriodEndRaw()})`;
+  if (titleEl) titleEl.textContent = `Division-wise Achievement — FY 2026-27 (${getPeriodPhrase()})`;
 
   renderHmLegend();
   renderHmToggle();
@@ -5431,7 +5436,7 @@ function renderOverview(d) {
   // % Proportionate Achievement (actual revenue / pro-rata target × 100)
   const cs = d.composite_score;
   if (isCircle) {
-    document.getElementById('ov-composite-label').textContent = `% Prop. Ach. upto ${getPeriodEndPretty()} for FY 2026-27`;
+    document.getElementById('ov-composite-label').textContent = `% Prop. Ach. ${getPeriodPhrase()}`;
     document.getElementById('ov-composite').innerHTML = `<span class="hl-pct">${Math.ceil(cs)}</span><span class="unit">%</span>`;
     document.getElementById('ov-composite-sub').innerHTML =
       `Target: ₹${fmt(d.targets.Total,2)} Cr<br>Prop. Target: ₹${fmt(d.pro_rata.Total,2)} Cr`;
@@ -5516,8 +5521,8 @@ function renderOverview(d) {
         </div>
         <div class="target" style="font-size:10.5px; line-height:1.7;">
           Target for FY 2026-27: <strong>₹${fmt(d.targets[v],2)} Cr</strong><br>
-          Prop. Target up to ${getPeriodEndRaw()}: <strong>₹${fmt(pro,2)} Cr</strong><br>
-          Achievement upto ${getPeriodEndRaw()}: <strong>₹${fmt(ach,2)} Cr</strong><br>
+          Prop. Target ${getPeriodPhrase()}: <strong>₹${fmt(pro,2)} Cr</strong><br>
+          Achievement ${getPeriodPhrase()}: <strong>₹${fmt(ach,2)} Cr</strong><br>
           Yet to be achieved: <strong>₹${fmt(d.targets[v] - ach, 2)} Cr</strong>
         </div>
         ${v === 'POSB' ? '<div class="achieved"><em>*front-loaded</em></div>' : ''}
@@ -5577,7 +5582,7 @@ function renderVerticals(d) {
       <th>Vertical</th>
       <th>FY 2026-27 Target<br>(₹ Cr)</th>
       <th>Target · ${getPeriodMonths()}/12<br>(₹ Cr)</th>
-      <th>Ach. upto ${getPeriodLabel()}<br>(₹ Cr)</th>
+      <th>Ach. ${getPeriodPhrase()}<br>(₹ Cr)</th>
       <th>% of Target</th>
       <th>% of Annual</th>
     </tr></thead><tbody>`;
