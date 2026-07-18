@@ -1286,7 +1286,7 @@ tr.hm-circle-row td {
 /* Distribution */
 .dist-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--dist-cols, 3), 1fr);
   gap: 1px;
   background: var(--rule);
   border: 1px solid var(--rule);
@@ -3165,16 +3165,6 @@ tr.hm-circle-row td {
   </div>
   <div class="lights" id="ov-lights"></div>
 
-  <!-- AGGREGATE ONLY: Division ranking -->
-  <div class="agg-only" id="agg-ranking-section">
-    <div class="section-head">
-      <h2>Division ranking · proportionate achievement</h2>
-      <span class="desc">Sorted highest to lowest<br>Bar = % of pro-rata target</span>
-    </div>
-    <div class="div-rank-legend" id="div-rank-legend" style="display:none;"></div>
-    <div class="div-rank" id="agg-div-rank"></div>
-  </div>
-
   <!-- AGGREGATE ONLY (CIRCLE ONLY): Division-wise Achievement heatmap -->
   <div class="agg-only" id="agg-heatmap-section" style="display:none;">
     <div class="section-head">
@@ -3196,11 +3186,21 @@ tr.hm-circle-row td {
     <div class="hm-footnote" id="heatmap-footnote">Prop. Target = Annual Target &times; (months elapsed in FY &divide; 12). Rank = position by % Proportionate Achievement on Total Revenue; ties use standard competition ranking (1, 2, 2, 4).</div>
   </div>
 
+  <!-- AGGREGATE ONLY: Division ranking -->
+  <div class="agg-only" id="agg-ranking-section">
+    <div class="section-head">
+      <h2>Division ranking · proportionate achievement</h2>
+      <span class="desc">Sorted highest to lowest<br>Bar = % of pro-rata target</span>
+    </div>
+    <div class="div-rank-legend" id="div-rank-legend" style="display:none;"></div>
+    <div class="div-rank" id="agg-div-rank"></div>
+  </div>
+
   <!-- AGGREGATE ONLY: Distribution of divisions -->
   <div class="agg-only">
     <div class="section-head">
       <h2>Performance distribution</h2>
-      <span class="desc">How divisions cluster<br>by % proportionate achievement</span>
+      <span class="desc">Divisions split above / below<br>the average % Prop. Achievement</span>
     </div>
     <div class="dist-grid" id="agg-distribution"></div>
   </div>
@@ -4722,10 +4722,11 @@ function renderAggregateOnly(d, members, aggType) {
       </div>`;
   }).join('');
 
-  const greens = divs.filter(x => x.composite >= 90);
-  const ambers = divs.filter(x => x.composite >= 60 && x.composite < 90);
-  const reds   = divs.filter(x => x.composite < 60);
+  const avgComposite = divs.reduce((s, x) => s + x.composite, 0) / (divs.length || 1);
+  const aboveAvg = divs.filter(x => x.composite >= avgComposite);
+  const belowAvg = divs.filter(x => x.composite < avgComposite);
   const distEl = document.getElementById('agg-distribution');
+  distEl.style.setProperty('--dist-cols', '2');
   const fmtList = (arr) => {
     if (!arr.length) return '<div style="color:var(--ink-soft); font-style:italic;">None</div>';
     const head = arr.slice(0, 6).map(x => `<div>${x.name} <em>${fmt(x.composite,1)}%</em></div>`).join('');
@@ -4737,22 +4738,16 @@ function renderAggregateOnly(d, members, aggType) {
   };
   distEl.innerHTML = `
     <div class="dist-card green">
-      <div class="d-label">On / above target</div>
-      <div class="d-count">${greens.length}</div>
-      <div class="d-sub">divisions \u2265 90% of pro-rata</div>
-      <div class="d-list">${fmtList(greens)}</div>
-    </div>
-    <div class="dist-card amber">
-      <div class="d-label">Watch zone</div>
-      <div class="d-count">${ambers.length}</div>
-      <div class="d-sub">divisions 60\u201389% of pro-rata</div>
-      <div class="d-list">${fmtList(ambers)}</div>
+      <div class="d-label">Above average</div>
+      <div class="d-count">${aboveAvg.length}</div>
+      <div class="d-sub">divisions \u2265 ${fmt(avgComposite,1)}% avg % Prop. Ach.</div>
+      <div class="d-list">${fmtList(aboveAvg)}</div>
     </div>
     <div class="dist-card red">
-      <div class="d-label">Action required</div>
-      <div class="d-count">${reds.length}</div>
-      <div class="d-sub">divisions &lt; 60% of pro-rata</div>
-      <div class="d-list">${fmtList(reds)}</div>
+      <div class="d-label">Below average</div>
+      <div class="d-count">${belowAvg.length}</div>
+      <div class="d-sub">divisions &lt; ${fmt(avgComposite,1)}% avg % Prop. Ach.</div>
+      <div class="d-list">${fmtList(belowAvg)}</div>
     </div>`;
 
   if (aggType === 'circle') {
