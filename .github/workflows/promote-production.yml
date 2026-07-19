@@ -38,6 +38,8 @@ jobs:
           mkdir -p dist/data
           cp index.html dist/
           cp data/latest.json dist/data/
+          cp data/trends.json dist/data/
+          cp data/flags.json dist/data/
 
       - name: Deploy to production
         env:

@@ -20,7 +20,8 @@ from pathlib import Path
 from pipeline.config import load_config
 from pipeline.common import iso_to_label
 from pipeline.sections import booking as booking_mod
-from pipeline.derive import subdiv_bolookup, office_status, subdiv_booking, pli_rpli_cum
+from pipeline.derive import subdiv_bolookup, office_status, subdiv_booking, pli_rpli_cum, trends as trends_mod
+import pipeline.flag_rules as flag_rules_mod
 
 BASE = Path(__file__).parent
 DATA_DIR = BASE / "data"
@@ -75,17 +76,16 @@ def _assemble_booking_by_month(months: list[str]) -> dict:
 
 
 def _assemble_ecr_by_month(months: list[str]) -> dict:
-    """For patching DATA_BY_MONTH in the JS loader. April stays static
-    (hand-authored OFFICE_ENTRIES/targets, a closed month that won't be
-    reuploaded) — the loader itself skips 'Apr-26' when applying these,
-    so it's harmless (but wasteful) to include it here too; kept out for
-    clarity about what's actually "live" data."""
+    """Includes every month that has an ecr section — Apr-26 included now
+    that migrate_ecr_targets.py retrofitted a real ecr section into
+    dataset_2026-04.json. The JS loader's applyEcrMonth() still explicitly
+    skips idx<=0 (Apr-26) when applying these, so including it here is
+    harmless."""
     out = {}
     for month in months:
         ecr = _standalone(_load_dataset(month), "ecr")
-        label = iso_to_label(month)
-        if ecr and label != "Apr-26":
-            out[label] = ecr["divisions"]
+        if ecr:
+            out[iso_to_label(month)] = ecr["divisions"]
     return out
 
 
@@ -144,12 +144,30 @@ def assemble() -> dict:
     }
 
 
+def write_json(path: Path, data) -> None:
+    path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+
+def build_trends_and_flags(cfg: dict, months: list[str]) -> tuple[dict, dict]:
+    print("TRENDS_JSON (FY-target pro-rata attainment)...")
+    trends = trends_mod.build(cfg, months)
+    print("FLAGS_JSON (below-avg watch list)...")
+    flags = flag_rules_mod.build_flags(trends)
+    return trends, flags
+
+
 def main():
     result = assemble()
     DATA_DIR.mkdir(exist_ok=True)
     out_path = DATA_DIR / "latest.json"
-    out_path.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    write_json(out_path, result)
     print(f"\nWrote {out_path} ({out_path.stat().st_size:,} bytes)")
+
+    cfg = load_config()
+    trends, flags = build_trends_and_flags(cfg, result["generated_from_months"])
+    write_json(DATA_DIR / "trends.json", trends)
+    write_json(DATA_DIR / "flags.json", flags)
+    print(f"Wrote data/trends.json, data/flags.json ({len(flags['flags'])} flag(s))")
 
 
 if __name__ == "__main__":

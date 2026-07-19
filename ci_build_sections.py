@@ -170,8 +170,14 @@ def main():
         print("Running assemble.py...")
         result = assemble_mod.assemble()
         DATA_DIR.mkdir(exist_ok=True)
-        latest_path.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        assemble_mod.write_json(latest_path, result)
         print(f"  Wrote {latest_path} ({latest_path.stat().st_size:,} bytes)")
+
+        trends, flags = assemble_mod.build_trends_and_flags(cfg, result["generated_from_months"])
+        assemble_mod.write_json(DATA_DIR / "trends.json", trends)
+        assemble_mod.write_json(DATA_DIR / "flags.json", flags)
+        print(f"  Wrote data/trends.json, data/flags.json ({len(flags['flags'])} flag(s))")
+
         summary_text = build_summary_markdown(args.month, built_sections, result, old_latest)
     else:
         summary_text = (f"## Data pipeline — {args.month}\n\n"
