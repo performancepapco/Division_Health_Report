@@ -105,6 +105,7 @@ jobs:
           cp data/latest.json dist/data/
           cp data/trends.json dist/data/
           cp data/flags.json dist/data/
+          cp data/premium_target.json dist/data/
 
       - name: Deploy to staging
         if: success()
