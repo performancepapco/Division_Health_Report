@@ -315,6 +315,34 @@ body {
 .pli-rpli-toggle button:last-child { border-radius: 0 3px 3px 0; border-left: 0; }
 .pli-rpli-toggle button.active { background: var(--accent); color: var(--paper); border-color: var(--accent); }
 
+/* ============ VERTICAL WISE ANALYSIS SUB-TABS ============ */
+/* Persistent strip (Attainment + 6 verticals), visible on every sub-page —
+   distinct from the top-level .tabs (bolder, uppercase, underline-style)
+   so it reads as second-tier navigation, not a duplicate of the main nav. */
+.verticals-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+.verticals-subtabs a {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 8px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  background: var(--paper);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.verticals-subtabs a:hover { color: var(--ink-strong); border-color: var(--rule-strong); background: var(--paper-warm); }
+.verticals-subtabs a.active { background: var(--ink-strong); color: var(--paper); border-color: var(--ink-strong); font-weight: 600; }
+
 /* ============ SECTION HEAD ============ */
 .section-head {
   display: flex;
@@ -3643,6 +3671,21 @@ actual_revenue   = sum of actual revenue earned in the selected period
 <!-- ===== VERTICAL WISE ANALYSIS ROUTE ===== -->
 <div id="route-verticals" class="tab-content">
 
+  <!-- Persistent sub-tab strip — stays visible across every vertical
+       sub-page so switching verticals doesn't require going back to a
+       landing page first. "Attainment" is the six-vertical comparison
+       (formerly the only thing on #verticals). Order matches HM_VERTICALS'
+       established Mail Ops/Parcel/IR&GB/CCS/POSB/PLI-RPLI convention. -->
+  <div class="verticals-subtabs" id="verticals-subtabs">
+    <a href="#verticals" data-route="">Attainment</a>
+    <a href="#verticals/mail-ops" data-route="mail-ops">Mail Operations</a>
+    <a href="#verticals/parcel" data-route="parcel">Parcel</a>
+    <a href="#verticals/irgb" data-route="irgb">IR &amp; GB</a>
+    <a href="#verticals/ccs" data-route="ccs">CCS</a>
+    <a href="#verticals/posb" data-route="posb">POSB</a>
+    <a href="#verticals/pli-rpli" data-route="pli-rpli">PLI/RPLI</a>
+  </div>
+
   <div id="verticals-landing" class="vert-subpage active">
     <div class="section-head">
       <h2>Six-vertical attainment vs FY 2026-27 target</h2>
@@ -5019,6 +5062,9 @@ function router() {
     var subEl = document.getElementById(subId);
     if (subEl) subEl.classList.add('active');
     if (r.sub === 'pli-rpli') setPliRpliProduct(r.query.get('product') === 'rpli' ? 'rpli' : 'pli');
+    document.querySelectorAll('.verticals-subtabs a').forEach(function(el) {
+      el.classList.toggle('active', el.dataset.route === r.sub);
+    });
   } else if (top === 'drilldown') {
     initSubdivTab();
     var div = r.query.get('div'), vertical = r.query.get('vertical');
