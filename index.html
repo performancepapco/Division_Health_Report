@@ -4311,6 +4311,7 @@ function onMonthChange() {
   }
   refreshActiveData();
   renderDivision(CUR_DIV_NAME);
+  if (typeof renderAllVerticalBands === 'function') renderAllVerticalBands();
 }
 
 
@@ -6198,8 +6199,7 @@ function vbMonthLabel(iso) {
 
 function vbBuildKpiRow(verticalKey) {
   var v = TRENDS_DATA.circle.verticals[verticalKey] || { fy_target: 0, monthly: [] };
-  var monthly = v.monthly || [];
-  var last = monthly[monthly.length - 1] || { prorata_target: 0, achievement: 0, pct_prorata: 0 };
+  var last = vbMonthlyForPeriod(v.monthly, vbCurrentPeriod());
   return '<div class="kpi-row cols-4">' +
     '<div class="kpi"><div class="kpi-label">FY 2026-27 Target</div><div class="kpi-value">₹' + fmt(v.fy_target, 2) + ' <span class="unit">Cr</span></div></div>' +
     '<div class="kpi"><div class="kpi-label">Pro-rata Target</div><div class="kpi-value">₹' + fmt(last.prorata_target, 2) + ' <span class="unit">Cr</span></div></div>' +
@@ -6224,7 +6224,7 @@ function vbSetChartMode(verticalKey, mode) {
 
 function vbBuildChartSection(verticalKey) {
   var v = TRENDS_DATA.circle.verticals[verticalKey] || { monthly: [] };
-  var months = v.monthly || [];
+  var months = vbMonthlyInRange(v.monthly, vbCurrentPeriod());
   var mode = vbChartMode(verticalKey);
   return '<div class="vb-chart-section">' +
     '<div class="hm-toggle" role="group" aria-label="Chart mode">' +
@@ -6328,7 +6328,79 @@ function vbBuildBarsChartSvg(monthly) {
 function vbBuildProvenance() {
   var m = TRENDS_DATA.meta || {};
   if (!m.data_as_on) return '';
-  return '<div class="vb-provenance">Data as on ' + m.data_as_on + ' &middot; Source: ' + (m.source || 'CEPT MIS / PFMS') + '</div>';
+  var period = vbCurrentPeriod();
+  var periodNote = period.toLabel
+    ? ' &middot; Showing ' + (period.single ? period.toLabel : period.fromLabel + '–' + period.toLabel) +
+      (period.clamped ? ' (latest data available is ' + period.toLabel + ')' : '')
+    : '';
+  return '<div class="vb-provenance">Data as on ' + m.data_as_on + ' &middot; Source: ' + (m.source || 'CEPT MIS / PFMS') + periodNote + '</div>';
+}
+
+// ============ VERTICAL WISE ANALYSIS x TOP MONTH SELECTOR ============
+// trends.json's per-month "achievement" is cumulative-since-FY-start (same
+// characteristic as the legacy DATA_BY_MONTH the rest of the site already
+// keys off — see ecr.py's own docstring). So this mirrors the site's
+// existing two-case convention (deriveMonthSnapshot/getViewData) rather
+// than inventing new period semantics: a range (from != to) reads the
+// cumulative-to-`to` entry directly; a single month (from === to) isolates
+// that month's own standalone contribution by differencing against the
+// previous month's cumulative entry.
+const VB_MONTH_ISO = {
+  'Apr-26': '2026-04', 'May-26': '2026-05', 'Jun-26': '2026-06', 'Jul-26': '2026-07',
+  'Aug-26': '2026-08', 'Sep-26': '2026-09', 'Oct-26': '2026-10', 'Nov-26': '2026-11',
+  'Dec-26': '2026-12', 'Jan-27': '2027-01', 'Feb-27': '2027-02', 'Mar-27': '2027-03',
+};
+
+// Resolves the top FROM/TO selector to trends.json's ISO months, clamping
+// to the latest month trends.json actually has data for when the selector
+// reaches into a future month no upload has covered yet (the selector's
+// range runs the whole FY; trends.json only ever has data through the last
+// upload) — same fallback idea as the legacy deriveMonthSnapshot().
+function vbCurrentPeriod() {
+  var fromLabel = (document.getElementById('month-from') || {}).value || 'Apr-26';
+  var toLabel = (document.getElementById('month-to') || {}).value || fromLabel;
+  var months = (TRENDS_DATA.meta && TRENDS_DATA.meta.months) || [];
+  if (!months.length) return { fromLabel: fromLabel, toLabel: null, fromIso: null, toIso: null, single: fromLabel === toLabel, clamped: false };
+  var toIso = VB_MONTH_ISO[toLabel];
+  var clamped = false;
+  if (!toIso || months.indexOf(toIso) === -1) { toIso = months[months.length - 1]; clamped = true; }
+  var fromIso = VB_MONTH_ISO[fromLabel];
+  if (!fromIso || months.indexOf(fromIso) === -1) fromIso = months[0];
+  // Re-derive the display labels from the (possibly clamped) ISO months so
+  // "Showing ..." never claims a month trends.json doesn't actually have.
+  var isoToLabel = {};
+  Object.keys(VB_MONTH_ISO).forEach(function(lbl) { isoToLabel[VB_MONTH_ISO[lbl]] = lbl; });
+  return {
+    fromLabel: isoToLabel[fromIso] || fromLabel, toLabel: isoToLabel[toIso] || toLabel,
+    fromIso: fromIso, toIso: toIso,
+    single: fromIso === toIso, clamped: clamped,
+  };
+}
+
+function vbMonthlyForPeriod(monthlyArr, period) {
+  var byMonth = {};
+  (monthlyArr || []).forEach(function(m) { byMonth[m.month] = m; });
+  var toEntry = byMonth[period.toIso];
+  if (!toEntry) return { prorata_target: 0, achievement: 0, pct_prorata: 0 };
+  var fyMonths = (TRENDS_DATA.meta && TRENDS_DATA.meta.months) || [];
+  if (!period.single || period.toIso === fyMonths[0]) return toEntry;
+  var idx = fyMonths.indexOf(period.toIso);
+  var prevEntry = idx > 0 ? byMonth[fyMonths[idx - 1]] : null;
+  if (!prevEntry) return toEntry;
+  var achievement = toEntry.achievement - prevEntry.achievement;
+  var prorata_target = toEntry.prorata_target - prevEntry.prorata_target;
+  return {
+    month: period.toIso, achievement: achievement, prorata_target: prorata_target,
+    pct_prorata: prorata_target > 0 ? (achievement / prorata_target * 100) : 0,
+  };
+}
+
+// Months within the selected [from, to] window, for the trend chart —
+// narrows what's plotted when the user picks a sub-range instead of always
+// showing the full FY-to-date trend.
+function vbMonthlyInRange(monthlyArr, period) {
+  if (!period.fromIso) return monthlyArr || [];
+  return (monthlyArr || []).filter(function(m) { return m.month >= period.fromIso && m.month <= period.toIso; });
 }
 
 // ---- Division ranking: fed only by TRENDS_DATA.divisions + FLAGS_DATA.
@@ -6340,13 +6412,14 @@ function vbDivRows(verticalKey) {
   var divisions = TRENDS_DATA.divisions || {};
   var flagsByDiv = {};
   (FLAGS_DATA.flags || []).forEach(function(f) { if (f.vertical === verticalKey) flagsByDiv[f.division] = f; });
+  var period = vbCurrentPeriod();
 
   var rows = Object.keys(divisions).map(function(slug) {
     var dv = divisions[slug];
     var v = (dv.verticals || {})[verticalKey];
     if (!v) return null;
     var monthly = v.monthly || [];
-    var last = monthly[monthly.length - 1] || {};
+    var last = vbMonthlyForPeriod(monthly, period);
     var flag = flagsByDiv[slug];
     return {
       slug: slug, name: dv.name, region: dv.region,
@@ -6355,7 +6428,11 @@ function vbDivRows(verticalKey) {
       achievement: last.achievement || 0,
       pct_prorata: last.pct_prorata || 0,
       monthly: monthly,
-      streak: flag ? (flag.streak_months_below_avg || 0) : 0,
+      // FLAGS_DATA is only ever computed against the latest month on
+      // record — a streak badge shown while browsing an earlier month is
+      // describing "as of latest", not "as of the month you're viewing".
+      streak: (period.toIso === (TRENDS_DATA.meta.months || [])[(TRENDS_DATA.meta.months || []).length - 1] && flag)
+        ? (flag.streak_months_below_avg || 0) : 0,
     };
   }).filter(Boolean);
 
@@ -6475,24 +6552,40 @@ function vbTrafficDivRows(verticalKey) {
   var segs = VB_TRAFFIC_PRODUCTS[verticalKey] || [];
   var wanted = {};
   segs.forEach(function(s) { s.match.forEach(function(m) { wanted[m] = true; }); });
-  var pack = (typeof BOOKING_BY_MONTH !== 'undefined') ? BOOKING_BY_MONTH['Cumulative'] : null;
-  var byDiv = (pack && pack.by_div) || {};
+  var period = vbCurrentPeriod();
   var divisions = TRENDS_DATA.divisions || {};
+
+  // booking.py's per-month packs are NOT cumulative like ECR (each is that
+  // month's own standalone activity), so a range genuinely needs summing
+  // across the selected months here, rather than just reading the endpoint
+  // the way vbMonthlyForPeriod does for ECR-derived figures.
+  var packsInRange = [];
+  if (typeof BOOKING_BY_MONTH !== 'undefined') {
+    var fi = MONTH_ORDER.indexOf(period.fromLabel), ti = MONTH_ORDER.indexOf(period.toLabel);
+    if (fi !== -1 && ti !== -1) {
+      for (var i = fi; i <= ti; i++) {
+        var pack = BOOKING_BY_MONTH[MONTH_ORDER[i]];
+        if (pack) packsInRange.push(pack);
+      }
+    }
+    if (!packsInRange.length && BOOKING_BY_MONTH['Cumulative']) packsInRange.push(BOOKING_BY_MONTH['Cumulative']);
+  }
 
   var rows = Object.keys(divisions).map(function(slug) {
     var dv = divisions[slug];
-    var bd = byDiv[dv.name];
     var articles = 0, bookingCr = 0;
-    if (bd && bd.products) {
+    packsInRange.forEach(function(pack) {
+      var bd = (pack.by_div || {})[dv.name];
+      if (!bd || !bd.products) return;
       bd.products.forEach(function(p) {
         if (wanted[p.name]) { articles += p.articles || 0; bookingCr += p.business_cr || 0; }
       });
-    }
+    });
     var monthly = ((dv.verticals || {})[verticalKey] || {}).monthly || [];
-    var lastEcr = monthly[monthly.length - 1] || {};
+    var ecr = vbMonthlyForPeriod(monthly, period);
     return {
       slug: slug, name: dv.name, region: dv.region,
-      articles: articles, bookingCr: bookingCr, actualCr: lastEcr.achievement || 0,
+      articles: articles, bookingCr: bookingCr, actualCr: ecr.achievement || 0,
     };
   });
 
@@ -6585,7 +6678,10 @@ function vbBuildPremiumSection() {
     '<button type="button" class="hm-toggle-btn ' + (basis === 'nbp' ? 'active' : '') + '" onclick="vbSetPremiumBasis(\'nbp\')">New Business Premium</button>' +
     '<button type="button" class="hm-toggle-btn ' + (basis === 'tb' ? 'active' : '') + '" onclick="vbSetPremiumBasis(\'tb\')">Total Business Premium</button>' +
   '</div>';
-  var provenance = dataAsOn ? '<div class="vb-provenance">Data as on ' + dataAsOn + ' &middot; Source: ' + (PREMIUM_TARGET_DATA.meta.source || 'manual upload') + '</div>' : '';
+  var provenance = dataAsOn
+    ? '<div class="vb-provenance">Data as on ' + dataAsOn + ' &middot; Source: ' + (PREMIUM_TARGET_DATA.meta.source || 'manual upload') +
+      ' &middot; Fixed snapshot, not linked to the month selector above</div>'
+    : '';
   return '<div class="vb-premium-section">' +
     toggle + provenance +
     vbBuildPremiumProduct('pli', 'PLI') +
@@ -6635,7 +6731,7 @@ function vbBuildPosbSilentSection() {
   var tb5Rows = rows.map(function(r) {
     return { rank: r.rank, name: r.name, region: r.region, value: r.revivalRate, valueFmt: fmtInt(r.silent) + ' silent' };
   });
-  var note = '<div class="tb5-avg-note">Ranked by FY revival rate (revived &divide; silent accounts, approximate). See BO Lookup for office-level detail.</div>';
+  var note = '<div class="tb5-avg-note">Ranked by FY revival rate (revived &divide; silent accounts, approximate) &middot; fixed snapshot as of 2026-06, not linked to the month selector above. See BO Lookup for office-level detail.</div>';
   return note + vbBuildTopBottomCards(tb5Rows, { subLabel: '% revived this FY' });
 }
 
