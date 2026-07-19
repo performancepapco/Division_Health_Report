@@ -1788,6 +1788,46 @@ tr.hm-circle-row td {
   .vert-subpage:first-of-type { page-break-before: avoid; }
 }
 
+/* My Division one-page handout — overrides the generic "print every tab"
+   block above when active. #md-handout is made the only visible content via
+   a visibility catch-all (robust against chrome outside .tab-content, e.g.
+   the top nav), while .tab-content/.vert-subpage get display:none (not just
+   hidden) so the generic block's forced page-break-before doesn't still
+   burn blank pages for sections nobody asked to print. Toggled by
+   mdPrint()/afterprint, not a persistent style. */
+@media print {
+  body.printing-handout .tab-content,
+  body.printing-handout .vert-subpage,
+  body.printing-handout .pli-rpli-pane {
+    display: none !important;
+  }
+  body.printing-handout #tab-my-division { display: block !important; }
+  body.printing-handout * { visibility: hidden; }
+  body.printing-handout #md-handout,
+  body.printing-handout #md-handout * { visibility: visible; }
+  body.printing-handout #md-handout {
+    display: block !important;
+    position: absolute;
+    top: 0; left: 0; width: 100%;
+    margin: 0; padding: 0;
+    page-break-before: avoid !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  body.printing-handout .md-div-name { font-size: 20px; }
+  body.printing-handout .section-head .desc { display: none; }
+  body.printing-handout .md-vcard-grid,
+  body.printing-handout .md-vcard,
+  body.printing-handout .vb-flag-panel,
+  body.printing-handout .md-todo {
+    page-break-inside: avoid;
+  }
+  body.printing-handout .md-vcard { padding: 8px 10px; }
+  body.printing-handout .md-vcard-value { font-size: 20px; }
+  body.printing-handout .vb-flag-card { padding: 6px 10px; font-size: 11.5px; }
+  @page { size: A4 portrait; margin: 12mm; }
+}
+
 /* ============ ECR DIVISION CHART ============ */
 .ecr-chart-wrap {
   margin-top: 18px;
@@ -1884,6 +1924,237 @@ tr.hm-circle-row td {
   font-size: 10px;
   font-weight: 600;
   font-feature-settings: "tnum";
+}
+
+/* ============ VERTICAL DETAIL BAND (Phase 3) ============ */
+.vert-band { padding-bottom: 26px; margin-bottom: 26px; border-bottom: 2px solid var(--rule-strong); }
+.vb-provenance {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+}
+.kpi-value.green { color: var(--green); }
+.kpi-value.amber { color: var(--amber); }
+.kpi-value.red   { color: var(--red); }
+
+.vb-chart-wrap { margin-top: 14px; border: 1px solid var(--rule); background: var(--paper); padding: 18px 16px 10px; }
+.vb-svg { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+.vb-svg .axis-label { fill: var(--ink-soft); font-size: 11px; font-feature-settings: "tnum"; }
+.vb-svg .ref-line { stroke: var(--accent-deep); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.vb-svg .line-path { stroke: var(--accent-deep); stroke-width: 2.5; }
+.vb-svg .point { fill: var(--paper); stroke: var(--accent-deep); stroke-width: 2; }
+.vb-svg .bar-target { fill: var(--rule-strong); }
+.vb-svg .bar-achievement { fill: var(--blue); }
+
+.reg-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  background: var(--paper-warm);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 1px 5px;
+  margin-left: 6px;
+  vertical-align: 1px;
+}
+
+.vb-div-table-wrap { overflow-x: auto; margin-top: 14px; border: 1px solid var(--rule); }
+.vb-div-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 13.5px; white-space: nowrap; }
+.vb-div-table th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--paper-warm);
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  padding: 8px 10px;
+  border-bottom: 1.5px solid var(--ink-strong);
+  text-align: right;
+  vertical-align: bottom;
+}
+.vb-div-table th:nth-child(2) { text-align: left; position: sticky; left: 0; z-index: 3; }
+.vb-sort-btn { background: none; border: none; font: inherit; color: inherit; cursor: pointer; padding: 0; letter-spacing: inherit; text-transform: inherit; }
+.vb-sort-btn:hover { color: var(--ink-strong); }
+.vb-div-table td { padding: 7px 10px; border-bottom: 1px solid var(--rule); text-align: right; font-feature-settings: "tnum"; color: var(--ink); }
+.vb-div-table td:nth-child(2) {
+  text-align: left; font-family: var(--font-sans); font-weight: 500; color: var(--ink-strong);
+  background: var(--paper); position: sticky; left: 0;
+}
+.vb-div-table tr:hover td { background: var(--paper-warm); }
+.vb-div-table td.green { color: var(--green); font-weight: 700; }
+.vb-div-table td.amber { color: var(--amber); font-weight: 700; }
+.vb-div-table td.red   { color: var(--red); font-weight: 700; }
+.vb-avg-row td {
+  background: var(--paper-warm);
+  color: var(--ink-soft);
+  font-family: var(--font-sans);
+  font-style: italic;
+  text-align: center;
+  border-top: 2px dashed var(--accent-deep);
+  border-bottom: 2px dashed var(--accent-deep);
+  padding: 5px 10px;
+}
+.vb-streak-row td:nth-child(2) { box-shadow: inset 3px 0 0 var(--red); }
+
+.vb-flag-panel { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.vb-flag-empty {
+  font-family: var(--font-sans); font-style: italic; color: var(--ink-soft);
+  padding: 14px 18px; background: var(--paper-warm); border-left: 3px solid var(--green);
+}
+.vb-flag-card {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  padding: 10px 14px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--amber);
+  text-decoration: none;
+  transition: background 0.15s ease-out, transform 0.15s ease-out;
+}
+.vb-flag-card:hover { background: var(--paper-warm); transform: translateX(2px); }
+.vb-flag-card.strong { border-left-color: var(--red); font-weight: 600; background: var(--red-pale); }
+
+/* ============ OVERVIEW ATTENTION STRIP + SPARKLINE (Phase 3 step 4) ============ */
+.ov-attn-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-top: 14px;
+  scroll-snap-type: x proximity;
+}
+.ov-attn-card {
+  flex: 0 0 auto;
+  width: 280px;
+  scroll-snap-align: start;
+}
+.ov-attn-expand {
+  display: block;
+  margin: 10px auto 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+  background: none;
+  border: 1px solid var(--rule-strong);
+  padding: 7px 16px;
+  cursor: pointer;
+}
+.ov-attn-expand:hover { background: var(--paper-warm); }
+
+.ov-spark-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 14px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 14px 18px;
+}
+.ov-spark-chart { flex: 1 1 auto; max-width: 220px; }
+.ov-spark-figure { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-start; }
+.ov-spark-value { font-family: var(--font-serif); font-size: 28px; font-weight: 700; font-feature-settings: "tnum"; }
+.ov-spark-value.green { color: var(--green); }
+.ov-spark-value.amber { color: var(--amber); }
+.ov-spark-value.red   { color: var(--red); }
+.ov-spark-label { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); letter-spacing: 0.04em; }
+
+/* ============ MY DIVISION (Phase 3 step 5) ============ */
+.md-search {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  padding: 9px 12px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  margin: 14px 0 18px;
+}
+.md-picker-list { display: flex; flex-direction: column; gap: 18px; }
+.md-pick-region {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.md-pick-items { display: flex; flex-wrap: wrap; gap: 8px; }
+.md-pick-item {
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  color: var(--ink-strong);
+  text-decoration: none;
+  padding: 7px 14px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+}
+.md-pick-item:hover { background: var(--paper-warm); border-color: var(--accent-deep); }
+
+.md-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.md-back-btn, .md-print-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink-strong);
+  cursor: pointer;
+}
+.md-print-btn { background: var(--ink-strong); color: var(--paper); border-color: var(--ink-strong); }
+.md-back-btn:hover { background: var(--paper-warm); }
+.md-print-btn:hover { opacity: 0.85; }
+
+.md-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--ink-strong); padding-bottom: 10px; margin-bottom: 18px; }
+.md-div-name { font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--ink-strong); }
+.md-div-region { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-top: 2px; }
+
+.md-vcard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.md-vcard { border: 1px solid var(--rule); background: var(--paper); padding: 14px 16px; }
+.md-vcard-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+.md-vcard-value { font-family: var(--font-serif); font-size: 26px; font-weight: 700; margin-top: 4px; }
+.md-vcard-value .unit { font-size: 14px; font-weight: 500; margin-left: 1px; }
+.md-vcard-value.green { color: var(--green); }
+.md-vcard-value.amber { color: var(--amber); }
+.md-vcard-value.red   { color: var(--red); }
+.md-vcard-sub { font-family: var(--font-sans); font-size: 12.5px; margin-top: 3px; }
+.md-vcard-sub.green { color: var(--green); }
+.md-vcard-sub.red { color: var(--red); }
+.md-vcard-rank { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+.md-vcard-spark { margin-top: 8px; max-width: 140px; }
+
+.md-flags-more { font-family: var(--font-sans); font-size: 13px; font-style: italic; color: var(--ink-soft); padding: 6px 2px; }
+
+.md-todo {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  background: var(--paper-warm);
+  border-left: 3px solid var(--accent);
+  padding: 12px 16px;
+  margin-top: 14px;
+}
+
+.md-footer-line {
+  margin-top: 26px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  text-align: center;
 }
 .ecr-svg .group:hover .bar-without { fill: color-mix(in oklch, var(--green) 80%, white); }
 .ecr-svg .group:hover .bar-with    { fill: color-mix(in oklch, var(--blue) 80%, white); }
@@ -3178,6 +3449,9 @@ tr.hm-circle-row td {
     </div>
   </div>
 
+  <!-- AGGREGATE ONLY (CIRCLE ONLY): Attention strip + circle MoM sparkline (Phase 3 step 4) -->
+  <div class="agg-only" id="ov-attention-section"></div>
+
   <div class="section-head">
     <h2>Vertical traffic lights</h2>
     <span class="desc">Green ≥ 90% · Amber 60–89% · Red &lt; 60%<br>vs pro-rata target</span>
@@ -3632,13 +3906,17 @@ actual_revenue   = sum of actual revenue earned in the selected period
 </div>
 <!-- === END BO LOOKUP TAB === -->
 
-<!-- === MY DIVISION TAB (stub) === -->
+<!-- === MY DIVISION TAB (Phase 3 step 5) === -->
 <div id="tab-my-division" class="tab-content">
-  <div class="section-head">
-    <h2>My Division</h2>
-    <span class="desc">Coming in a later phase</span>
+  <div id="md-picker">
+    <div class="section-head">
+      <h2>My Division</h2>
+      <span class="desc">Pick a division for its cross-vertical scorecard &amp; printable handout</span>
+    </div>
+    <input type="text" id="md-search" class="md-search" placeholder="Search division…" oninput="mdFilterPicker()">
+    <div id="md-picker-list" class="md-picker-list"></div>
   </div>
-  <p class="placeholder">Division picker and printable one-page handout will live here.</p>
+  <div id="md-page" style="display:none;"></div>
 </div>
 <!-- === END MY DIVISION TAB === -->
 
@@ -3661,6 +3939,14 @@ const CIRCLE = {"total_target": 939.6237166808609, "total_actual": 105.155345809
 // Used only when AP Circle is the selected view, for Revenue / Expenditure / ECR / SWAP.
 let CIRCLE_FULL = {};
 const REG_ABBR = { 'Vijayawada': 'VJA', 'Visakhapatnam': 'VSP', 'Kurnool': 'KNL' };
+
+// Phase 3: FY-to-date attainment trends + below-average flags, built by the
+// Python pipeline (pipeline/derive/trends.py, pipeline/flag_rules.py) — NOT
+// computed here, so the vertical detail bands can never disagree with the
+// Overview attention strip. Soft-fail default shape lets renderVerticalBand
+// etc. run safely (empty band) if these files are ever missing/broken.
+let TRENDS_DATA = { meta: {}, circle: { verticals: {} }, divisions: {} };
+let FLAGS_DATA  = { meta: {}, circle_averages: {}, flags: [] };
 
 // ============ PLI / RPLI / POSB MONTHLY DATA (auto-generated) ============
 
@@ -4611,6 +4897,25 @@ function recomputeRanks() {
 // === END BO LOOKUP RENDER ===
 
 
+// ============ VERTICAL_INFO (Phase 3 canonical map) ============
+// Single source of truth for the 6 trends.json/flags.json vertical keys ->
+// display label -> hash route segment -> DOM container id for the new
+// detail band. Deliberately NOT unified with VERTICAL_SUBPAGES/
+// VERTICAL_TO_SEGMENT below — those serve different concerns (hash-route
+// parsing, Sub-Div Drilldown's 3-segment prefilter) and this codebase
+// already tolerates multiple small parallel vertical-key lists for
+// different purposes (see HM_VERTICALS, keyed yet again by display name).
+// POSB listed first: this template was built and verified against POSB
+// before the other five.
+const VERTICAL_INFO = [
+  { key: 'posb',     label: 'POSB',            route: 'posb',     containerId: 'verticals-posb' },
+  { key: 'pli_rpli', label: 'PLI/RPLI',        route: 'pli-rpli', containerId: 'verticals-pli-rpli' },
+  { key: 'mail_ops', label: 'Mail Operations', route: 'mail-ops', containerId: 'verticals-mail-ops' },
+  { key: 'parcel',   label: 'Parcel',          route: 'parcel',   containerId: 'verticals-parcel' },
+  { key: 'ccs',      label: 'CCS',             route: 'ccs',      containerId: 'verticals-ccs' },
+  { key: 'irgb',     label: 'IR & GB',         route: 'irgb',     containerId: 'verticals-irgb' },
+];
+
 // ============ HASH ROUTER ============
 const TOP_LEVEL_IDS = ['overview', 'verticals', 'cost-ecr', 'booking', 'drilldown', 'bo-lookup', 'my-division'];
 const CONTAINER_FOR_ROUTE = {
@@ -4691,6 +4996,10 @@ function router() {
     if (div || vertical) applyDrilldownPrefilter(div, vertical);
   } else if (top === 'bo-lookup') {
     initBOLookup();
+  } else if (top === 'my-division') {
+    var mdSlug = r.sub;
+    if (mdSlug && TRENDS_DATA.divisions && TRENDS_DATA.divisions[mdSlug]) mdShowDivision(mdSlug);
+    else mdShowPicker();
   }
 }
 
@@ -5766,6 +6075,575 @@ function renderOverview(d) {
   if (strengthsList.innerHTML === '') strengthsList.innerHTML = '<li style="font-style:italic;">No verticals above 80% of target yet — early in FY</li>';
   if (concernsList.innerHTML === '') concernsList.innerHTML = '<li style="font-style:italic;">No verticals below target threshold this month</li>';
 }
+
+// ============ VERTICAL DETAIL BANDS (Phase 3) ============
+// KPI row + chart-mode toggle. Everything below reads only TRENDS_DATA /
+// FLAGS_DATA (Phase 1's pipeline-computed artifacts) — never re-derives
+// pro-ration or streak math from DATA_BY_MONTH, so this can never disagree
+// with the Overview attention strip fed by the same two files.
+
+function vbMonthLabel(iso) {
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var parts = String(iso).split('-');
+  var mi = parseInt(parts[1], 10) - 1;
+  return (MONTHS[mi] || '?') + '-' + parts[0].slice(2);
+}
+
+function vbBuildKpiRow(verticalKey) {
+  var v = TRENDS_DATA.circle.verticals[verticalKey] || { fy_target: 0, monthly: [] };
+  var monthly = v.monthly || [];
+  var last = monthly[monthly.length - 1] || { prorata_target: 0, achievement: 0, pct_prorata: 0 };
+  return '<div class="kpi-row cols-4">' +
+    '<div class="kpi"><div class="kpi-label">FY 2026-27 Target</div><div class="kpi-value">₹' + fmt(v.fy_target, 2) + ' <span class="unit">Cr</span></div></div>' +
+    '<div class="kpi"><div class="kpi-label">Pro-rata Target</div><div class="kpi-value">₹' + fmt(last.prorata_target, 2) + ' <span class="unit">Cr</span></div></div>' +
+    '<div class="kpi"><div class="kpi-label">Achievement</div><div class="kpi-value">₹' + fmt(last.achievement, 2) + ' <span class="unit">Cr</span></div></div>' +
+    '<div class="kpi feature"><div class="kpi-label">% Pro-rata</div><div class="kpi-value ' + statusClass(last.pct_prorata) + '">' + fmt(last.pct_prorata, 1) + '<span class="unit">%</span></div></div>' +
+    '</div>';
+}
+
+// ---- Chart mode toggle (NOT URL-persisted — a display preference, not
+// route identity, modeled on HM_STATE/hmSetMode rather than
+// setPliRpliProduct's history.replaceState). ----
+const VB_CHART_STATE = {}; // { [verticalKey]: 'line' | 'bars' }, default 'line'
+
+function vbChartMode(verticalKey) { return VB_CHART_STATE[verticalKey] || 'line'; }
+
+function vbSetChartMode(verticalKey, mode) {
+  if (vbChartMode(verticalKey) === mode) return;
+  VB_CHART_STATE[verticalKey] = mode;
+  var section = document.querySelector('.vert-band[data-vertical="' + verticalKey + '"] .vb-chart-section');
+  if (section) section.outerHTML = vbBuildChartSection(verticalKey);
+}
+
+function vbBuildChartSection(verticalKey) {
+  var v = TRENDS_DATA.circle.verticals[verticalKey] || { monthly: [] };
+  var months = v.monthly || [];
+  var mode = vbChartMode(verticalKey);
+  return '<div class="vb-chart-section">' +
+    '<div class="hm-toggle" role="group" aria-label="Chart mode">' +
+      '<button type="button" class="hm-toggle-btn ' + (mode === 'line' ? 'active' : '') + '" onclick="vbSetChartMode(\'' + verticalKey + '\',\'line\')">Trend %</button>' +
+      '<button type="button" class="hm-toggle-btn ' + (mode === 'bars' ? 'active' : '') + '" onclick="vbSetChartMode(\'' + verticalKey + '\',\'bars\')">Target vs Ach.</button>' +
+    '</div>' +
+    '<div class="vb-chart-wrap">' + (mode === 'line' ? vbBuildLineChartSvg(months) : vbBuildBarsChartSvg(months)) + '</div>' +
+  '</div>';
+}
+
+// Line-of-%-pro-rata chart. No polyline/line-chart precedent exists
+// anywhere else in this file — follows renderEcrDivChart's conventions
+// (viewBox, template-literal SVG, native <title> tooltips) at a much
+// smaller scale (3 points, not 33 divisions).
+function vbBuildLineChartSvg(monthly, opts) {
+  opts = opts || {};
+  var sparkline = !!opts.sparkline;
+  monthly = monthly || [];
+  if (!monthly.length) return '<div class="placeholder">No trend data</div>';
+
+  var W = sparkline ? 160 : 560;
+  var H = sparkline ? 48 : 200;
+  var M = sparkline ? { top: 6, right: 6, bottom: 6, left: 6 } : { top: 16, right: 16, bottom: 26, left: 34 };
+  var innerW = W - M.left - M.right;
+  var innerH = H - M.top - M.bottom;
+
+  var vals = monthly.map(function(m) { return m.pct_prorata || 0; });
+  var maxVal = Math.max(100, Math.max.apply(null, vals)) * 1.1;
+  var minVal = Math.min(0, Math.min.apply(null, vals));
+  var range = (maxVal - minVal) || 1;
+  var y = function(v) { return M.top + innerH - ((v - minVal) / range) * innerH; };
+  var n = monthly.length;
+  var x = function(i) { return n <= 1 ? M.left + innerW / 2 : M.left + (i / (n - 1)) * innerW; };
+
+  var refLine = (100 >= minVal && 100 <= maxVal)
+    ? '<line class="ref-line" x1="' + M.left + '" x2="' + (W - M.right) + '" y1="' + y(100) + '" y2="' + y(100) + '"/>'
+    : '';
+
+  var gridAndLabels = sparkline ? '' : monthly.map(function(m, i) {
+    return '<text class="axis-label" x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + vbMonthLabel(m.month) + '</text>';
+  }).join('');
+
+  var points = monthly.map(function(m, i) { return x(i) + ',' + y(m.pct_prorata || 0); }).join(' ');
+
+  var dots = monthly.map(function(m, i) {
+    var tip = vbMonthLabel(m.month) + ': ' + fmt(m.pct_prorata, 1) + '% of pro-rata';
+    return '<circle class="point" cx="' + x(i) + '" cy="' + y(m.pct_prorata || 0) + '" r="' + (sparkline ? 2 : 3.5) + '">' +
+      (sparkline ? '' : '<title>' + tip + '</title>') + '</circle>';
+  }).join('');
+
+  return '<svg class="vb-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Pro-rata attainment trend">' +
+    refLine + gridAndLabels +
+    '<polyline class="line-path" points="' + points + '" fill="none"/>' +
+    dots +
+  '</svg>';
+}
+
+// Grouped bars: pro-rata target vs achievement, one group per month.
+// Geometry directly modeled on renderEcrDivChart's group/bar-pair math,
+// just fed 3 points instead of 33.
+function vbBuildBarsChartSvg(monthly) {
+  monthly = monthly || [];
+  if (!monthly.length) return '<div class="placeholder">No trend data</div>';
+
+  var W = 560, H = 200;
+  var M = { top: 16, right: 16, bottom: 26, left: 44 };
+  var innerW = W - M.left - M.right;
+  var innerH = H - M.top - M.bottom;
+
+  var maxVal = Math.max.apply(null, monthly.map(function(m) { return Math.max(m.prorata_target || 0, m.achievement || 0); }));
+  var yMax = maxVal > 0 ? maxVal * 1.15 : 1;
+  var y = function(v) { return M.top + innerH - (v / yMax) * innerH; };
+
+  var n = monthly.length;
+  var groupW = innerW / n;
+  var barPairGap = 4;
+  var barW = Math.max(6, Math.min(28, (groupW - barPairGap) / 2 - 6));
+  var groupX = function(i) { return M.left + i * groupW + groupW / 2; };
+  var yZero = y(0);
+
+  var groups = monthly.map(function(m, i) {
+    var cx = groupX(i);
+    var xTarget = cx - barPairGap / 2 - barW;
+    var xAch = cx + barPairGap / 2;
+    var yTarget = y(m.prorata_target || 0);
+    var yAch = y(m.achievement || 0);
+    var tip = vbMonthLabel(m.month) + '\nPro-rata target: ₹' + fmt(m.prorata_target, 2) + ' Cr\nAchievement: ₹' + fmt(m.achievement, 2) + ' Cr';
+    return '<g class="group">' +
+      '<rect class="bar-target" x="' + xTarget + '" y="' + yTarget + '" width="' + barW + '" height="' + Math.max(0, yZero - yTarget) + '"/>' +
+      '<rect class="bar-achievement" x="' + xAch + '" y="' + yAch + '" width="' + barW + '" height="' + Math.max(0, yZero - yAch) + '"/>' +
+      '<text class="axis-label" x="' + cx + '" y="' + (H - 6) + '" text-anchor="middle">' + vbMonthLabel(m.month) + '</text>' +
+      '<title>' + tip + '</title>' +
+    '</g>';
+  }).join('');
+
+  return '<svg class="vb-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Pro-rata target vs achievement by month">' +
+    groups +
+  '</svg>';
+}
+
+function vbBuildProvenance() {
+  var m = TRENDS_DATA.meta || {};
+  if (!m.data_as_on) return '';
+  return '<div class="vb-provenance">Data as on ' + m.data_as_on + ' &middot; Source: ' + (m.source || 'CEPT MIS / PFMS') + '</div>';
+}
+
+// ---- Division ranking table: fed only by TRENDS_DATA.divisions + FLAGS_DATA,
+// same non-URL-persisted-state pattern as VB_CHART_STATE. Rank is frozen from
+// the default % pro-rata ordering (mirrors HM table's "rank stays fixed
+// regardless of sort" convention) so re-sorting by another column doesn't
+// relabel divisions.
+const VB_TABLE_STATE = {};
+function vbTableState(key) {
+  if (!VB_TABLE_STATE[key]) VB_TABLE_STATE[key] = { sortKey: 'pct_prorata', sortDir: 'desc' };
+  return VB_TABLE_STATE[key];
+}
+
+const VB_SORT_COLS = {
+  rank:            { get: function(r) { return r.rank; },  dir: 'asc' },
+  name:            { get: function(r) { return r.name; },  dir: 'asc', text: true },
+  fy_target:       { get: function(r) { return r.fy_target; },       dir: 'desc' },
+  prorata_target:  { get: function(r) { return r.prorata_target; },  dir: 'desc' },
+  achievement:     { get: function(r) { return r.achievement; },     dir: 'desc' },
+  pct_prorata:     { get: function(r) { return r.pct_prorata; },     dir: 'desc' },
+  streak:          { get: function(r) { return r.streak; },          dir: 'desc' },
+};
+
+function vbDivRows(verticalKey) {
+  var divisions = TRENDS_DATA.divisions || {};
+  var flagsByDiv = {};
+  (FLAGS_DATA.flags || []).forEach(function(f) { if (f.vertical === verticalKey) flagsByDiv[f.division] = f; });
+
+  var rows = Object.keys(divisions).map(function(slug) {
+    var dv = divisions[slug];
+    var v = (dv.verticals || {})[verticalKey];
+    if (!v) return null;
+    var monthly = v.monthly || [];
+    var last = monthly[monthly.length - 1] || {};
+    var flag = flagsByDiv[slug];
+    return {
+      slug: slug, name: dv.name, region: dv.region,
+      fy_target: v.fy_target || 0,
+      prorata_target: last.prorata_target || 0,
+      achievement: last.achievement || 0,
+      pct_prorata: last.pct_prorata || 0,
+      monthly: monthly,
+      streak: flag ? (flag.streak_months_below_avg || 0) : 0,
+    };
+  }).filter(Boolean);
+
+  rows.sort(function(a, b) { return b.pct_prorata - a.pct_prorata; });
+  rows.forEach(function(r, i) { r.rank = i + 1; });
+  return rows;
+}
+
+function vbSortRows(rows, verticalKey) {
+  var st = vbTableState(verticalKey);
+  var col = VB_SORT_COLS[st.sortKey] || VB_SORT_COLS.pct_prorata;
+  var dir = st.sortDir === 'asc' ? 1 : -1;
+  return rows.slice().sort(function(a, b) {
+    var av = col.get(a), bv = col.get(b);
+    if (col.text) return dir * String(av).localeCompare(String(bv));
+    return dir * ((av || 0) - (bv || 0));
+  });
+}
+
+function vbSetTableSort(verticalKey, sortKey) {
+  var st = vbTableState(verticalKey);
+  if (st.sortKey === sortKey) st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc';
+  else { st.sortKey = sortKey; st.sortDir = VB_SORT_COLS[sortKey].dir; }
+  var el = document.querySelector('.vert-band[data-vertical="' + verticalKey + '"] .vb-div-table-wrap');
+  if (el) el.outerHTML = vbBuildDivTable(verticalKey);
+}
+
+function vbBuildDivTable(verticalKey) {
+  var months = (TRENDS_DATA.meta && TRENDS_DATA.meta.months) || [];
+  var circleAvg = (FLAGS_DATA.circle_averages[verticalKey] || {}).latest_pct_prorata;
+  var st = vbTableState(verticalKey);
+  var rows = vbSortRows(vbDivRows(verticalKey), verticalKey);
+  var showDivider = st.sortKey === 'pct_prorata' && st.sortDir === 'desc' && typeof circleAvg === 'number';
+  var dividerColspan = 6 + months.length;
+
+  function sortInd(key) { return st.sortKey === key ? (st.sortDir === 'asc' ? ' ▲' : ' ▼') : ''; }
+  function th(key, label) {
+    return '<th><button type="button" class="vb-sort-btn" onclick="vbSetTableSort(\'' + verticalKey + '\',\'' + key + '\')">' + label + sortInd(key) + '</button></th>';
+  }
+  var monthTh = months.map(function(m) { return '<th>' + vbMonthLabel(m) + '</th>'; }).join('');
+
+  var bodyRows = '';
+  var dividerDone = !showDivider;
+  rows.forEach(function(r) {
+    if (!dividerDone && r.pct_prorata < circleAvg) {
+      bodyRows += '<tr class="vb-avg-row"><td colspan="' + dividerColspan + '">Circle average — ' + fmt(circleAvg, 1) + '% pro-rata</td></tr>';
+      dividerDone = true;
+    }
+    var monthTds = r.monthly.map(function(m) {
+      return '<td class="' + statusClass(m.pct_prorata) + '">' + fmt(m.pct_prorata, 0) + '%</td>';
+    }).join('');
+    bodyRows += '<tr' + (r.streak >= 2 ? ' class="vb-streak-row"' : '') + '>' +
+      '<td>' + r.rank + '</td>' +
+      '<td>' + r.name + ' <span class="reg-tag">' + String(r.region).toUpperCase() + '</span></td>' +
+      '<td>' + fmt(r.fy_target, 2) + '</td>' +
+      '<td>' + fmt(r.prorata_target, 2) + '</td>' +
+      '<td>' + fmt(r.achievement, 2) + '</td>' +
+      '<td class="' + statusClass(r.pct_prorata) + '">' + fmt(r.pct_prorata, 1) + '%</td>' +
+      monthTds +
+      '<td>' + (r.streak >= 1 ? r.streak + 'mo' : '–') + '</td>' +
+    '</tr>';
+  });
+  if (!dividerDone) {
+    bodyRows += '<tr class="vb-avg-row"><td colspan="' + dividerColspan + '">Circle average — ' + fmt(circleAvg, 1) + '% pro-rata</td></tr>';
+  }
+
+  return '<div class="vb-div-table-wrap">' +
+    '<table class="vb-div-table">' +
+      '<thead><tr>' +
+        th('rank', 'Rank') + th('name', 'Division') + th('fy_target', 'FY Target ₹Cr') +
+        th('prorata_target', 'Pro-rata ₹Cr') + th('achievement', 'Achievement ₹Cr') + th('pct_prorata', '% Pro-rata') +
+        monthTh + th('streak', 'Streak') +
+      '</tr></thead>' +
+      '<tbody>' + bodyRows + '</tbody>' +
+    '</table>' +
+  '</div>';
+}
+
+function vbBuildFlagPanel(verticalKey) {
+  var flags = (FLAGS_DATA.flags || []).filter(function(f) { return f.vertical === verticalKey; });
+  if (!flags.length) {
+    return '<div class="vb-flag-panel"><div class="vb-flag-empty">All divisions at or above circle average — no active flags.</div></div>';
+  }
+  flags = flags.slice().sort(function(a, b) {
+    return (b.streak_months_below_avg || 0) - (a.streak_months_below_avg || 0) || (b.gap_cr || 0) - (a.gap_cr || 0);
+  });
+  var cards = flags.map(function(f) {
+    var strong = (f.streak_months_below_avg || 0) >= 2;
+    return '<a class="vb-flag-card' + (strong ? ' strong' : '') + '" href="' + f.link + '">' + f.sentence + '</a>';
+  }).join('');
+  return '<div class="vb-flag-panel">' + cards + '</div>';
+}
+
+// ---- Band assembly + mount ----
+function vbBuildBand(key) {
+  return '<div class="vert-band" data-vertical="' + key + '">' +
+    vbBuildProvenance() +
+    vbBuildKpiRow(key) +
+    vbBuildChartSection(key) +
+    '<div class="section-head" style="margin-top:28px;"><h2>Division ranking</h2><span class="desc">Ranked by % pro-rata this month<br>MoM trend &middot; streak below circle average</span></div>' +
+    vbBuildDivTable(key) +
+    '<div class="section-head" style="margin-top:28px;"><h2>Active flags</h2><span class="desc">Divisions below circle average<br>Links into Sub-Division Drilldown</span></div>' +
+    vbBuildFlagPanel(key) +
+  '</div>';
+}
+
+// Mounting differs by page: the four placeholder pages (mail_ops, parcel,
+// ccs, irgb) get the band as their entire content; posb and pli_rpli already
+// carry pre-existing detailed content that must not be deleted, so the band
+// is prepended above it instead (posb at the container root, pli_rpli after
+// its PLI/RPLI toggle — trends.json has no pli/rpli split, so this one band
+// covers both products combined). Re-entrant: replaces a previous .vert-band
+// in place rather than double-inserting if called again.
+function renderAllVerticalBands() {
+  VERTICAL_INFO.forEach(function(v) {
+    var container = document.getElementById(v.containerId);
+    if (!container) return;
+    var existing = container.querySelector('.vert-band[data-vertical="' + v.key + '"]');
+    var html = vbBuildBand(v.key);
+    if (existing) { existing.outerHTML = html; return; }
+    if (v.key === 'posb') { container.insertAdjacentHTML('afterbegin', html); return; }
+    if (v.key === 'pli_rpli') {
+      var toggle = container.querySelector('.pli-rpli-toggle');
+      if (toggle) toggle.insertAdjacentHTML('afterend', html);
+      else container.insertAdjacentHTML('afterbegin', html);
+      return;
+    }
+    container.innerHTML = html;
+  });
+}
+
+// ============ OVERVIEW ATTENTION STRIP + CIRCLE SPARKLINE (Phase 3 step 4) ============
+// Circle-level, cross-division/cross-vertical — reads only FLAGS_DATA/
+// TRENDS_DATA (same two files the vertical bands read), so this can never
+// disagree with a vertical's own flag panel. Lives inside #ov-attention-
+// section, an .agg-only block (CSS-hidden unless body has .is-aggregate —
+// same mechanism as the pre-existing agg-ranking-section/distribution
+// blocks), since per-division flags belong on the future My Division page
+// (step 5), not here.
+
+function ovSortedFlags() {
+  return (FLAGS_DATA.flags || []).slice().sort(function(a, b) {
+    return (b.streak_months_below_avg || 0) - (a.streak_months_below_avg || 0) || (b.gap_cr || 0) - (a.gap_cr || 0);
+  });
+}
+
+let OV_ATTENTION_EXPANDED = false;
+const OV_ATTENTION_CAP = 8;
+
+function ovBuildAttentionStrip() {
+  var flags = ovSortedFlags();
+  if (!flags.length) {
+    return '<div class="vb-flag-empty">All divisions at or above circle average across every vertical — no active flags.</div>';
+  }
+  var shown = OV_ATTENTION_EXPANDED ? flags : flags.slice(0, OV_ATTENTION_CAP);
+  var cards = shown.map(function(f) {
+    var strong = (f.streak_months_below_avg || 0) >= 2;
+    return '<a class="vb-flag-card ov-attn-card' + (strong ? ' strong' : '') + '" href="' + f.link + '">' + f.sentence + '</a>';
+  }).join('');
+  var expander = '';
+  if (flags.length > OV_ATTENTION_CAP) {
+    expander = OV_ATTENTION_EXPANDED
+      ? '<button type="button" class="ov-attn-expand" onclick="ovToggleAttention()">Show top ' + OV_ATTENTION_CAP + ' only</button>'
+      : '<button type="button" class="ov-attn-expand" onclick="ovToggleAttention()">View all ' + flags.length + ' flags</button>';
+  }
+  return '<div class="ov-attn-strip">' + cards + '</div>' + expander;
+}
+
+function ovToggleAttention() {
+  OV_ATTENTION_EXPANDED = !OV_ATTENTION_EXPANDED;
+  var el = document.getElementById('ov-attention-strip-wrap');
+  if (el) el.innerHTML = ovBuildAttentionStrip();
+}
+
+// Sums pro-rata target + achievement across all 6 verticals per month (matched
+// by month string, not array index, in case a vertical's monthly array ever
+// has a gap) to get a circle-wide "overall achievement %" trend — this figure
+// doesn't exist pre-computed anywhere in trends.json, since the pipeline only
+// emits it per-vertical.
+function ovCircleTotalMonthly() {
+  var verticals = (TRENDS_DATA.circle && TRENDS_DATA.circle.verticals) || {};
+  var months = (TRENDS_DATA.meta && TRENDS_DATA.meta.months) || [];
+  return months.map(function(month) {
+    var target = 0, achievement = 0;
+    Object.keys(verticals).forEach(function(k) {
+      var m = (verticals[k].monthly || []).find(function(x) { return x.month === month; });
+      if (m) { target += m.prorata_target || 0; achievement += m.achievement || 0; }
+    });
+    return { month: month, prorata_target: target, achievement: achievement, pct_prorata: target > 0 ? (achievement / target * 100) : 0 };
+  });
+}
+
+function ovBuildSparkline() {
+  var monthly = ovCircleTotalMonthly();
+  if (!monthly.length) return '<div class="placeholder">No trend data</div>';
+  var last = monthly[monthly.length - 1];
+  return '<div class="ov-spark-row">' +
+    '<div class="ov-spark-chart">' + vbBuildLineChartSvg(monthly, { sparkline: true }) + '</div>' +
+    '<div class="ov-spark-figure">' +
+      '<span class="ov-spark-value ' + statusClass(last.pct_prorata) + '">' + fmt(last.pct_prorata, 1) + '%</span>' +
+      '<span class="ov-spark-label">of pro-rata &middot; ' + vbMonthLabel(last.month) + '</span>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderOverviewAttentionSection() {
+  var host = document.getElementById('ov-attention-section');
+  if (!host) return;
+  host.innerHTML =
+    '<div class="section-head">' +
+      '<h2>Attention strip</h2>' +
+      '<span class="desc">Divisions below circle average, most persistent first<br>Tap a card to jump into Sub-Division Drilldown</span>' +
+    '</div>' +
+    '<div id="ov-attention-strip-wrap">' + ovBuildAttentionStrip() + '</div>' +
+    '<div class="section-head" style="margin-top:24px;">' +
+      '<h2>Circle MoM trend</h2>' +
+      '<span class="desc">Overall achievement as % of pro-rata, across available months</span>' +
+    '</div>' +
+    ovBuildSparkline();
+}
+
+// ============ MY DIVISION (Phase 3 step 5) ============
+// Picker (#my-division) + single-division cross-vertical page + print
+// handout (#my-division/{slug}). Assembled entirely from TRENDS_DATA/
+// FLAGS_DATA, same as the vertical bands and attention strip — division
+// slugs are TRENDS_DATA.divisions keys directly (identical slug space to
+// flags.json's `division` field and the drilldown `?div=` links), so no
+// separate slugification step is needed anywhere in this section.
+
+function mdRegionLabel(code) {
+  var map = { vsp: 'Visakhapatnam', vja: 'Vijayawada', knl: 'Kurnool' };
+  return map[String(code).toLowerCase()] || String(code).toUpperCase();
+}
+
+function mdBuildPicker() {
+  var divisions = TRENDS_DATA.divisions || {};
+  var byRegion = {};
+  Object.keys(divisions).forEach(function(slug) {
+    var dv = divisions[slug];
+    var r = dv.region || '?';
+    (byRegion[r] = byRegion[r] || []).push({ slug: slug, name: dv.name || slug });
+  });
+  var regions = Object.keys(byRegion).sort();
+  if (!regions.length) return '<div class="placeholder">No division data available.</div>';
+  return regions.map(function(r) {
+    var items = byRegion[r].slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
+    var rows = items.map(function(it) {
+      return '<a class="md-pick-item" data-name="' + it.name.toLowerCase() + '" href="#my-division/' + it.slug + '">' + it.name + '</a>';
+    }).join('');
+    return '<div class="md-pick-group"><div class="md-pick-region">' + mdRegionLabel(r) + ' Region</div><div class="md-pick-items">' + rows + '</div></div>';
+  }).join('');
+}
+
+function mdFilterPicker() {
+  var search = document.getElementById('md-search');
+  var q = (search ? search.value : '').trim().toLowerCase();
+  document.querySelectorAll('.md-pick-item').forEach(function(el) {
+    el.style.display = (!q || el.dataset.name.indexOf(q) !== -1) ? '' : 'none';
+  });
+  document.querySelectorAll('.md-pick-group').forEach(function(g) {
+    var anyVisible = Array.prototype.some.call(g.querySelectorAll('.md-pick-item'), function(el) { return el.style.display !== 'none'; });
+    g.style.display = anyVisible ? '' : 'none';
+  });
+}
+
+function mdShowPicker() {
+  var picker = document.getElementById('md-picker'), page = document.getElementById('md-page');
+  if (page) page.style.display = 'none';
+  if (picker) {
+    picker.style.display = '';
+    var list = document.getElementById('md-picker-list');
+    if (list) list.innerHTML = mdBuildPicker();
+    var search = document.getElementById('md-search');
+    if (search) search.value = '';
+  }
+}
+
+function mdBuildVerticalCard(slug, v) {
+  var rows = vbDivRows(v.key);
+  var row = rows.find(function(r) { return r.slug === slug; });
+  if (!row) {
+    return '<div class="md-vcard"><div class="md-vcard-label">' + v.label + '</div><div class="placeholder">No data</div></div>';
+  }
+  var circleAvg = (FLAGS_DATA.circle_averages[v.key] || {}).latest_pct_prorata;
+  var deltaHtml = '';
+  if (typeof circleAvg === 'number') {
+    var delta = row.pct_prorata - circleAvg;
+    var arrow = delta >= 0 ? '▲' : '▼';
+    deltaHtml = '<div class="md-vcard-sub ' + (delta >= 0 ? 'green' : 'red') + '">' + arrow + ' ' + fmt(Math.abs(delta), 1) + 'pp vs circle avg</div>';
+  }
+  return '<div class="md-vcard">' +
+    '<div class="md-vcard-label">' + v.label + '</div>' +
+    '<div class="md-vcard-value ' + statusClass(row.pct_prorata) + '">' + fmt(row.pct_prorata, 1) + '<span class="unit">%</span></div>' +
+    deltaHtml +
+    '<div class="md-vcard-rank">Rank ' + row.rank + ' of ' + rows.length + '</div>' +
+    '<div class="md-vcard-spark">' + vbBuildLineChartSvg(row.monthly, { sparkline: true }) + '</div>' +
+  '</div>';
+}
+
+function mdBuildFlags(slug) {
+  var flags = (FLAGS_DATA.flags || []).filter(function(f) { return f.division === slug; });
+  if (!flags.length) {
+    return '<div class="vb-flag-empty">No active flags for this division — at or above circle average in every vertical.</div>';
+  }
+  flags = flags.slice().sort(function(a, b) {
+    return (b.streak_months_below_avg || 0) - (a.streak_months_below_avg || 0) || (b.gap_cr || 0) - (a.gap_cr || 0);
+  });
+  var MAX = 6;
+  var shown = flags.slice(0, MAX);
+  var overflow = flags.length - shown.length;
+  var cards = shown.map(function(f) {
+    var strong = (f.streak_months_below_avg || 0) >= 2;
+    return '<a class="vb-flag-card' + (strong ? ' strong' : '') + '" href="' + f.link + '">' + f.sentence + '</a>';
+  }).join('');
+  var more = overflow > 0 ? '<div class="md-flags-more">+' + overflow + ' more, see dashboard</div>' : '';
+  return '<div class="vb-flag-panel">' + cards + more + '</div>';
+}
+
+// Spec allows stubbing this with a clear TODO if the data doesn't support a
+// real ranking: SUBDIV_DATA (sub-division units within a division) only
+// carries POSB account counts and PLI/RPLI policy counts, no revenue target
+// or pro-rata achievement figure — nothing comparable to the %-pro-rata
+// framing every other ranking on this dashboard uses. Rather than rank by
+// an incomparable proxy metric (e.g. raw POSB net accounts), this stays a
+// stub until the pipeline emits sub-division-level targets/achievement.
+function mdBuildSubdivStub() {
+  return '<div class="md-todo">' +
+    'TODO: Top-3 / bottom-3 sub-divisions needs per-sub-division revenue targets ' +
+    'and pro-rata achievement. SUBDIV_DATA currently only carries POSB account ' +
+    'counts and PLI/RPLI policy counts per sub-division &mdash; not a revenue ' +
+    'figure comparable to the %-pro-rata ranking used everywhere else here. ' +
+    'Add sub-division-level targets/achievement to the pipeline output to light ' +
+    'this section up.' +
+  '</div>';
+}
+
+function mdBuildHeader(slug) {
+  var dv = TRENDS_DATA.divisions[slug] || {};
+  return '<div class="md-header">' +
+    '<div>' +
+      '<h2 class="md-div-name">' + (dv.name || slug) + '</h2>' +
+      '<div class="md-div-region">' + mdRegionLabel(dv.region) + ' Region</div>' +
+    '</div>' +
+    vbBuildProvenance() +
+  '</div>';
+}
+
+function mdBuildPage(slug) {
+  var dv = TRENDS_DATA.divisions[slug];
+  if (!dv) return '<div class="placeholder">Unknown division.</div>';
+  var cards = VERTICAL_INFO.map(function(v) { return mdBuildVerticalCard(slug, v); }).join('');
+  var dataAsOn = (TRENDS_DATA.meta && TRENDS_DATA.meta.data_as_on) || '—';
+  return '<div class="md-toolbar">' +
+      '<button type="button" class="md-back-btn" onclick="location.hash=\'#my-division\'">&larr; All divisions</button>' +
+      '<button type="button" class="md-print-btn" onclick="mdPrint()">One-Page Handout</button>' +
+    '</div>' +
+    '<div id="md-handout">' +
+      mdBuildHeader(slug) +
+      '<div class="section-head"><h2>Vertical scorecard</h2><span class="desc">% pro-rata &middot; vs circle average &middot; rank of ' + Object.keys(TRENDS_DATA.divisions).length + ' &middot; 3-month trend</span></div>' +
+      '<div class="md-vcard-grid">' + cards + '</div>' +
+      '<div class="section-head" style="margin-top:20px;"><h2>Active flags</h2><span class="desc">This division, all verticals</span></div>' +
+      mdBuildFlags(slug) +
+      '<div class="section-head" style="margin-top:20px;"><h2>Top / bottom sub-divisions</h2><span class="desc">Within this division</span></div>' +
+      mdBuildSubdivStub() +
+      '<div class="md-footer-line">Prepared from Division Health Card (ehealthcard.in) &middot; Data as on ' + dataAsOn + ' &middot; Source: CEPT MIS / PFMS</div>' +
+    '</div>';
+}
+
+function mdShowDivision(slug) {
+  var picker = document.getElementById('md-picker'), page = document.getElementById('md-page');
+  if (picker) picker.style.display = 'none';
+  if (page) { page.style.display = ''; page.innerHTML = mdBuildPage(slug); }
+}
+
+function mdPrint() {
+  document.body.classList.add('printing-handout');
+  window.print();
+}
+window.addEventListener('afterprint', function() { document.body.classList.remove('printing-handout'); });
 
 function renderVerticals(d) {
   const container = document.getElementById('vert-progs');
@@ -7139,6 +8017,19 @@ async function loadDashboardData() {
   if (data.CIRCLE_FULL) CIRCLE_FULL = data.CIRCLE_FULL;
 
   applyAllEcrMonths(data.ECR_BY_MONTH || {});
+
+  // Phase 3: independent side-payloads. Soft-fail via allSettled so a
+  // missing/broken trends.json/flags.json degrades to "no vertical band"
+  // instead of blanking the whole dashboard (unlike latest.json above,
+  // which is must-succeed since everything else depends on it).
+  var vbResults = await Promise.allSettled([
+    fetch('data/trends.json?v=' + Date.now()).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+    fetch('data/flags.json?v=' + Date.now()).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+  ]);
+  if (vbResults[0].status === 'fulfilled') TRENDS_DATA = vbResults[0].value;
+  else console.warn('[Loader] data/trends.json unavailable — vertical bands disabled:', vbResults[0].reason);
+  if (vbResults[1].status === 'fulfilled') FLAGS_DATA = vbResults[1].value;
+  else console.warn('[Loader] data/flags.json unavailable — flag panels disabled:', vbResults[1].reason);
 }
 
 loadDashboardData().then(function() {
@@ -7148,6 +8039,8 @@ loadDashboardData().then(function() {
     refreshActiveData();
     renderDivision('__CIRCLE__');
   }
+  renderAllVerticalBands();
+  renderOverviewAttentionSection();
   router();
 }).catch(function(err) {
   console.error('[Loader] Failed to load dashboard data:', err);
