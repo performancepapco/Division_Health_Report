@@ -556,8 +556,14 @@ body {
   padding: 12px 0;
   border-bottom: 1px solid var(--rule);
   font-size: 16px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.12s;
 }
 .prog-row:last-child { border-bottom: 0; }
+.prog-row:hover { background: var(--paper-warm); }
+.prog-row:hover .lbl { color: var(--accent-deep); }
 .prog-row .lbl {
   font-family: var(--font-serif);
   font-weight: 500;
@@ -6876,14 +6882,23 @@ function renderVerticals(d) {
   const container = document.getElementById('vert-progs');
   container.innerHTML = '';
   const verticals = ['Mail Operations','Parcel','IR & GB','CCS','POSB','PLI/RPLI'];
+  // Route each row into its vertical's detail page (VERTICAL_INFO.label
+  // matches these display strings exactly) — this landing grid had no
+  // click-through at all until now, so all the Phase 3 per-vertical
+  // content (Top5/Bottom5, traffic sections, Premium Target, Silent
+  // Accounts) was unreachable by clicking, only by typing a #verticals/...
+  // URL directly.
+  const routeByLabel = {};
+  (typeof VERTICAL_INFO !== 'undefined' ? VERTICAL_INFO : []).forEach(v => { routeByLabel[v.label] = v.route; });
   verticals.forEach(v => {
     const ach = d.actuals[v] || 0;
     const tgt = d.targets[v] || 0;
     const pctOfYear = tgt > 0 ? ach/tgt*100 : 0;
     const pctOfPro = d.attainments[v] || 0;
     const cls = v === 'POSB' ? 'blue' : statusClass(pctOfPro);
+    const route = routeByLabel[v] || '';
     container.innerHTML += `
-      <div class="prog-row">
+      <a class="prog-row" href="#verticals/${route}">
         <div class="lbl">${v}</div>
         <div class="prog-bar">
           <div class="prog-fill ${cls}" style="width:${Math.min(pctOfYear, 100)}%;"></div>
@@ -6891,7 +6906,7 @@ function renderVerticals(d) {
           <div class="prog-pct">${fmt(pctOfYear,1)}% of FY</div>
         </div>
         <div class="val">₹<strong>${fmt(ach,2)}</strong> / ₹${fmt(tgt,2)} Cr<br><span style="color:var(--ink-soft);">${fmt(pctOfPro,1)}% of target</span></div>
-      </div>`;
+      </a>`;
   });
   
   document.getElementById('vert-caveat').innerHTML = '<strong>Reading note —</strong> Pro-rata target = ' + getPeriodMonths() + '/12 of annual (' + getPeriodLabel() + '). Booking-side verticals (MO/Parcel/IRGB) typically lag early in the FY because previous-month BNPL bills haven\'t flowed in. POSB is front-loaded: silent + certificate revenue lands at the start of the year rather than being spread. PLI/RPLI shown here is eLekha-realised; underlying premium achievement is in the next tab.';
