@@ -1977,6 +1977,38 @@ tr.hm-circle-row td {
 
 /* ============ VERTICAL DETAIL BAND (Phase 3) ============ */
 .vert-band { padding-bottom: 26px; margin-bottom: 26px; border-bottom: 2px solid var(--rule-strong); }
+
+/* Collapsible sections within a vertical band (Monthly Trend, Active
+   Flags) — a lightly-styled <details>/<summary>, same disclosure widget
+   Overview's Notes panel already uses, just with the site's own type
+   treatment instead of raw browser defaults. Scoped to .vb-collapse so
+   it doesn't touch .notes-panel's unstyled markup. */
+details.vb-collapse { border: 1px solid var(--rule); background: var(--paper); }
+details.vb-collapse summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--paper-warm);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-strong);
+}
+details.vb-collapse summary::-webkit-details-marker { display: none; }
+details.vb-collapse summary::after {
+  content: '▸';
+  font-size: 11px;
+  color: var(--ink-soft);
+  transition: transform 0.15s ease-out;
+}
+details.vb-collapse[open] summary::after { transform: rotate(90deg); }
+details.vb-collapse summary:hover { color: var(--accent-deep); }
+details.vb-collapse .vb-collapse-body { padding: 16px; }
 .vb-provenance {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -6639,14 +6671,17 @@ function vbBuildBand(key) {
   return '<div class="vert-band" data-vertical="' + key + '">' +
     vbBuildProvenance() +
     vbBuildKpiRow(key) +
-    vbBuildChartSection(key) +
+    '<details class="vb-collapse" open style="margin-top:20px;"><summary>Monthly Trend</summary><div class="vb-collapse-body">' +
+      vbBuildChartSection(key) +
+    '</div></details>' +
     '<div class="section-head" style="margin-top:28px;"><h2>Division ranking</h2><span class="desc">Ranked by % pro-rata this month<br>MoM trend &middot; streak below circle average</span></div>' +
     vbBuildDivTable(key) +
     trafficBlock +
     premiumBlock +
     silentBlock +
-    '<div class="section-head" style="margin-top:28px;"><h2>Active flags</h2><span class="desc">Divisions below circle average<br>Links into Sub-Division Drilldown</span></div>' +
-    vbBuildFlagPanel(key) +
+    '<details class="vb-collapse" open style="margin-top:28px;"><summary>Active Flags</summary><div class="vb-collapse-body">' +
+      vbBuildFlagPanel(key) +
+    '</div></details>' +
   '</div>';
 }
 
