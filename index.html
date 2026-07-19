@@ -267,6 +267,8 @@ body {
   position: relative;
   top: 2px;
   font-feature-settings: "tnum";
+  text-decoration: none;
+  display: inline-block;
 }
 .tab:hover { color: var(--ink-strong); }
 .tab.active {
@@ -294,6 +296,24 @@ body {
 /* ============ TAB CONTENT ============ */
 .tab-content { display: none; }
 .tab-content.active { display: block; }
+.vert-subpage, .pli-rpli-pane { display: none; }
+.vert-subpage.active, .pli-rpli-pane.active { display: block; }
+.pli-rpli-toggle { margin-bottom: 16px; }
+.pli-rpli-toggle button {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink-soft);
+}
+.pli-rpli-toggle button:first-child { border-radius: 3px 0 0 3px; }
+.pli-rpli-toggle button:last-child { border-radius: 0 3px 3px 0; border-left: 0; }
+.pli-rpli-toggle button.active { background: var(--accent); color: var(--paper); border-color: var(--accent); }
 
 /* ============ SECTION HEAD ============ */
 .section-head {
@@ -1764,6 +1784,8 @@ tr.hm-circle-row td {
   .tabs { display: none; }
   .tab-content { page-break-before: always; }
   .tab-content:first-of-type { page-break-before: avoid; }
+  .vert-subpage, .pli-rpli-pane { display: block !important; page-break-before: always; }
+  .vert-subpage:first-of-type { page-break-before: avoid; }
 }
 
 /* ============ ECR DIVISION CHART ============ */
@@ -3089,16 +3111,13 @@ tr.hm-circle-row td {
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="showTab('overview', this)">Overview</button>
-  <button class="tab" onclick="showTab('verticals', this)">Six Verticals</button>
-  <button class="tab" onclick="showTab('cost', this)">Cost &amp; ECR</button>
-  <button class="tab" onclick="showTab('booking', this)">Booking <span class="count" id="booking-count"></span></button>
-  <button class="tab" onclick="showTab('posb', this)">POSB</button>
-  <button class="tab" onclick="showTab('pli', this)">PLI</button>
-  <button class="tab" onclick="showTab('rpli', this)">RPLI</button>
-  <button class="tab" onclick="showTab('subdiv', this); initSubdivTab();">Sub-Div Drilldown</button>
-  <button class="tab" onclick="showTab('bolookup', this); initBOLookup();">BO Lookup</button>
-  <button class="tab" onclick="showTab('notes', this)">Notes</button>
+  <a class="tab" href="#overview">Overview</a>
+  <a class="tab" href="#verticals">Vertical wise Analysis</a>
+  <a class="tab" href="#cost-ecr">Cost &amp; ECR</a>
+  <a class="tab" href="#booking">Booking <span class="count" id="booking-count"></span></a>
+  <a class="tab" href="#drilldown">Sub-Division Drilldown</a>
+  <a class="tab" href="#bo-lookup">BO Lookup</a>
+  <a class="tab" href="#my-division">My Division</a>
 </div>
 
 <!-- ===== OVERVIEW TAB ===== -->
@@ -3221,23 +3240,199 @@ tr.hm-circle-row td {
       <ul id="ov-concerns" style="font-size: 16.5px; padding-left: 20px; line-height: 1.7;"></ul>
     </div>
   </div>
+
+  <details class="notes-panel" style="margin-top: 32px;">
+    <summary>Notes &amp; Definitions</summary>
+
+    <!-- % Proportionate Achievement formula -->
+    <div class="card-box" style="max-width:760px; margin-bottom:28px; margin-top:16px;">
+      <h4>% Proportionate Achievement <span style="font-size:12px; font-weight:500; color:var(--ink-soft);">(used on both Circle and Division views)</span></h4>
+      <pre style="font-family:var(--font-mono); font-size:12px; line-height:1.7; background:var(--paper-warm); padding:14px 16px; border-radius:4px; overflow-x:auto; white-space:pre-wrap;">months_elapsed   = number of months in the selected period (e.g. Apr–Jun = 3)
+pro_rata_target  = annual_revenue_target × (months_elapsed / 12)
+actual_revenue   = sum of actual revenue earned in the selected period
+
+% Proportionate Achievement = (actual_revenue / pro_rata_target) × 100</pre>
+      <p style="font-size:12.5px; margin-top:10px; color:var(--ink-soft);">
+        <strong>Bands:</strong>&nbsp;
+        <span style="color:var(--green);">≥ 100% — Strong (meeting or beating pro-rata)</span>&nbsp;·&nbsp;
+        <span>80–99% — On track</span>&nbsp;·&nbsp;
+        <span style="color:var(--amber);">60–79% — Needs attention</span>&nbsp;·&nbsp;
+        <span style="color:var(--red);">&lt; 60% — At risk</span>
+      </p>
+      <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">
+        <strong>Why this metric:</strong> It tells a Divisional Head, at a glance, where the division stands
+        against where it should be at this point in the financial year. 100% means the division is exactly
+        on its annual pace.
+      </p>
+      <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">
+        <strong>Caveats:</strong> Heavily weighted by POSB (≈ 66% of typical division target), so POSB
+        front-loading can lift the early-FY number. RMS units appear low — they don't operate POSB / PLI / RPLI.
+        Vijayawada Division can show a lower % despite high absolute revenue because its targets are also the largest.
+      </p>
+    </div>
+
+    <!-- Abbreviations -->
+    <div class="card-box" style="margin-bottom:28px;">
+      <h4>Abbreviations</h4>
+      <table class="brief" style="max-width:640px;">
+        <thead><tr><th>Abbr.</th><th>Full Form</th></tr></thead>
+        <tbody>
+          <tr><td>ARPU</td><td>Average Revenue Per Unit (₹ per article)</td></tr>
+          <tr><td>BNPL</td><td>Book Now Pay Later (contractual booking; billed monthly)</td></tr>
+          <tr><td>BPC</td><td>Business Post Centre</td></tr>
+          <tr><td>BPO</td><td>Branch Post Office</td></tr>
+          <tr><td>CCS</td><td>Citizen Centric Services</td></tr>
+          <tr><td>ECR</td><td>Expenditure Coverage Ratio</td></tr>
+          <tr><td>EBO</td><td>Excluding Branch Post Offices (in MMU context)</td></tr>
+          <tr><td>FPO</td><td>Foreign Post Office</td></tr>
+          <tr><td>HPO</td><td>Head Post Office</td></tr>
+          <tr><td>IRGB / IR &amp; GB</td><td>International Revenue &amp; Global Business</td></tr>
+          <tr><td>MMU</td><td>Mail Monitoring Unit</td></tr>
+          <tr><td>MO</td><td>Mail Operations</td></tr>
+          <tr><td>NBP</td><td>New Business Premium (insurance)</td></tr>
+          <tr><td>NPH</td><td>Nodal Parcel Hub</td></tr>
+          <tr><td>NSH</td><td>National Sorting Hub</td></tr>
+          <tr><td>OBO</td><td>Only Branch Post Offices (in MMU context)</td></tr>
+          <tr><td>PLI</td><td>Postal Life Insurance</td></tr>
+          <tr><td>POPSK</td><td>Post Office Passport Seva Kendra</td></tr>
+          <tr><td>POSB</td><td>Post Office Savings Bank</td></tr>
+          <tr><td>Prop.</td><td>Proportionate (= 1/12 of annual, scaled to current month)</td></tr>
+          <tr><td>RMO</td><td>Railway Mail Office</td></tr>
+          <tr><td>RMS</td><td>Railway Mail Service</td></tr>
+          <tr><td>RPLI</td><td>Rural Postal Life Insurance</td></tr>
+          <tr><td>SPO</td><td>Sub Post Office</td></tr>
+          <tr><td>SWAP</td><td>Salaries, Wages, Allowances, Pensions</td></tr>
+          <tr><td>TBP</td><td>Total Business Premium (NBP + Renewal)</td></tr>
+          <tr><td>TMO</td><td>Transit Mail Office</td></tr>
+          <tr><td>VSP</td><td>Visakhapatnam (Region abbreviation)</td></tr>
+          <tr><td>VJA</td><td>Vijayawada (Region abbreviation)</td></tr>
+          <tr><td>KNL</td><td>Kurnool (Region abbreviation)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- POSB front-loading note -->
+    <div class="card-box" style="max-width:680px; margin-bottom:28px;">
+      <h4>POSB Revenue Front-loading</h4>
+      <p style="font-size:13px; line-height:1.7;">POSB revenue has three components, two of which are booked entirely in April:</p>
+      <ul style="font-size:12.5px; line-height:1.8; color:var(--ink-soft); padding-left:20px;">
+        <li>Live Accounts × ₹219.23 per year → <strong>pro-rated monthly</strong></li>
+        <li>Silent Accounts × ₹35.61 → <strong>booked entirely in April</strong> (not pro-rated)</li>
+        <li>NSC/KVP Certificates × ₹73.92 → booked when issued (continuous)</li>
+      </ul>
+      <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">This is why POSB shows much higher April attainment than other verticals. Not a data error.</p>
+    </div>
+
+    <!-- eLekha vs APT -->
+    <div class="card-box" style="max-width:680px; margin-bottom:28px;">
+      <h4>eLekha vs APT</h4>
+      <table class="brief" style="max-width:600px;">
+        <thead><tr><th>System</th><th>What it measures</th><th>Nature</th></tr></thead>
+        <tbody>
+          <tr><td><strong>APT</strong></td><td>Business booked at the counter</td><td style="color:var(--green);">Leading indicator</td></tr>
+          <tr><td><strong>eLekha</strong></td><td>Revenue actually realised</td><td style="color:var(--amber);">Lagging indicator (BNPL bills land 30–60 days after booking)</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">Most dashboard numbers are eLekha (realised). The Booking tab shows APT (leading).</p>
+    </div>
+  </details>
 </div>
 
-<!-- ===== VERTICALS TAB ===== -->
-<div id="tab-verticals" class="tab-content">
-  <div class="section-head">
-    <h2>Six-vertical attainment vs FY 2026-27 target</h2>
-    <span class="desc" id="vert-progs-desc">Bar fill = YTD / Annual target<br>Tick = period gate (3/12 for Apr–Jun)</span>
-  </div>
-  <div id="vert-progs" style="padding-top: 14px;"></div>
+<!-- ===== VERTICAL WISE ANALYSIS ROUTE ===== -->
+<div id="route-verticals" class="tab-content">
 
-  <div class="caveat" id="vert-caveat"></div>
+  <div id="verticals-landing" class="vert-subpage active">
+    <div class="section-head">
+      <h2>Six-vertical attainment vs FY 2026-27 target</h2>
+      <span class="desc" id="vert-progs-desc">Bar fill = YTD / Annual target<br>Tick = period gate (3/12 for Apr–Jun)</span>
+    </div>
+    <div id="vert-progs" style="padding-top: 14px;"></div>
 
-  <div class="section-head" style="margin-top: 32px;">
-    <h2>Detail by vertical</h2>
-    <span class="desc">Target · YTD · achievement · YoY where available</span>
+    <div class="caveat" id="vert-caveat"></div>
+
+    <div class="section-head" style="margin-top: 32px;">
+      <h2>Detail by vertical</h2>
+      <span class="desc">Target · YTD · achievement · YoY where available</span>
+    </div>
+    <table class="brief" id="vert-table"></table>
   </div>
-  <table class="brief" id="vert-table"></table>
+
+  <div id="verticals-posb" class="vert-subpage">
+    <div class="section-head">
+      <h2>POSB — Account Activity · Apr–Jun 2026</h2>
+      <span class="desc">Accounts Opened · Closed · Net Addition<br>01-Apr-2026 to 30-Jun-2026</span>
+    </div>
+    <div id="posb-accounts-content"></div>
+
+    <div class="section-head" style="margin-top: 32px;">
+      <h2>POSB — Account Base &amp; FY 2026-27 Target</h2>
+      <span class="desc">Live accounts · Silent · Net add target<br>FY25-26 historical performance</span>
+    </div>
+    <div id="posb-targets-content"></div>
+    <div id="subdiv-inline-posb"></div>
+  </div>
+
+  <div id="verticals-pli-rpli" class="vert-subpage">
+    <div class="pli-rpli-toggle">
+      <button type="button" class="active" data-product="pli" onclick="setPliRpliProduct('pli')">PLI</button>
+      <button type="button" data-product="rpli" onclick="setPliRpliProduct('rpli')">RPLI</button>
+    </div>
+
+    <div id="verticals-pli" class="pli-rpli-pane active">
+      <div class="section-head">
+        <h2>PLI — Policies Procured &amp; Premium</h2>
+        <span class="desc">Postal Life Insurance · Division-wise<br>Use month selector above to change period</span>
+      </div>
+      <div class="source-downloads">
+        <span class="src-label">Source sheets:</span>
+        <a class="src-link" href="uploads/june_2026/Insurance/PLI_April2026_Distribution.xlsx" download>⬇ PLI Apr-26 Distribution (.xlsx)</a>
+        <a class="src-link" href="uploads/june_2026/Insurance/PLI_May2026_Distribution.xlsx" download>⬇ PLI May-26 Distribution (.xlsx)</a>
+        <a class="src-link" href="uploads/june_2026/PLI_June2026_Distribution.xlsx" download>⬇ PLI Jun-26 Distribution (.xlsx)</a>
+        <a class="src-link" href="uploads/june_2026/PLI_AprToJune2026_Cumulative_Distribution.xlsx" download>⬇ PLI Apr-Jun Cumulative (.xlsx)</a>
+      </div>
+      <div id="pli-kpi-content"></div>
+      <div class="section-head" style="margin-top:28px; margin-bottom:12px;">
+        <h2>Division-wise PLI performance</h2>
+        <span class="desc">Policies procured · Premium collected<br>Bar width = policies · colour = procurement rate</span>
+      </div>
+      <div id="pli-div-content"></div>
+      <div id="subdiv-inline-pli"></div>
+    </div>
+
+    <div id="verticals-rpli" class="pli-rpli-pane">
+      <div class="section-head">
+        <h2>RPLI — Policies Procured &amp; Premium</h2>
+        <span class="desc">Rural Postal Life Insurance · Division-wise<br>Use month selector above to change period</span>
+      </div>
+      <div class="source-downloads">
+        <span class="src-label">Source sheets:</span>
+        <a class="src-link" href="uploads/june_2026/Insurance/RPLI_April2026_Distribution.xlsx" download>⬇ RPLI Apr-26 Distribution (.xlsx)</a>
+        <a class="src-link" href="uploads/june_2026/Insurance/RPLI_May2026_Distribution.xlsx" download>⬇ RPLI May-26 Distribution (.xlsx)</a>
+        <a class="src-link" href="uploads/june_2026/RPLI_June2026_Distribution.xlsx" download>⬇ RPLI Jun-26 Distribution (.xlsx)</a>
+        <a class="src-link" href="uploads/june_2026/RPLI_AprToJune2026_Cumulative_Distribution.xlsx" download>⬇ RPLI Apr-Jun Cumulative (.xlsx)</a>
+      </div>
+      <div id="rpli-kpi-content"></div>
+      <div class="section-head" style="margin-top:28px; margin-bottom:12px;">
+        <h2>Division-wise RPLI performance</h2>
+        <span class="desc">Policies procured · Premium collected<br>Bar width = policies · colour = procurement rate</span>
+      </div>
+      <div id="rpli-div-content"></div>
+    </div>
+  </div>
+
+  <div id="verticals-mail-ops" class="vert-subpage">
+    <div class="section-head"><h2>Mail Operations</h2><span class="desc">Detail view coming in the next phase</span></div>
+  </div>
+  <div id="verticals-parcel" class="vert-subpage">
+    <div class="section-head"><h2>Parcel</h2><span class="desc">Detail view coming in the next phase</span></div>
+  </div>
+  <div id="verticals-ccs" class="vert-subpage">
+    <div class="section-head"><h2>CCS</h2><span class="desc">Detail view coming in the next phase</span></div>
+  </div>
+  <div id="verticals-irgb" class="vert-subpage">
+    <div class="section-head"><h2>IR &amp; GB</h2><span class="desc">Detail view coming in the next phase</span></div>
+  </div>
+
 </div>
 
 <!-- ===== BOOKING TAB ===== -->
@@ -3367,69 +3562,6 @@ tr.hm-circle-row td {
 
 </div>
 
-<!-- ===== POSB TAB ===== -->
-<div id="tab-posb" class="tab-content">
-  <div class="section-head">
-    <h2>POSB — Account Activity · Apr–Jun 2026</h2>
-    <span class="desc">Accounts Opened · Closed · Net Addition<br>01-Apr-2026 to 30-Jun-2026</span>
-  </div>
-  <div id="posb-accounts-content"></div>
-
-  <div class="section-head" style="margin-top: 32px;">
-    <h2>POSB — Account Base &amp; FY 2026-27 Target</h2>
-    <span class="desc">Live accounts · Silent · Net add target<br>FY25-26 historical performance</span>
-  </div>
-  <div id="posb-targets-content"></div>
-  <div id="subdiv-inline-posb"></div>
-
-</div>
-
-<!-- ===== PLI TAB ===== -->
-<div id="tab-pli" class="tab-content">
-  <div class="section-head">
-    <h2>PLI — Policies Procured &amp; Premium</h2>
-    <span class="desc">Postal Life Insurance · Division-wise<br>Use month selector above to change period</span>
-  </div>
-  <div class="source-downloads">
-    <span class="src-label">Source sheets:</span>
-    <a class="src-link" href="uploads/june_2026/Insurance/PLI_April2026_Distribution.xlsx" download>⬇ PLI Apr-26 Distribution (.xlsx)</a>
-    <a class="src-link" href="uploads/june_2026/Insurance/PLI_May2026_Distribution.xlsx" download>⬇ PLI May-26 Distribution (.xlsx)</a>
-    <a class="src-link" href="uploads/june_2026/PLI_June2026_Distribution.xlsx" download>⬇ PLI Jun-26 Distribution (.xlsx)</a>
-    <a class="src-link" href="uploads/june_2026/PLI_AprToJune2026_Cumulative_Distribution.xlsx" download>⬇ PLI Apr-Jun Cumulative (.xlsx)</a>
-  </div>
-  <div id="pli-kpi-content"></div>
-  <div class="section-head" style="margin-top:28px; margin-bottom:12px;">
-    <h2>Division-wise PLI performance</h2>
-    <span class="desc">Policies procured · Premium collected<br>Bar width = policies · colour = procurement rate</span>
-  </div>
-  <div id="pli-div-content"></div>
-  <div id="subdiv-inline-pli"></div>
-
-</div>
-
-<!-- ===== RPLI TAB ===== -->
-<div id="tab-rpli" class="tab-content">
-  <div class="section-head">
-    <h2>RPLI — Policies Procured &amp; Premium</h2>
-    <span class="desc">Rural Postal Life Insurance · Division-wise<br>Use month selector above to change period</span>
-  </div>
-  <div class="source-downloads">
-    <span class="src-label">Source sheets:</span>
-    <a class="src-link" href="uploads/june_2026/Insurance/RPLI_April2026_Distribution.xlsx" download>⬇ RPLI Apr-26 Distribution (.xlsx)</a>
-    <a class="src-link" href="uploads/june_2026/Insurance/RPLI_May2026_Distribution.xlsx" download>⬇ RPLI May-26 Distribution (.xlsx)</a>
-    <a class="src-link" href="uploads/june_2026/RPLI_June2026_Distribution.xlsx" download>⬇ RPLI Jun-26 Distribution (.xlsx)</a>
-    <a class="src-link" href="uploads/june_2026/RPLI_AprToJune2026_Cumulative_Distribution.xlsx" download>⬇ RPLI Apr-Jun Cumulative (.xlsx)</a>
-  </div>
-
-
-<div id="rpli-kpi-content"></div>
-  <div class="section-head" style="margin-top:28px; margin-bottom:12px;">
-    <h2>Division-wise RPLI performance</h2>
-    <span class="desc">Policies procured · Premium collected<br>Bar width = policies · colour = procurement rate</span>
-  </div>
-  <div id="rpli-div-content"></div>
-</div>
-
 <!-- === SUBDIV TAB === -->
 <div id="tab-subdiv" class="tab-content">
   <div class="section-head">
@@ -3499,6 +3631,16 @@ tr.hm-circle-row td {
   <div id="bolu-card"></div>
 </div>
 <!-- === END BO LOOKUP TAB === -->
+
+<!-- === MY DIVISION TAB (stub) === -->
+<div id="tab-my-division" class="tab-content">
+  <div class="section-head">
+    <h2>My Division</h2>
+    <span class="desc">Coming in a later phase</span>
+  </div>
+  <p class="placeholder">Division picker and printable one-page handout will live here.</p>
+</div>
+<!-- === END MY DIVISION TAB === -->
 
 
 <footer class="colophon">
@@ -4469,12 +4611,90 @@ function recomputeRanks() {
 // === END BO LOOKUP RENDER ===
 
 
-function showTab(t, btn) {
-  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  (btn || event.target).classList.add('active');
-  document.getElementById('tab-' + t).classList.add('active');
+// ============ HASH ROUTER ============
+const TOP_LEVEL_IDS = ['overview', 'verticals', 'cost-ecr', 'booking', 'drilldown', 'bo-lookup', 'my-division'];
+const CONTAINER_FOR_ROUTE = {
+  overview: 'tab-overview',
+  verticals: 'route-verticals',
+  'cost-ecr': 'tab-cost',
+  booking: 'tab-booking',
+  drilldown: 'tab-subdiv',
+  'bo-lookup': 'tab-bolookup',
+  'my-division': 'tab-my-division',
+};
+const VERTICAL_SUBPAGES = {
+  '': 'verticals-landing', 'mail-ops': 'verticals-mail-ops', parcel: 'verticals-parcel',
+  ccs: 'verticals-ccs', irgb: 'verticals-irgb', posb: 'verticals-posb', 'pli-rpli': 'verticals-pli-rpli',
+};
+// flags.json's 6 vertical keys -> Sub-Div Drilldown's 3-segment scheme (SUBDIV_DATA
+// only ever had posb/pli/rpli breakdowns — parcel/mail_ops/ccs/irgb have no
+// drilldown segment to prefill; div-only prefilter still applies for those).
+const VERTICAL_TO_SEGMENT = { posb: 'posb', pli_rpli: 'pli' };
+
+function parseHash() {
+  var raw = location.hash.replace(/^#/, '');
+  var qIdx = raw.indexOf('?');
+  var path = qIdx === -1 ? raw : raw.slice(0, qIdx);
+  var query = new URLSearchParams(qIdx === -1 ? '' : raw.slice(qIdx + 1));
+  var segs = path.split('/').filter(Boolean);
+  return { top: segs[0] || 'overview', sub: segs[1] || '', query: query };
 }
+
+function setPliRpliProduct(which) {
+  document.querySelectorAll('.pli-rpli-pane').forEach(el => el.classList.remove('active'));
+  var pane = document.getElementById('verticals-' + which);
+  if (pane) pane.classList.add('active');
+  document.querySelectorAll('.pli-rpli-toggle button').forEach(b =>
+    b.classList.toggle('active', b.dataset.product === which));
+  history.replaceState(null, '', '#verticals/pli-rpli?product=' + which);
+}
+
+function applyDrilldownPrefilter(div, vertical) {
+  var pick = document.getElementById('sd-tab-div');
+  var seg = document.getElementById('sd-tab-seg');
+  if (!pick || !seg) return;
+  // flags.json's `div` is a lowercase-hyphenated slug (e.g. "rms-ag"), but
+  // SUBDIV_DATA is keyed by the real display name (e.g. "RMS AG") — resolve
+  // by comparing each key's own slug form rather than assuming a direct match.
+  if (div) {
+    var match = Object.keys(SUBDIV_DATA).find(function(name) {
+      return name.toLowerCase().split(/\s+/).join('-') === div;
+    });
+    if (match) pick.value = match;
+  }
+  var segKey = VERTICAL_TO_SEGMENT[vertical];
+  if (segKey) seg.value = segKey;
+  renderSubdivTab();
+}
+
+function router() {
+  var r = parseHash();
+  var top = TOP_LEVEL_IDS.includes(r.top) ? r.top : 'overview';
+
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tabs a.tab').forEach(el => el.classList.remove('active'));
+
+  var containerEl = document.getElementById(CONTAINER_FOR_ROUTE[top]);
+  if (containerEl) containerEl.classList.add('active');
+  var navEl = document.querySelector('.tabs a[href="#' + top + '"]');
+  if (navEl) navEl.classList.add('active');
+
+  if (top === 'verticals') {
+    var subId = VERTICAL_SUBPAGES[r.sub] || VERTICAL_SUBPAGES[''];
+    document.querySelectorAll('.vert-subpage').forEach(el => el.classList.remove('active'));
+    var subEl = document.getElementById(subId);
+    if (subEl) subEl.classList.add('active');
+    if (r.sub === 'pli-rpli') setPliRpliProduct(r.query.get('product') === 'rpli' ? 'rpli' : 'pli');
+  } else if (top === 'drilldown') {
+    initSubdivTab();
+    var div = r.query.get('div'), vertical = r.query.get('vertical');
+    if (div || vertical) applyDrilldownPrefilter(div, vertical);
+  } else if (top === 'bo-lookup') {
+    initBOLookup();
+  }
+}
+
+window.addEventListener('hashchange', router);
 
 // ============ AGGREGATION HELPER ============
 function aggregateData(label, memberNames) {
@@ -6928,6 +7148,7 @@ loadDashboardData().then(function() {
     refreshActiveData();
     renderDivision('__CIRCLE__');
   }
+  router();
 }).catch(function(err) {
   console.error('[Loader] Failed to load dashboard data:', err);
   var body = document.body;
@@ -6943,106 +7164,6 @@ loadDashboardData().then(function() {
 // === END ASYNC DATA LOADER ===
 
 </script>
-
-<!-- ===== NOTES TAB ===== -->
-<div id="tab-notes" class="tab-content">
-  <div class="section-head">
-    <h2>Notes &amp; Definitions</h2>
-    <span class="desc">Reference material for this dashboard</span>
-  </div>
-
-  <!-- % Proportionate Achievement formula -->
-  <div class="card-box" style="max-width:760px; margin-bottom:28px;">
-    <h4>% Proportionate Achievement <span style="font-size:12px; font-weight:500; color:var(--ink-soft);">(used on both Circle and Division views)</span></h4>
-    <pre style="font-family:var(--font-mono); font-size:12px; line-height:1.7; background:var(--paper-warm); padding:14px 16px; border-radius:4px; overflow-x:auto; white-space:pre-wrap;">months_elapsed   = number of months in the selected period (e.g. Apr–Jun = 3)
-pro_rata_target  = annual_revenue_target × (months_elapsed / 12)
-actual_revenue   = sum of actual revenue earned in the selected period
-
-% Proportionate Achievement = (actual_revenue / pro_rata_target) × 100</pre>
-    <p style="font-size:12.5px; margin-top:10px; color:var(--ink-soft);">
-      <strong>Bands:</strong>&nbsp;
-      <span style="color:var(--green);">≥ 100% — Strong (meeting or beating pro-rata)</span>&nbsp;·&nbsp;
-      <span>80–99% — On track</span>&nbsp;·&nbsp;
-      <span style="color:var(--amber);">60–79% — Needs attention</span>&nbsp;·&nbsp;
-      <span style="color:var(--red);">&lt; 60% — At risk</span>
-    </p>
-    <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">
-      <strong>Why this metric:</strong> It tells a Divisional Head, at a glance, where the division stands
-      against where it should be at this point in the financial year. 100% means the division is exactly
-      on its annual pace.
-    </p>
-    <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">
-      <strong>Caveats:</strong> Heavily weighted by POSB (≈ 66% of typical division target), so POSB
-      front-loading can lift the early-FY number. RMS units appear low — they don't operate POSB / PLI / RPLI.
-      Vijayawada Division can show a lower % despite high absolute revenue because its targets are also the largest.
-    </p>
-  </div>
-
-  <!-- Abbreviations -->
-  <div class="card-box" style="margin-bottom:28px;">
-    <h4>Abbreviations</h4>
-    <table class="brief" style="max-width:640px;">
-      <thead><tr><th>Abbr.</th><th>Full Form</th></tr></thead>
-      <tbody>
-        <tr><td>ARPU</td><td>Average Revenue Per Unit (₹ per article)</td></tr>
-        <tr><td>BNPL</td><td>Book Now Pay Later (contractual booking; billed monthly)</td></tr>
-        <tr><td>BPC</td><td>Business Post Centre</td></tr>
-        <tr><td>BPO</td><td>Branch Post Office</td></tr>
-        <tr><td>CCS</td><td>Citizen Centric Services</td></tr>
-        <tr><td>ECR</td><td>Expenditure Coverage Ratio</td></tr>
-        <tr><td>EBO</td><td>Excluding Branch Post Offices (in MMU context)</td></tr>
-        <tr><td>FPO</td><td>Foreign Post Office</td></tr>
-        <tr><td>HPO</td><td>Head Post Office</td></tr>
-        <tr><td>IRGB / IR &amp; GB</td><td>International Revenue &amp; Global Business</td></tr>
-        <tr><td>MMU</td><td>Mail Monitoring Unit</td></tr>
-        <tr><td>MO</td><td>Mail Operations</td></tr>
-        <tr><td>NBP</td><td>New Business Premium (insurance)</td></tr>
-        <tr><td>NPH</td><td>Nodal Parcel Hub</td></tr>
-        <tr><td>NSH</td><td>National Sorting Hub</td></tr>
-        <tr><td>OBO</td><td>Only Branch Post Offices (in MMU context)</td></tr>
-        <tr><td>PLI</td><td>Postal Life Insurance</td></tr>
-        <tr><td>POPSK</td><td>Post Office Passport Seva Kendra</td></tr>
-        <tr><td>POSB</td><td>Post Office Savings Bank</td></tr>
-        <tr><td>Prop.</td><td>Proportionate (= 1/12 of annual, scaled to current month)</td></tr>
-        <tr><td>RMO</td><td>Railway Mail Office</td></tr>
-        <tr><td>RMS</td><td>Railway Mail Service</td></tr>
-        <tr><td>RPLI</td><td>Rural Postal Life Insurance</td></tr>
-        <tr><td>SPO</td><td>Sub Post Office</td></tr>
-        <tr><td>SWAP</td><td>Salaries, Wages, Allowances, Pensions</td></tr>
-        <tr><td>TBP</td><td>Total Business Premium (NBP + Renewal)</td></tr>
-        <tr><td>TMO</td><td>Transit Mail Office</td></tr>
-        <tr><td>VSP</td><td>Visakhapatnam (Region abbreviation)</td></tr>
-        <tr><td>VJA</td><td>Vijayawada (Region abbreviation)</td></tr>
-        <tr><td>KNL</td><td>Kurnool (Region abbreviation)</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- POSB front-loading note -->
-  <div class="card-box" style="max-width:680px; margin-bottom:28px;">
-    <h4>POSB Revenue Front-loading</h4>
-    <p style="font-size:13px; line-height:1.7;">POSB revenue has three components, two of which are booked entirely in April:</p>
-    <ul style="font-size:12.5px; line-height:1.8; color:var(--ink-soft); padding-left:20px;">
-      <li>Live Accounts × ₹219.23 per year → <strong>pro-rated monthly</strong></li>
-      <li>Silent Accounts × ₹35.61 → <strong>booked entirely in April</strong> (not pro-rated)</li>
-      <li>NSC/KVP Certificates × ₹73.92 → booked when issued (continuous)</li>
-    </ul>
-    <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">This is why POSB shows much higher April attainment than other verticals. Not a data error.</p>
-  </div>
-
-  <!-- eLekha vs APT -->
-  <div class="card-box" style="max-width:680px; margin-bottom:28px;">
-    <h4>eLekha vs APT</h4>
-    <table class="brief" style="max-width:600px;">
-      <thead><tr><th>System</th><th>What it measures</th><th>Nature</th></tr></thead>
-      <tbody>
-        <tr><td><strong>APT</strong></td><td>Business booked at the counter</td><td style="color:var(--green);">Leading indicator</td></tr>
-        <tr><td><strong>eLekha</strong></td><td>Revenue actually realised</td><td style="color:var(--amber);">Lagging indicator (BNPL bills land 30–60 days after booking)</td></tr>
-      </tbody>
-    </table>
-    <p style="font-size:12px; color:var(--ink-faint); margin-top:8px;">Most dashboard numbers are eLekha (realised). The Booking tab shows APT (leading).</p>
-  </div>
-</div>
 
 <!-- ===== MMU UPLOAD MODAL ===== -->
 <div id="mmu-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeMmuModal()">
