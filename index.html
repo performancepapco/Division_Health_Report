@@ -947,6 +947,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
 .div-rank-row .r-fill.green { background: var(--green); }
 .div-rank-row .r-fill.amber { background: var(--amber); }
 .div-rank-row .r-fill.red { background: var(--red); }
+.div-rank-row .r-fill.blue { background: var(--blue); }
 /* Vertical segment colors for stacked bar */
 .r-seg { height: 100%; flex-shrink: 0; }
 .seg-mo     { background: #4e79a7; }
@@ -982,6 +983,7 @@ table.brief tr.total:hover td { background: var(--paper-warm); box-shadow: var(-
 .div-rank-row .r-pct.green { color: var(--green); }
 .div-rank-row .r-pct.amber { color: var(--amber); }
 .div-rank-row .r-pct.red { color: var(--red); }
+.div-rank-row .r-pct.blue { color: var(--blue); }
 .tag {
   display: inline-block;
   font-size: 10px;
@@ -1798,11 +1800,24 @@ tr.hm-circle-row td {
 @media print {
   body.printing-handout .tab-content,
   body.printing-handout .vert-subpage,
-  body.printing-handout .pli-rpli-pane {
+  body.printing-handout .pli-rpli-pane,
+  body.printing-handout .masthead,
+  body.printing-handout .picker,
+  body.printing-handout .colophon {
     display: none !important;
   }
   body.printing-handout #tab-my-division { display: block !important; }
-  body.printing-handout * { visibility: hidden; }
+  /* `* ` is a descendant combinator — it can never match body itself, so
+     body's own background (var(--paper), a warm cream) stayed visible and
+     painted a full-height block on any overflow page. Hiding body directly
+     (visibility, not display, so it doesn't disturb the flow #md-handout's
+     absolute positioning resolves against) plus zeroing its min-height:100vh
+     floor removes both the leftover color and the phantom trailing page. */
+  body.printing-handout,
+  body.printing-handout * {
+    visibility: hidden;
+  }
+  body.printing-handout { min-height: 0; }
   body.printing-handout #md-handout,
   body.printing-handout #md-handout * { visibility: visible; }
   body.printing-handout #md-handout {
@@ -1948,55 +1963,61 @@ tr.hm-circle-row td {
 .vb-svg .bar-target { fill: var(--rule-strong); }
 .vb-svg .bar-achievement { fill: var(--blue); }
 
-.reg-tag {
-  display: inline-block;
+/* Top 5 / Bottom 5 — reuses .two-col/.card-box (Overview's Strengths/
+   Concerns pattern) and .div-rank-row (Overview's division ranking rows)
+   verbatim; only the bits genuinely new to this context are styled here. */
+.tb5-grid { margin-top: 14px; }
+.tb5-card .div-rank-row { padding: 8px 4px; font-size: 15px; }
+.tb5-card .div-rank-row:first-of-type { border-top: 1px solid var(--rule); }
+.tb5-avg-note {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
+  font-size: 12px;
   color: var(--ink-soft);
-  background: var(--paper-warm);
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  padding: 1px 5px;
-  margin-left: 6px;
-  vertical-align: 1px;
+  margin-top: 14px;
+  margin-bottom: -4px;
+}
+.r-streak {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--red);
+  letter-spacing: 0.03em;
+  margin-top: 1px;
 }
 
-.vb-div-table-wrap { overflow-x: auto; margin-top: 14px; border: 1px solid var(--rule); }
-.vb-div-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 13.5px; white-space: nowrap; }
-.vb-div-table th {
-  position: sticky; top: 0; z-index: 2;
-  background: var(--paper-warm);
-  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+.vb-traffic-section { margin-top: 14px; }
+.vb-traffic-segs {
+  font-family: var(--font-mono);
+  font-size: 12px;
   color: var(--ink-soft);
-  padding: 8px 10px;
-  border-bottom: 1.5px solid var(--ink-strong);
-  text-align: right;
-  vertical-align: bottom;
+  margin-top: 10px;
+  margin-bottom: 4px;
 }
-.vb-div-table th:nth-child(2) { text-align: left; position: sticky; left: 0; z-index: 3; }
-.vb-sort-btn { background: none; border: none; font: inherit; color: inherit; cursor: pointer; padding: 0; letter-spacing: inherit; text-transform: inherit; }
-.vb-sort-btn:hover { color: var(--ink-strong); }
-.vb-div-table td { padding: 7px 10px; border-bottom: 1px solid var(--rule); text-align: right; font-feature-settings: "tnum"; color: var(--ink); }
-.vb-div-table td:nth-child(2) {
-  text-align: left; font-family: var(--font-sans); font-weight: 500; color: var(--ink-strong);
-  background: var(--paper); position: sticky; left: 0;
-}
-.vb-div-table tr:hover td { background: var(--paper-warm); }
-.vb-div-table td.green { color: var(--green); font-weight: 700; }
-.vb-div-table td.amber { color: var(--amber); font-weight: 700; }
-.vb-div-table td.red   { color: var(--red); font-weight: 700; }
-.vb-avg-row td {
-  background: var(--paper-warm);
-  color: var(--ink-soft);
+.vb-traffic-footnote {
   font-family: var(--font-sans);
+  font-size: 13px;
   font-style: italic;
-  text-align: center;
-  border-top: 2px dashed var(--accent-deep);
-  border-bottom: 2px dashed var(--accent-deep);
-  padding: 5px 10px;
+  color: var(--ink-soft);
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--paper-warm);
+  border-left: 3px solid var(--accent);
 }
-.vb-streak-row td:nth-child(2) { box-shadow: inset 3px 0 0 var(--red); }
+
+.vb-premium-section { margin-top: 14px; }
+.vb-premium-product-h {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-strong);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 6px;
+  margin-top: 24px;
+  margin-bottom: 4px;
+}
+.vb-premium-product-h:first-of-type { margin-top: 22px; }
 
 .vb-flag-panel { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 .vb-flag-empty {
@@ -3948,6 +3969,7 @@ const REG_ABBR = { 'Vijayawada': 'VJA', 'Visakhapatnam': 'VSP', 'Kurnool': 'KNL'
 // etc. run safely (empty band) if these files are ever missing/broken.
 let TRENDS_DATA = { meta: {}, circle: { verticals: {} }, divisions: {} };
 let FLAGS_DATA  = { meta: {}, circle_averages: {}, flags: [] };
+let PREMIUM_TARGET_DATA = { meta: {}, circle: {}, divisions: {} };
 
 // ============ PLI / RPLI / POSB MONTHLY DATA (auto-generated) ============
 
@@ -6225,27 +6247,11 @@ function vbBuildProvenance() {
   return '<div class="vb-provenance">Data as on ' + m.data_as_on + ' &middot; Source: ' + (m.source || 'CEPT MIS / PFMS') + '</div>';
 }
 
-// ---- Division ranking table: fed only by TRENDS_DATA.divisions + FLAGS_DATA,
-// same non-URL-persisted-state pattern as VB_CHART_STATE. Rank is frozen from
-// the default % pro-rata ordering (mirrors HM table's "rank stays fixed
-// regardless of sort" convention) so re-sorting by another column doesn't
-// relabel divisions.
-const VB_TABLE_STATE = {};
-function vbTableState(key) {
-  if (!VB_TABLE_STATE[key]) VB_TABLE_STATE[key] = { sortKey: 'pct_prorata', sortDir: 'desc' };
-  return VB_TABLE_STATE[key];
-}
-
-const VB_SORT_COLS = {
-  rank:            { get: function(r) { return r.rank; },  dir: 'asc' },
-  name:            { get: function(r) { return r.name; },  dir: 'asc', text: true },
-  fy_target:       { get: function(r) { return r.fy_target; },       dir: 'desc' },
-  prorata_target:  { get: function(r) { return r.prorata_target; },  dir: 'desc' },
-  achievement:     { get: function(r) { return r.achievement; },     dir: 'desc' },
-  pct_prorata:     { get: function(r) { return r.pct_prorata; },     dir: 'desc' },
-  streak:          { get: function(r) { return r.streak; },          dir: 'desc' },
-};
-
+// ---- Division ranking: fed only by TRENDS_DATA.divisions + FLAGS_DATA.
+// Top 5 / Bottom 5 only (not all 33) — reuses the Overview division-ranking
+// row anatomy (.div-rank-row: rank/name+region/bar/pct/₹) and the
+// Strengths-vs-Concerns two-column card pattern (.two-col/.card-box with a
+// green/red top border) rather than inventing a new table or card style.
 function vbDivRows(verticalKey) {
   var divisions = TRENDS_DATA.divisions || {};
   var flagsByDiv = {};
@@ -6274,74 +6280,279 @@ function vbDivRows(verticalKey) {
   return rows;
 }
 
-function vbSortRows(rows, verticalKey) {
-  var st = vbTableState(verticalKey);
-  var col = VB_SORT_COLS[st.sortKey] || VB_SORT_COLS.pct_prorata;
-  var dir = st.sortDir === 'asc' ? 1 : -1;
-  return rows.slice().sort(function(a, b) {
-    var av = col.get(a), bv = col.get(b);
-    if (col.text) return dir * String(av).localeCompare(String(bv));
-    return dir * ((av || 0) - (bv || 0));
-  });
-}
+// Generic Top-5/Bottom-5 builder — reused verbatim by every vertical's
+// revenue ranking and (later) the booking-traffic / premium-target
+// sections, so all "leading vs lagging" panels on the site share one
+// implementation. `rows` must already be sorted best-to-worst by the
+// metric being ranked, each with {rank, name, region, value, valueFmt,
+// subLabel, streak}. `unit` labels the metric in the card subtitle.
+function vbBuildTopBottomCards(rows, opts) {
+  opts = opts || {};
+  if (!rows.length) return '<div class="placeholder">No division data</div>';
+  var total = rows.length;
+  var top5 = rows.slice(0, 5);
+  var bottom5 = rows.slice(-5).reverse(); // worst first, matching the flag panel's "most severe first" convention
+  // 'status' mode (default): value is a %-of-target, bar/text colored green/
+  // amber/red via statusClass. 'magnitude' mode: value is a raw count with
+  // no target to score against (e.g. article volume) — bar width scales
+  // relative to the circle-wide max instead of 100%, and uses the neutral
+  // --blue token already used elsewhere in this file for "magnitude, not a
+  // score" (see hmSequentialColor's doc comment).
+  var magnitude = opts.mode === 'magnitude';
+  var maxVal = magnitude ? Math.max.apply(null, rows.map(function(r) { return r.value; }).concat([1])) : 100;
 
-function vbSetTableSort(verticalKey, sortKey) {
-  var st = vbTableState(verticalKey);
-  if (st.sortKey === sortKey) st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc';
-  else { st.sortKey = sortKey; st.sortDir = VB_SORT_COLS[sortKey].dir; }
-  var el = document.querySelector('.vert-band[data-vertical="' + verticalKey + '"] .vb-div-table-wrap');
-  if (el) el.outerHTML = vbBuildDivTable(verticalKey);
+  function rowHtml(r) {
+    var cls = magnitude ? 'blue' : statusClass(r.value);
+    var w = magnitude ? Math.max(0, Math.min(100, (r.value / maxVal) * 100)) : Math.max(0, Math.min(100, r.value));
+    var primary = r.primaryFmt || (fmt(r.value, 1) + '%');
+    var streakNote = (opts.showStreak && r.streak >= 2)
+      ? '<span class="r-streak">' + r.streak + 'mo below avg</span>' : '';
+    return '<div class="div-rank-row">' +
+      '<div class="r-num">' + String(r.rank).padStart(2, '0') + '</div>' +
+      '<div class="r-name">' + r.name + '<span class="r-region">' + String(r.region).toUpperCase() + '</span>' + streakNote + '</div>' +
+      '<div class="r-bar"><div class="r-fill ' + cls + '" style="width:' + w + '%;"></div></div>' +
+      '<div class="r-pct ' + cls + '">' + primary + '</div>' +
+      '<div class="r-rev">' + r.valueFmt + '</div>' +
+    '</div>';
+  }
+
+  return '<div class="two-col tb5-grid">' +
+    '<div class="card-box tb5-card" style="border-top: 3px solid var(--green);">' +
+      '<h4 style="color: var(--green);">&#8593; Top 5</h4>' +
+      '<div class="card-sub">' + (opts.subLabel || '') + ' &middot; of ' + total + ' divisions</div>' +
+      top5.map(rowHtml).join('') +
+    '</div>' +
+    '<div class="card-box tb5-card" style="border-top: 3px solid var(--red);">' +
+      '<h4 style="color: var(--red);">&#8595; Bottom 5</h4>' +
+      '<div class="card-sub">' + (opts.subLabel || '') + ' &middot; of ' + total + ' divisions</div>' +
+      bottom5.map(rowHtml).join('') +
+    '</div>' +
+  '</div>';
 }
 
 function vbBuildDivTable(verticalKey) {
-  var months = (TRENDS_DATA.meta && TRENDS_DATA.meta.months) || [];
   var circleAvg = (FLAGS_DATA.circle_averages[verticalKey] || {}).latest_pct_prorata;
-  var st = vbTableState(verticalKey);
-  var rows = vbSortRows(vbDivRows(verticalKey), verticalKey);
-  var showDivider = st.sortKey === 'pct_prorata' && st.sortDir === 'desc' && typeof circleAvg === 'number';
-  var dividerColspan = 6 + months.length;
-
-  function sortInd(key) { return st.sortKey === key ? (st.sortDir === 'asc' ? ' ▲' : ' ▼') : ''; }
-  function th(key, label) {
-    return '<th><button type="button" class="vb-sort-btn" onclick="vbSetTableSort(\'' + verticalKey + '\',\'' + key + '\')">' + label + sortInd(key) + '</button></th>';
-  }
-  var monthTh = months.map(function(m) { return '<th>' + vbMonthLabel(m) + '</th>'; }).join('');
-
-  var bodyRows = '';
-  var dividerDone = !showDivider;
-  rows.forEach(function(r) {
-    if (!dividerDone && r.pct_prorata < circleAvg) {
-      bodyRows += '<tr class="vb-avg-row"><td colspan="' + dividerColspan + '">Circle average — ' + fmt(circleAvg, 1) + '% pro-rata</td></tr>';
-      dividerDone = true;
-    }
-    var monthTds = r.monthly.map(function(m) {
-      return '<td class="' + statusClass(m.pct_prorata) + '">' + fmt(m.pct_prorata, 0) + '%</td>';
-    }).join('');
-    bodyRows += '<tr' + (r.streak >= 2 ? ' class="vb-streak-row"' : '') + '>' +
-      '<td>' + r.rank + '</td>' +
-      '<td>' + r.name + ' <span class="reg-tag">' + String(r.region).toUpperCase() + '</span></td>' +
-      '<td>' + fmt(r.fy_target, 2) + '</td>' +
-      '<td>' + fmt(r.prorata_target, 2) + '</td>' +
-      '<td>' + fmt(r.achievement, 2) + '</td>' +
-      '<td class="' + statusClass(r.pct_prorata) + '">' + fmt(r.pct_prorata, 1) + '%</td>' +
-      monthTds +
-      '<td>' + (r.streak >= 1 ? r.streak + 'mo' : '–') + '</td>' +
-    '</tr>';
+  var rows = vbDivRows(verticalKey).map(function(r) {
+    return {
+      rank: r.rank, name: r.name, region: r.region, streak: r.streak,
+      value: r.pct_prorata, valueFmt: '₹' + fmt(r.achievement, 2) + ' Cr',
+    };
   });
-  if (!dividerDone) {
-    bodyRows += '<tr class="vb-avg-row"><td colspan="' + dividerColspan + '">Circle average — ' + fmt(circleAvg, 1) + '% pro-rata</td></tr>';
-  }
+  var avgNote = (typeof circleAvg === 'number')
+    ? '<div class="tb5-avg-note">Circle average this month: ' + fmt(circleAvg, 1) + '% pro-rata</div>' : '';
+  return avgNote + vbBuildTopBottomCards(rows, { subLabel: '% pro-rata', showStreak: true });
+}
 
-  return '<div class="vb-div-table-wrap">' +
-    '<table class="vb-div-table">' +
-      '<thead><tr>' +
-        th('rank', 'Rank') + th('name', 'Division') + th('fy_target', 'FY Target ₹Cr') +
-        th('prorata_target', 'Pro-rata ₹Cr') + th('achievement', 'Achievement ₹Cr') + th('pct_prorata', '% Pro-rata') +
-        monthTh + th('streak', 'Streak') +
-      '</tr></thead>' +
-      '<tbody>' + bodyRows + '</tbody>' +
-    '</table>' +
+// ============ VERTICAL TRAFFIC SECTIONS (Mail Ops / Parcel / IR&GB) ============
+// Booking product-name -> vertical mapping, confirmed with the user against
+// their uploaded Head-of-Account "Verticals break down.xlsx" (which governs
+// REVENUE classification, not booking traffic — the two don't line up 1:1,
+// e.g. that file puts "Magazine Post" under CCS despite the name). Traffic
+// segments here are deliberately a hand-confirmed subset of the 15 booking
+// products, not "everything left over": Blind Literature/Gyan Post/Magazine
+// Post are intentionally excluded pending CCS's deferred breakdown work.
+const VB_TRAFFIC_PRODUCTS = {
+  mail_ops: [
+    { label: 'Inland Speed Post Document', match: ['Inland Speed Post Document'] },
+  ],
+  parcel: [
+    { label: 'India Post Parcel Retail', match: ['Indiapost parcel Retail'] },
+    { label: 'India Post Parcel Contractual', match: ['Indiapost Parcel Contractual'] },
+    { label: 'Speed Post Parcel', match: ['Speed Post Parcel Domestic'] },
+  ],
+  irgb: [
+    { label: 'International Speed Post Merchandise', match: ['International Speed Post Merchandise'] },
+    { label: 'International Air Parcel', match: ['International Air Parcel'] },
+    { label: 'International Speed Post Document', match: ['International Speed Post Document'] },
+    { label: 'International Tracked Packet Service', match: ['International Tracked Packet Service'] },
+    { label: 'International Others', match: [
+      'International Registered Letter', 'Registered International M Bag',
+      'Registered International Printed Papers', 'International Blind Literature',
+    ] },
+  ],
+};
+
+// Booking Revenue (billed at time of booking, from BOOKING_BY_MONTH's
+// business_cr — includes book-now-pay-later and contractual dues not yet
+// collected) vs Actual Revenue (ECR, realized) are deliberately different
+// figures per the user, not two views of the same number — the toggle only
+// swaps which of the two is shown; rank/article-count stay constant across
+// both so a division's position doesn't jump when you flip the toggle.
+const VB_TRAFFIC_REV_MODE = {};
+function vbTrafficRevMode(key) { return VB_TRAFFIC_REV_MODE[key] || 'booking'; }
+function vbSetTrafficRevMode(key, mode) {
+  if (vbTrafficRevMode(key) === mode) return;
+  VB_TRAFFIC_REV_MODE[key] = mode;
+  var el = document.querySelector('.vert-band[data-vertical="' + key + '"] .vb-traffic-section');
+  if (el) el.outerHTML = vbBuildTrafficSection(key);
+}
+
+function vbTrafficDivRows(verticalKey) {
+  var segs = VB_TRAFFIC_PRODUCTS[verticalKey] || [];
+  var wanted = {};
+  segs.forEach(function(s) { s.match.forEach(function(m) { wanted[m] = true; }); });
+  var pack = (typeof BOOKING_BY_MONTH !== 'undefined') ? BOOKING_BY_MONTH['Cumulative'] : null;
+  var byDiv = (pack && pack.by_div) || {};
+  var divisions = TRENDS_DATA.divisions || {};
+
+  var rows = Object.keys(divisions).map(function(slug) {
+    var dv = divisions[slug];
+    var bd = byDiv[dv.name];
+    var articles = 0, bookingCr = 0;
+    if (bd && bd.products) {
+      bd.products.forEach(function(p) {
+        if (wanted[p.name]) { articles += p.articles || 0; bookingCr += p.business_cr || 0; }
+      });
+    }
+    var monthly = ((dv.verticals || {})[verticalKey] || {}).monthly || [];
+    var lastEcr = monthly[monthly.length - 1] || {};
+    return {
+      slug: slug, name: dv.name, region: dv.region,
+      articles: articles, bookingCr: bookingCr, actualCr: lastEcr.achievement || 0,
+    };
+  });
+
+  rows.sort(function(a, b) { return b.articles - a.articles; });
+  rows.forEach(function(r, i) { r.rank = i + 1; });
+  return rows;
+}
+
+function vbBuildTrafficSection(verticalKey) {
+  var segs = VB_TRAFFIC_PRODUCTS[verticalKey];
+  if (!segs || !segs.length) return '';
+  var mode = vbTrafficRevMode(verticalKey);
+  var divRows = vbTrafficDivRows(verticalKey);
+
+  var tb5Rows = divRows.map(function(r) {
+    return {
+      rank: r.rank, name: r.name, region: r.region,
+      value: r.articles,
+      primaryFmt: fmtInt(r.articles) + ' arts',
+      valueFmt: mode === 'booking'
+        ? '₹' + fmt(r.bookingCr, 2) + ' Cr booked'
+        : '₹' + fmt(r.actualCr, 2) + ' Cr actual',
+    };
+  });
+
+  var toggle = '<div class="hm-toggle" role="group" aria-label="Revenue basis">' +
+    '<button type="button" class="hm-toggle-btn ' + (mode === 'booking' ? 'active' : '') + '" onclick="vbSetTrafficRevMode(\'' + verticalKey + '\',\'booking\')">Booking Revenue</button>' +
+    '<button type="button" class="hm-toggle-btn ' + (mode === 'actual' ? 'active' : '') + '" onclick="vbSetTrafficRevMode(\'' + verticalKey + '\',\'actual\')">Actual Revenue</button>' +
   '</div>';
+  var segNote = '<div class="vb-traffic-segs">Segments: ' + segs.map(function(s) { return s.label; }).join(' &middot; ') + '</div>';
+  var footnote = verticalKey === 'parcel'
+    ? '<div class="vb-traffic-footnote">Logistics Post revenue is already included in Parcel’s overall achievement above — it has no separate booking or ECR line of its own to break out.</div>'
+    : '';
+
+  return '<div class="vb-traffic-section">' +
+    toggle + segNote +
+    vbBuildTopBottomCards(tb5Rows, { subLabel: 'Article volume', mode: 'magnitude' }) +
+    footnote +
+  '</div>';
+}
+
+// ============ PLI/RPLI PREMIUM TARGET ANALYSIS ============
+// Fed by data/premium_target.json (build_premium_target.py, a one-off
+// extraction of the manually-uploaded NBP/TB workbooks — no recurring
+// monthly upload slot exists for this yet, unlike everything else on this
+// page). Premium != revenue: this is a genuinely separate figure from the
+// ECR-based achievement shown in the band above, per the user, so it gets
+// its own ranking rather than being folded into vbDivRows's numbers.
+const VB_PREMIUM_REGION_ABBR = { kurnool: 'KNL', vijayawada: 'VJA', visakhapatnam: 'VSP' };
+let VB_PREMIUM_BASIS = 'nbp'; // 'nbp' | 'tb' — shared by both PLI and RPLI
+
+function vbPremiumDivRows(product) {
+  var divisions = PREMIUM_TARGET_DATA.divisions || {};
+  var rows = Object.keys(divisions).map(function(slug) {
+    var dv = divisions[slug];
+    var rec = ((dv.products || {})[product] || {})[VB_PREMIUM_BASIS];
+    if (!rec) return null;
+    return {
+      slug: slug, name: dv.name, region: VB_PREMIUM_REGION_ABBR[dv.region] || String(dv.region).toUpperCase(),
+      value: rec.pct_prorata || 0, achievement: rec.achievement || 0,
+    };
+  }).filter(Boolean);
+  rows.sort(function(a, b) { return b.value - a.value; });
+  rows.forEach(function(r, i) { r.rank = i + 1; });
+  return rows;
+}
+
+function vbSetPremiumBasis(mode) {
+  if (VB_PREMIUM_BASIS === mode) return;
+  VB_PREMIUM_BASIS = mode;
+  var el = document.querySelector('.vb-premium-section');
+  if (el) el.outerHTML = vbBuildPremiumSection();
+}
+
+function vbBuildPremiumProduct(product, label) {
+  var rows = vbPremiumDivRows(product).map(function(r) {
+    return { rank: r.rank, name: r.name, region: r.region, value: r.value, valueFmt: '₹' + fmt(r.achievement, 2) + ' Cr' };
+  });
+  var circleRec = ((PREMIUM_TARGET_DATA.circle || {})[product] || {})[VB_PREMIUM_BASIS];
+  var avgNote = circleRec
+    ? '<div class="tb5-avg-note">' + label + ' circle-wide: ' + fmt(circleRec.pct_prorata, 1) + '% of pro-rata target</div>' : '';
+  return '<div class="vb-premium-product-h">' + label + '</div>' +
+    avgNote + vbBuildTopBottomCards(rows, { subLabel: '% of premium pro-rata target' });
+}
+
+function vbBuildPremiumSection() {
+  var basis = VB_PREMIUM_BASIS;
+  var dataAsOn = PREMIUM_TARGET_DATA.meta && PREMIUM_TARGET_DATA.meta.data_as_on;
+  var toggle = '<div class="hm-toggle" role="group" aria-label="Premium basis">' +
+    '<button type="button" class="hm-toggle-btn ' + (basis === 'nbp' ? 'active' : '') + '" onclick="vbSetPremiumBasis(\'nbp\')">New Business Premium</button>' +
+    '<button type="button" class="hm-toggle-btn ' + (basis === 'tb' ? 'active' : '') + '" onclick="vbSetPremiumBasis(\'tb\')">Total Business Premium</button>' +
+  '</div>';
+  var provenance = dataAsOn ? '<div class="vb-provenance">Data as on ' + dataAsOn + ' &middot; Source: ' + (PREMIUM_TARGET_DATA.meta.source || 'manual upload') + '</div>' : '';
+  return '<div class="vb-premium-section">' +
+    toggle + provenance +
+    vbBuildPremiumProduct('pli', 'PLI') +
+    vbBuildPremiumProduct('rpli', 'RPLI') +
+  '</div>';
+}
+
+// ============ POSB SILENT ACCOUNTS & REVIVAL, DIVISION-WISE ============
+// Rolled up client-side from BO_LOOKUP (already loaded for the BO Lookup
+// tab; office records already carry a `posb_silent` block + `division`
+// field, so no new pipeline aggregation script was needed — this is a
+// plain reduce over data already on the page). Ranked by FY revival rate
+// (fy_revival_approx / silent_accounts), not raw silent-account count —
+// picked because every other ranking on this dashboard reads as a
+// performance metric (a %), and revival rate keeps that consistent; a
+// division can be revisited later to rank by raw count instead if that
+// reads better in practice.
+function vbPosbSilentDivRows() {
+  var totals = {};
+  Object.keys(BO_LOOKUP || {}).forEach(function(oid) {
+    var rec = BO_LOOKUP[oid];
+    var ps = rec.posb_silent;
+    var div = rec.division;
+    if (!ps || !div) return;
+    var t = totals[div] || (totals[div] = { name: div, region: rec.region || '', silent: 0, live: 0, revival: 0 });
+    t.silent += ps.silent_accounts || 0;
+    t.live += ps.live_accounts || 0;
+    t.revival += ps.fy_revival_approx || 0;
+  });
+  var rows = Object.keys(totals).map(function(div) {
+    var t = totals[div];
+    return {
+      name: t.name,
+      region: VB_PREMIUM_REGION_ABBR[String(t.region).toLowerCase()] || String(t.region).toUpperCase(),
+      silent: t.silent, live: t.live, revival: t.revival,
+      revivalRate: t.silent > 0 ? (t.revival / t.silent * 100) : 0,
+    };
+  });
+  rows.sort(function(a, b) { return b.revivalRate - a.revivalRate; });
+  rows.forEach(function(r, i) { r.rank = i + 1; });
+  return rows;
+}
+
+function vbBuildPosbSilentSection() {
+  var rows = vbPosbSilentDivRows();
+  if (!rows.length) return '<div class="placeholder">No Silent Accounts data available.</div>';
+  var tb5Rows = rows.map(function(r) {
+    return { rank: r.rank, name: r.name, region: r.region, value: r.revivalRate, valueFmt: fmtInt(r.silent) + ' silent' };
+  });
+  var note = '<div class="tb5-avg-note">Ranked by FY revival rate (revived &divide; silent accounts, approximate). See BO Lookup for office-level detail.</div>';
+  return note + vbBuildTopBottomCards(tb5Rows, { subLabel: '% revived this FY' });
 }
 
 function vbBuildFlagPanel(verticalKey) {
@@ -6361,12 +6572,27 @@ function vbBuildFlagPanel(verticalKey) {
 
 // ---- Band assembly + mount ----
 function vbBuildBand(key) {
+  var trafficBlock = VB_TRAFFIC_PRODUCTS[key]
+    ? '<div class="section-head" style="margin-top:28px;"><h2>Traffic &amp; booking volume</h2><span class="desc">Article count · Booking vs. Actual revenue toggle<br>' + (TRENDS_DATA.meta && TRENDS_DATA.meta.data_as_on ? 'Cumulative to ' + TRENDS_DATA.meta.data_as_on : '') + '</span></div>' +
+      vbBuildTrafficSection(key)
+    : '';
+  var premiumBlock = (key === 'pli_rpli' && PREMIUM_TARGET_DATA.divisions && Object.keys(PREMIUM_TARGET_DATA.divisions).length)
+    ? '<div class="section-head" style="margin-top:28px;"><h2>Premium Target Analysis</h2><span class="desc">New Business vs. Total Business premium, division-wise<br>PLI and RPLI separately — a different figure from the revenue ranking above</span></div>' +
+      vbBuildPremiumSection()
+    : '';
+  var silentBlock = (key === 'posb')
+    ? '<div class="section-head" style="margin-top:28px;"><h2>Silent Accounts &amp; Revival</h2><span class="desc">Division-wise, rolled up from BO Lookup office records<br>Top 5 / Bottom 5 by FY revival rate</span></div>' +
+      vbBuildPosbSilentSection()
+    : '';
   return '<div class="vert-band" data-vertical="' + key + '">' +
     vbBuildProvenance() +
     vbBuildKpiRow(key) +
     vbBuildChartSection(key) +
     '<div class="section-head" style="margin-top:28px;"><h2>Division ranking</h2><span class="desc">Ranked by % pro-rata this month<br>MoM trend &middot; streak below circle average</span></div>' +
     vbBuildDivTable(key) +
+    trafficBlock +
+    premiumBlock +
+    silentBlock +
     '<div class="section-head" style="margin-top:28px;"><h2>Active flags</h2><span class="desc">Divisions below circle average<br>Links into Sub-Division Drilldown</span></div>' +
     vbBuildFlagPanel(key) +
   '</div>';
@@ -7242,33 +7468,48 @@ function renderPOSBTab(d, divName) {
           </div>`;
       });
       kpiHtml += '</div>';
+    }
 
-      // Division performance bars sorted by Net Addition
-      var divRows = getPOSBRawJS(pk.from, pk.to)
-        .slice().sort(function(a,b){ return b.net - a.net; });
-      var maxAbs = Math.max(...divRows.map(function(r){ return Math.abs(r.net); }), 1);
-
-      kpiHtml += '<div class="section-head" style="margin-top:28px; margin-bottom:12px;">' +
-        '<h2>Division-wise Net Addition — ranked</h2>' +
-        '<span class="desc">' + pa.period + ' · 29 divisions<br>Green = positive · Red = negative</span></div>';
-      kpiHtml += '<div class="ins-div-bars">';
-      divRows.forEach(function(r, i) {
+    // Division-wise Net Addition — Top 5 / Bottom 5. Moved outside the
+    // isCircle gate (it used to vanish once a specific division was picked
+    // in the header selector) so it's always visible, matching the
+    // exception-first Top5/Bottom5 convention used everywhere else. Net
+    // Addition is signed (a division can be net-negative), so this reuses
+    // the existing .ins-bar-row pos/neg bar treatment rather than
+    // vbBuildTopBottomCards, which assumes a non-negative magnitude.
+    var divRows = getPOSBRawJS(pk.from, pk.to).slice().sort(function(a, b) { return b.net - a.net; });
+    if (divRows.length) {
+      var maxAbs = Math.max.apply(null, divRows.map(function(r) { return Math.abs(r.net); }).concat([1]));
+      function posbBarRow(r, rank) {
         var w = Math.abs(r.net) / maxAbs * 100;
         var cls = r.net >= 0 ? 'pos' : 'neg';
         var valSign = r.net >= 0 ? '+' : '';
         var regAbbr = r.region === 'Vijayawada' ? 'VJA' : r.region === 'Kurnool' ? 'KNL' : 'VSP';
-        kpiHtml += `
-          <div class="ins-bar-row">
-            <div class="ins-bar-name">${String(i+1).padStart(2,'0')}. ${r.name}
-              <span class="region-tag">${regAbbr}</span></div>
-            <div class="ins-bar-track">
-              <div class="ins-bar-fill ${cls}" style="width:${w.toFixed(1)}%;"></div>
-            </div>
-            <div class="ins-bar-val ${cls}">${valSign}${fmtInt(r.net)}</div>
-            <div class="ins-bar-sub">${fmtInt(r.opened)} / ${fmtInt(r.closed)}</div>
-          </div>`;
-      });
-      kpiHtml += '</div>';
+        return '<div class="ins-bar-row">' +
+          '<div class="ins-bar-name">' + String(rank).padStart(2, '0') + '. ' + r.name +
+            ' <span class="region-tag">' + regAbbr + '</span></div>' +
+          '<div class="ins-bar-track"><div class="ins-bar-fill ' + cls + '" style="width:' + w.toFixed(1) + '%;"></div></div>' +
+          '<div class="ins-bar-val ' + cls + '">' + valSign + fmtInt(r.net) + '</div>' +
+          '<div class="ins-bar-sub">' + fmtInt(r.opened) + ' / ' + fmtInt(r.closed) + '</div>' +
+        '</div>';
+      }
+      var top5 = divRows.slice(0, 5);
+      var bottom5 = divRows.slice(-5).reverse();
+      kpiHtml += '<div class="section-head" style="margin-top:28px; margin-bottom:12px;">' +
+        '<h2>Division-wise Net Addition</h2>' +
+        '<span class="desc">' + pa.period + ' &middot; Top 5 / Bottom 5 of ' + divRows.length + ' divisions<br>Green = positive · Red = negative</span></div>';
+      kpiHtml += '<div class="two-col tb5-grid">' +
+        '<div class="card-box tb5-card" style="border-top: 3px solid var(--green);">' +
+          '<h4 style="color: var(--green);">&#8593; Top 5</h4>' +
+          '<div class="card-sub">Highest net addition</div>' +
+          '<div class="ins-div-bars">' + top5.map(function(r, i) { return posbBarRow(r, i + 1); }).join('') + '</div>' +
+        '</div>' +
+        '<div class="card-box tb5-card" style="border-top: 3px solid var(--red);">' +
+          '<h4 style="color: var(--red);">&#8595; Bottom 5</h4>' +
+          '<div class="card-sub">Lowest net addition</div>' +
+          '<div class="ins-div-bars">' + bottom5.map(function(r, i) { return posbBarRow(r, divRows.length - i); }).join('') + '</div>' +
+        '</div>' +
+      '</div>';
     }
 
     accEl.innerHTML = kpiHtml;
@@ -8026,11 +8267,14 @@ async function loadDashboardData() {
   var vbResults = await Promise.allSettled([
     fetch('data/trends.json?v=' + Date.now()).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
     fetch('data/flags.json?v=' + Date.now()).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+    fetch('data/premium_target.json?v=' + Date.now()).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
   ]);
   if (vbResults[0].status === 'fulfilled') TRENDS_DATA = vbResults[0].value;
   else console.warn('[Loader] data/trends.json unavailable — vertical bands disabled:', vbResults[0].reason);
   if (vbResults[1].status === 'fulfilled') FLAGS_DATA = vbResults[1].value;
   else console.warn('[Loader] data/flags.json unavailable — flag panels disabled:', vbResults[1].reason);
+  if (vbResults[2].status === 'fulfilled') PREMIUM_TARGET_DATA = vbResults[2].value;
+  else console.warn('[Loader] data/premium_target.json unavailable — Premium Target section disabled:', vbResults[2].reason);
 }
 
 loadDashboardData().then(function() {
