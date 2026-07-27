@@ -409,7 +409,7 @@ body {
    Each card is a full <a> — the whole card is the click target — opening
    in a new tab since these are separate apps, not part of this dashboard.
    Cards are grouped under .circle-tools-group headings (e.g. "Mail
-   Operations Intelligence Tools" vs "External India Post Sites"); each
+   Operations Intelligence Tools" vs "External Tools and Utilities"); each
    group has its own .circle-tools-grid. */
 .circle-tools-group { margin-bottom: 28px; }
 .circle-tools-group:last-of-type { margin-bottom: 0; }
@@ -4210,7 +4210,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
   </div>
 
   <div class="circle-tools-group">
-    <h3 class="circle-tools-group-title">External India Post Sites</h3>
+    <h3 class="circle-tools-group-title">External Tools and Utilities</h3>
     <div class="circle-tools-grid">
       <!-- Card 3 -->
       <a class="circle-tool-card" href="https://www.indiapost.gov.in/" target="_blank" rel="noopener">
@@ -4241,6 +4241,14 @@ actual_revenue   = sum of actual revenue earned in the selected period
         <div class="circle-tool-card-body">
           <h3>DOP Utilities</h3>
           <p>Latest departmental updates</p>
+        </div>
+        <span class="circle-tool-arrow" aria-hidden="true">&#8599;</span>
+      </a>
+      <!-- Card 7 -->
+      <a class="circle-tool-card" href="https://ehealthcard.goatcounter.com/" target="_blank" rel="noopener">
+        <div class="circle-tool-card-body">
+          <h3>Visitor Stats</h3>
+          <p>Portal traffic &amp; visitor analytics (GoatCounter)</p>
         </div>
         <span class="circle-tool-arrow" aria-hidden="true">&#8599;</span>
       </a>
@@ -9025,5 +9033,7 @@ function renderComplaints(d, divName) {
   }
 })();
 </script>
+<script data-goatcounter="https://ehealthcard.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
