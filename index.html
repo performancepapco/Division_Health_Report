@@ -343,6 +343,75 @@ body {
 .verticals-subtabs a:hover { color: var(--ink-strong); border-color: var(--rule-strong); background: var(--paper-warm); }
 .verticals-subtabs a.active { background: var(--ink-strong); color: var(--paper); border-color: var(--ink-strong); font-weight: 600; }
 
+/* ============ CIRCLE TOOLS ============ */
+/* Persistent strip of external-tool link cards, shown once below the main
+   .tabs nav (not inside any single tab-content), so it stays visible no
+   matter which tab is active. Each card is a full <a> — the whole card is
+   the click target — opening in a new tab since these are separate apps,
+   not part of this dashboard. */
+.circle-tools {
+  margin: 0 0 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+.circle-tools .section-head { margin-top: 0; }
+.circle-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+.circle-tool-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  padding: 18px 20px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--accent);
+  text-decoration: none;
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, border-color 0.12s;
+}
+.circle-tool-card:hover,
+.circle-tool-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+  border-color: var(--rule-strong);
+  z-index: 2;
+}
+.circle-tool-card-body h3 {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  letter-spacing: -0.005em;
+  font-variation-settings: "opsz" 24;
+  margin-bottom: 4px;
+}
+.circle-tool-card-body p {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+.circle-tool-arrow {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--accent-deep);
+}
+.circle-tools-note {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+@media (max-width: 768px) {
+  .circle-tools-grid { grid-template-columns: 1fr; }
+}
+
 /* ============ SECTION HEAD ============ */
 .section-head {
   display: flex;
@@ -3479,17 +3548,42 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
   <a class="tab" href="#my-division">My Division</a>
 </div>
 
+<!-- ===== CIRCLE TOOLS ===== -->
+<!-- External dashboards, shown on every tab (not tab-specific content). -->
+<div class="circle-tools">
+  <div class="section-head">
+    <h2>Circle Tools</h2>
+    <span class="desc">External dashboards &amp; utilities</span>
+  </div>
+  <div class="circle-tools-grid">
+    <!-- Card 1 -->
+    <a class="circle-tool-card" href="https://ap-bulk-monitoring-1088626206627.asia-south1.run.app/" target="_blank" rel="noopener">
+      <div class="circle-tool-card-body">
+        <h3>Bulk Parcel Monitoring</h3>
+        <p>BPC / SPC / PH &mdash; bookings, delivery &amp; TAT</p>
+      </div>
+      <span class="circle-tool-arrow" aria-hidden="true">&#8599;</span>
+    </a>
+    <!-- Card 2 -->
+    <a class="circle-tool-card" href="https://script.google.com/macros/s/AKfycbxcWSb-HPmJz4s8Z0Dzw7hLtxAJqdGqLummbhcL0avQEMbxu92rX_NAO752i-k0-334hw/exec" target="_blank" rel="noopener">
+      <div class="circle-tool-card-body">
+        <h3>Delivery Performance Dashboard</h3>
+        <p>Mail Monitoring Unit &mdash; EB / BO delivery % &amp; TAT</p>
+      </div>
+      <span class="circle-tool-arrow" aria-hidden="true">&#8599;</span>
+    </a>
+    <!--
+      To add another tool: copy one <a class="circle-tool-card">...</a>
+      block above (inside .circle-tools-grid) and edit its href, the <h3>
+      title, and the <p> subtitle. No other markup or CSS changes needed —
+      the grid reflows automatically for 3, 4, or more cards.
+    -->
+  </div>
+  <div class="circle-tools-note">External tools open in a new tab and may require separate sign-in.</div>
+</div>
+
 <!-- ===== OVERVIEW TAB ===== -->
 <div id="tab-overview" class="tab-content active">
-
-  <!-- Mail Monitoring Unit — external tracking tool link-out -->
-  <div class="card-box" style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-    <div>
-      <h4 style="margin-bottom:2px;">Mail Monitoring Unit</h4>
-      <div class="card-sub" style="margin-bottom:0;">Open the MMU tracking tool</div>
-    </div>
-    <a class="btn-primary" style="text-decoration:none;" href="https://script.google.com/macros/s/AKfycbxcWSb-HPmJz4s8Z0Dzw7hLtxAJqdGqLummbhcL0avQEMbxu92rX_NAO752i-k0-334hw/exec" target="_blank" rel="noopener">Open Mail Monitoring Unit ↗</a>
-  </div>
 
   <!-- AGGREGATE ONLY: Region split (Circle view) -->
   <div class="agg-only" id="agg-region-split-section" style="display:none;">
