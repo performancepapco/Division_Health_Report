@@ -243,6 +243,67 @@ body {
   margin-top: 2px;
 }
 
+/* ============ WHAT'S NEW TICKER ============ */
+/* Sits between the dark picker bar and the tab nav. .whats-new-copies holds
+   two identical .whats-new-copy blocks back-to-back and is itself the thing
+   that animates, sliding left by exactly 50% of its own (double) width —
+   that's exactly one copy-width, so as copy 1 scrolls fully offscreen copy 2
+   is sitting exactly where copy 1 started, and the loop has no visible seam.
+   To add a second announcement later, add one more <a class="whats-new-item">
+   inside BOTH .whats-new-copy blocks (the two must stay identical). */
+.whats-new {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--ink-strong);
+  border-top: 1px solid oklch(0.30 0.04 258);
+  padding: 0 0 0 20px;
+  overflow: hidden;
+}
+.whats-new-label {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-strong);
+  background: var(--accent);
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+.whats-new-track {
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+}
+.whats-new-copies {
+  display: inline-flex;
+  animation: whats-new-scroll 26s linear infinite;
+}
+.whats-new:hover .whats-new-copies { animation-play-state: paused; }
+.whats-new-copy { display: inline-flex; }
+.whats-new-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 48px 10px 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: oklch(0.86 0.02 80);
+  text-decoration: none;
+}
+.whats-new-item:hover { color: var(--paper); }
+.whats-new-item strong { color: var(--accent); font-weight: 600; margin: 0 4px; }
+@keyframes whats-new-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .whats-new-copies { animation: none; }
+}
+
 /* ============ TABS ============ */
 .tabs {
   display: flex;
@@ -3526,6 +3587,23 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
         <option value="May-26">May-2026</option>
         <option value="Jun-26" selected>June-2026</option>
       </select>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WHAT'S NEW TICKER ===== -->
+<div class="whats-new" role="status">
+  <span class="whats-new-label">What's New</span>
+  <div class="whats-new-track">
+    <div class="whats-new-copies">
+      <div class="whats-new-copy">
+        <a class="whats-new-item" href="#circle-tools">New — <strong>Circle Tools</strong> tab added: quick links to the Bulk Parcel Monitoring dashboard &amp; the Delivery Performance Dashboard (MMU)</a>
+        <!-- To add another announcement: add one more <a class="whats-new-item"> here... -->
+      </div>
+      <div class="whats-new-copy" aria-hidden="true">
+        <a class="whats-new-item" href="#circle-tools" tabindex="-1">New — <strong>Circle Tools</strong> tab added: quick links to the Bulk Parcel Monitoring dashboard &amp; the Delivery Performance Dashboard (MMU)</a>
+        <!-- ...and an identical one here (the duplicate keeps the scroll seamless). -->
+      </div>
     </div>
   </div>
 </div>
