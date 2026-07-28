@@ -248,6 +248,12 @@ sections:
         - "booking-date"
         - "product-name"
         - "article-count"
+        - "postage"
+        - "vas"
+        - "tax"
+        - "fm-charges"
+        - "ps-charges"
+        - "ss-charges"
         - "total_amount"
 
   booking_booktypewise:

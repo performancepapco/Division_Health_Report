@@ -1,1 +1,1 @@
-office-id,office-name,booking-date,product-name,article-count,total_amount
+office-id,office-name,booking-date,product-name,article-count,postage,vas,tax,fm-charges,ps-charges,ss-charges,total_amount

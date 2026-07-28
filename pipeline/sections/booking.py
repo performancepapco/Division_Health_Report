@@ -83,12 +83,20 @@ def validate_booktypewise(section_cfg: dict, path, month_iso: str) -> list[Valid
                          section_cfg["csv_headers"])
 
 
+CHARGE_KEYS = ("postage", "vas", "tax", "fm_charges", "ps_charges", "ss_charges")
+
+
+def _zero_by_prod():
+    return {"articles": 0, "business": 0.0, "postage": 0.0, "vas": 0.0, "tax": 0.0,
+            "fm_charges": 0.0, "ps_charges": 0.0, "ss_charges": 0.0}
+
+
 def _read_productwise(path):
     by_off = defaultdict(lambda: {
         "name": None, "articles": 0, "business": 0.0,
         "products": set(),
         "daily": defaultdict(lambda: {"articles": 0, "business": 0.0}),
-        "by_prod": defaultdict(lambda: {"articles": 0, "business": 0.0}),
+        "by_prod": defaultdict(_zero_by_prod),
     })
     with open(path, newline="", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
@@ -100,6 +108,12 @@ def _read_productwise(path):
             pname = (row.get("product-name") or "").strip()
             arts = int(row.get("article-count") or 0)
             amt = float(row.get("total_amount") or 0)
+            postage = float(row.get("postage") or 0)
+            vas = float(row.get("vas") or 0)
+            tax = float(row.get("tax") or 0)
+            fm = float(row.get("fm-charges") or 0)
+            ps = float(row.get("ps-charges") or 0)
+            ss = float(row.get("ss-charges") or 0)
             if not pname or not date:
                 continue
             rec = by_off[oid]
@@ -110,8 +124,15 @@ def _read_productwise(path):
             rec["products"].add(pname)
             rec["daily"][date]["articles"] += arts
             rec["daily"][date]["business"] += amt
-            rec["by_prod"][pname]["articles"] += arts
-            rec["by_prod"][pname]["business"] += amt
+            bp = rec["by_prod"][pname]
+            bp["articles"] += arts
+            bp["business"] += amt
+            bp["postage"] += postage
+            bp["vas"] += vas
+            bp["tax"] += tax
+            bp["fm_charges"] += fm
+            bp["ps_charges"] += ps
+            bp["ss_charges"] += ss
     return by_off
 
 
@@ -279,7 +300,8 @@ def _serializable_by_office(by_off: dict) -> dict:
             "business": round(rec["business"], 2),
             "daily": {d: {"articles": v["articles"], "business": round(v["business"], 2)}
                       for d, v in rec["daily"].items()},
-            "by_prod": {p: {"articles": v["articles"], "business": round(v["business"], 2)}
+            "by_prod": {p: {"articles": v["articles"], "business": round(v["business"], 2),
+                             **{k: round(v[k], 2) for k in CHARGE_KEYS}}
                         for p, v in rec["by_prod"].items()},
         }
     return out
@@ -317,7 +339,7 @@ def _deserialize_by_office(stored: dict) -> dict:
             "business": rec["business"],
             "products": set(rec["by_prod"].keys()),
             "daily": defaultdict(lambda: {"articles": 0, "business": 0.0}, rec["daily"]),
-            "by_prod": defaultdict(lambda: {"articles": 0, "business": 0.0}, rec["by_prod"]),
+            "by_prod": defaultdict(_zero_by_prod, rec["by_prod"]),
         }
     return out
 
@@ -359,14 +381,16 @@ def merge_offices_working(rec_a: dict, rec_b: dict) -> dict:
         "business": rec_a["business"] + rec_b["business"],
         "products": rec_a["products"] | rec_b["products"],
         "daily": defaultdict(lambda: {"articles": 0, "business": 0.0}),
-        "by_prod": defaultdict(lambda: {"articles": 0, "business": 0.0}),
+        "by_prod": defaultdict(_zero_by_prod),
     }
     for d, v in rec_a["daily"].items():
         out["daily"][d]["articles"] += v["articles"]; out["daily"][d]["business"] += v["business"]
     for d, v in rec_b["daily"].items():
         out["daily"][d]["articles"] += v["articles"]; out["daily"][d]["business"] += v["business"]
     for p, v in rec_a["by_prod"].items():
-        out["by_prod"][p]["articles"] += v["articles"]; out["by_prod"][p]["business"] += v["business"]
+        for k in ("articles", "business") + CHARGE_KEYS:
+            out["by_prod"][p][k] += v[k]
     for p, v in rec_b["by_prod"].items():
-        out["by_prod"][p]["articles"] += v["articles"]; out["by_prod"][p]["business"] += v["business"]
+        for k in ("articles", "business") + CHARGE_KEYS:
+            out["by_prod"][p][k] += v[k]
     return out

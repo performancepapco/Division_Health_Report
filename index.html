@@ -5068,7 +5068,7 @@ function recomputeRanks() {
     var card = document.getElementById("bolu-card");
     if (!r) { card.innerHTML = '<div class="bolu-empty">Office not found.</div>'; return; }
 
-    var bk = r.booking || {total_articles:0,total_amount:0,products:[]};
+    var bk = r.booking || {total_articles:0,total_amount:0,total_postage:0,total_vas:0,total_tax:0,total_fm:0,total_ps:0,total_ss:0,products:[]};
     var posb = r.posb || {opened:0,closed:0,net:0};
     var pli = r.pli || {policies:0,premium:0};
     var rpli = r.rpli || {policies:0,premium:0};
@@ -5103,14 +5103,16 @@ function recomputeRanks() {
     } else {
       var rows = "";
       bk.products.forEach(function(p){
-        rows += '<tr><td>'+p.n+'</td><td>'+fmtN(p.a)+'</td><td>'+fmtMoney(p.v)+'</td></tr>';
+        rows += '<tr><td>'+p.n+'</td><td>'+fmtN(p.a)+'</td><td>'+fmtMoney(p.postage)+'</td><td>'+fmtMoney(p.vas)+'</td><td>'+fmtMoney(p.tax)+'</td><td>'+fmtMoney(p.fm)+'</td><td>'+fmtMoney(p.ps)+'</td><td>'+fmtMoney(p.ss)+'</td><td>'+fmtMoney(p.v)+'</td></tr>';
       });
       bkPane =
-        '<table class="bolu-table">'
-        + '<thead><tr><th>Product</th><th>Articles</th><th>Amount</th></tr></thead>'
+        '<div style="overflow-x:auto;">'
+        + '<table class="bolu-table">'
+        + '<thead><tr><th>Product</th><th>Article Count</th><th>Postage</th><th>VAS</th><th>Tax</th><th>FM Charges</th><th>PS Charges</th><th>SS Charges</th><th>Total Amount</th></tr></thead>'
         + '<tbody>' + rows + '</tbody>'
-        + '<tfoot><tr><td>Total — Apr–Jun 2026</td><td>'+fmtN(bk.total_articles)+'</td><td>'+fmtMoney(bk.total_amount)+'</td></tr></tfoot>'
-        + '</table>';
+        + '<tfoot><tr><td>Total — Apr–Jun 2026</td><td>'+fmtN(bk.total_articles)+'</td><td>'+fmtMoney(bk.total_postage)+'</td><td>'+fmtMoney(bk.total_vas)+'</td><td>'+fmtMoney(bk.total_tax)+'</td><td>'+fmtMoney(bk.total_fm)+'</td><td>'+fmtMoney(bk.total_ps)+'</td><td>'+fmtMoney(bk.total_ss)+'</td><td>'+fmtMoney(bk.total_amount)+'</td></tr></tfoot>'
+        + '</table>'
+        + '</div>';
     }
 
     // POSB pane

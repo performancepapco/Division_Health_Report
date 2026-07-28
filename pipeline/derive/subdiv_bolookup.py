@@ -139,16 +139,28 @@ def _load_dataset_sections(month_iso: str) -> dict:
     return json.loads(p.read_text(encoding="utf-8")).get("sections", {})
 
 
+def _zero_booking_cum():
+    return {"articles": 0, "amount": 0.0, "postage": 0.0, "vas": 0.0, "tax": 0.0,
+            "fm_charges": 0.0, "ps_charges": 0.0, "ss_charges": 0.0}
+
+
 def _read_booking_cumulative(months: list[str]):
-    cum = defaultdict(lambda: defaultdict(lambda: {"articles": 0, "amount": 0.0}))
+    cum = defaultdict(lambda: defaultdict(_zero_booking_cum))
     for month in months:
         booking = _load_section(month, "booking")
         if not booking:
             continue
         for oid, rec in booking.get("by_office", {}).items():
             for pname, v in rec.get("by_prod", {}).items():
-                cum[oid][pname]["articles"] += v["articles"]
-                cum[oid][pname]["amount"] += v["business"]
+                acc = cum[oid][pname]
+                acc["articles"] += v["articles"]
+                acc["amount"] += v["business"]
+                acc["postage"] += v.get("postage", 0)
+                acc["vas"] += v.get("vas", 0)
+                acc["tax"] += v.get("tax", 0)
+                acc["fm_charges"] += v.get("fm_charges", 0)
+                acc["ps_charges"] += v.get("ps_charges", 0)
+                acc["ss_charges"] += v.get("ss_charges", 0)
     return cum
 
 
@@ -209,11 +221,18 @@ def build(cfg: dict, months: list[str] | None = None) -> dict:
         bk = booking_cum.get(oid, {})
         prods = []
         tot_a, tot_amt = 0, 0.0
+        tot_postage = tot_vas = tot_tax = tot_fm = tot_ps = tot_ss = 0.0
         for pname, v in sorted(bk.items(), key=lambda kv: (-kv[1]["amount"], kv[0])):
             if v["articles"] == 0 and v["amount"] == 0:
                 continue
-            prods.append({"n": pname, "a": v["articles"], "v": round(v["amount"], 2)})
+            prods.append({
+                "n": pname, "a": v["articles"], "v": round(v["amount"], 2),
+                "postage": round(v["postage"], 2), "vas": round(v["vas"], 2), "tax": round(v["tax"], 2),
+                "fm": round(v["fm_charges"], 2), "ps": round(v["ps_charges"], 2), "ss": round(v["ss_charges"], 2),
+            })
             tot_a += v["articles"]; tot_amt += v["amount"]
+            tot_postage += v["postage"]; tot_vas += v["vas"]; tot_tax += v["tax"]
+            tot_fm += v["fm_charges"]; tot_ps += v["ps_charges"]; tot_ss += v["ss_charges"]
 
         bo_lookup[oid] = {
             "id": oid, "code": code, "name": name, "type": otype,
@@ -222,7 +241,13 @@ def build(cfg: dict, months: list[str] | None = None) -> dict:
             "posb_schemes": posb_schemes.get(oid, {}),
             "pli": {"policies": pli_v["policies"], "premium": pli_v["premium"]},
             "rpli": {"policies": rpli_v["policies"], "premium": rpli_v["premium"]},
-            "booking": {"total_articles": tot_a, "total_amount": round(tot_amt, 2), "products": prods},
+            "booking": {
+                "total_articles": tot_a, "total_amount": round(tot_amt, 2),
+                "total_postage": round(tot_postage, 2), "total_vas": round(tot_vas, 2),
+                "total_tax": round(tot_tax, 2), "total_fm": round(tot_fm, 2),
+                "total_ps": round(tot_ps, 2), "total_ss": round(tot_ss, 2),
+                "products": prods,
+            },
             "nil_posb": posb_rec is None,
         }
 
