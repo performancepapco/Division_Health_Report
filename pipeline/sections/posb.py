@@ -196,7 +196,20 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
 
     schemes = _read_schemes(wb)
 
-    return {"divisions": month_data, "offices": offices, "schemes": schemes}
+    # "Month" column holds a date range like "01-07-2026 - 27-07-2026" (see
+    # validate() above) — its end date is the real as-of date for this
+    # file, which for a daily_reupload month-to-date upload is today's
+    # pull, not the calendar month-end. Surfaced via subdiv_bolookup.py so
+    # BO Lookup can show a real date instead of a stale quarter label.
+    as_of = None
+    first_row = next(ws.iter_rows(min_row=2, max_row=2, values_only=True), None)
+    if first_row is not None:
+        m = re.search(r"(\d{2})-(\d{2})-(\d{4})\s*$", str(first_row[hmap["Month"]] or ""))
+        if m:
+            dd, mm, yyyy = m.groups()
+            as_of = f"{yyyy}-{mm}-{dd}"
+
+    return {"divisions": month_data, "offices": offices, "schemes": schemes, "as_of": as_of}
 
 
 def merge_cumulative(new_slice: dict, previous_cumulative: dict | None) -> dict:

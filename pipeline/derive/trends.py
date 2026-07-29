@@ -64,12 +64,33 @@ def _load_ecr_divisions(month_iso: str) -> dict:
     return section["standalone"].get("divisions", {}) if section else {}
 
 
+def _has_ecr(month_iso: str) -> bool:
+    p = DATA_DIR / f"dataset_{month_iso}.json"
+    if not p.exists():
+        return False
+    dataset = json.loads(p.read_text(encoding="utf-8"))
+    return "ecr" in dataset.get("sections", {})
+
+
 def _load_targets() -> dict:
     p = DATA_DIR / "targets.json"
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 
 def build(cfg: dict, months: list[str]) -> dict:
+    # Every vertical here (including "posb"/"pli_rpli") is sourced from the
+    # ecr dataset section's own "actuals" breakdown, not from the separate
+    # booking/posb sections — so a month whose ecr file hasn't been
+    # uploaded yet has to be dropped here, not just zero-filled. Left in,
+    # it would still be treated as "the latest month" (assemble.py's
+    # months list is any month with *a* dataset file, and booking/posb are
+    # now uploaded daily ahead of ecr) and would silently zero out every
+    # division's pct_prorata for that month — flags.py then finds no one
+    # below a circle average of 0 and the whole below-average watchlist
+    # goes empty, which reads as "nothing's underperforming" rather than
+    # the true "ecr isn't uploaded for this month yet."
+    months = [m for m in months if _has_ecr(m)]
+
     known_divisions = cfg["sections"]["ecr"]["known_divisions"]
     targets = _load_targets()
     ecr_by_month = {m: _load_ecr_divisions(m) for m in months}

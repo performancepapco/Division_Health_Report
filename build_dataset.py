@@ -66,10 +66,21 @@ def _load_dataset(month_iso: str) -> dict:
     return {"month": month_iso, "sections": {}}
 
 
-def _finish(section_name: str, month_iso: str, new_slice, mod, row_count_band) -> tuple[int, list[str]]:
+def _finish(section_name: str, month_iso: str, new_slice, mod, row_count_band,
+            daily_reupload: bool = False) -> tuple[int, list[str]]:
     """Shared tail: row-count-band check, merge, write dataset + latest.json.
     Returns (exit_code, error_messages) — messages are plain-language and
-    safe to relay to an uploader by email; empty on success."""
+    safe to relay to an uploader by email; empty on success.
+
+    daily_reupload sections (booking, posb) get month-to-date files
+    re-uploaded daily rather than one file per month, so row_count_band
+    (built for comparing two *completed* months) doesn't apply the same
+    way: a partial month is never comparable to a full prior month. For
+    those sections we instead compare against this month's own last
+    stored count once one exists (catching a truncated file or an
+    accidental single-day delta, not normal day-to-day growth), and skip
+    the check entirely on the first upload of a new month, when there's no
+    same-month baseline yet to compare a partial file against."""
     new_count = mod.row_count(new_slice)
 
     prev_month = prev_iso_month(month_iso)
@@ -78,7 +89,21 @@ def _finish(section_name: str, month_iso: str, new_slice, mod, row_count_band) -
     prev_cumulative = prev_section["cumulative"] if prev_section else None
     prev_count = mod.row_count(prev_cumulative) if prev_cumulative else None
 
-    count_errors = validate_row_count(section_name, section_name, new_count, prev_count, row_count_band)
+    same_month_cumulative = None
+    if daily_reupload:
+        same_month_dataset = _load_dataset(month_iso)
+        same_month_section = same_month_dataset["sections"].get(section_name)
+        same_month_cumulative = same_month_section["cumulative"] if same_month_section else None
+
+    if same_month_cumulative is not None:
+        same_month_count = mod.row_count(same_month_cumulative)
+        count_errors = validate_row_count(section_name, section_name, new_count, same_month_count,
+                                           [0.5, None], baseline="this month's last upload")
+    elif daily_reupload:
+        count_errors = []
+    else:
+        count_errors = validate_row_count(section_name, section_name, new_count, prev_count, row_count_band)
+
     if count_errors:
         msgs = [e.message for e in count_errors]
         print(f"\n{len(msgs)} validation error(s):")
@@ -125,7 +150,8 @@ def run(section_name: str, month_iso: str, input_path: Path, check_only: bool = 
 
     print(f"[{section_name}] extracting...")
     new_slice = mod.extract(section_cfg, input_path, month_iso)
-    return _finish(section_name, month_iso, new_slice, mod, section_cfg["row_count_band"])
+    return _finish(section_name, month_iso, new_slice, mod, section_cfg["row_count_band"],
+                   section_cfg.get("daily_reupload", False))
 
 
 def _find_prev_posb_silent(month_iso: str) -> tuple[dict | None, str | None]:
@@ -246,9 +272,11 @@ def run_booking(month_iso: str, productwise_path: Path, booktypewise_path: Path 
 
     print("[booking] extracting...")
     new_slice = mod.extract(productwise_path, booktypewise_path, month_iso)
-    # Booking's row-count band lives on booking_productwise's config (both
-    # section entries share the same band value in pipeline_config.yaml).
-    return _finish("booking", month_iso, new_slice, mod, pw_cfg["row_count_band"])
+    # Booking's row-count band (and daily_reupload flag) live on
+    # booking_productwise's config (both section entries share the same
+    # values in pipeline_config.yaml).
+    return _finish("booking", month_iso, new_slice, mod, pw_cfg["row_count_band"],
+                   pw_cfg.get("daily_reupload", False))
 
 
 def main():

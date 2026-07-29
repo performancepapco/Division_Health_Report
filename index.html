@@ -4901,6 +4901,11 @@ function recomputeRanks() {
     var parts = iso.split("-"), y = parts[0], m = +parts[1];
     return (MONTH_FULL[m - 1] || "") + " " + y;
   }
+  function fmtAsOf(iso) {
+    if (!iso) return "date";
+    var parts = iso.split("-"), y = parts[0], m = +parts[1], d = +parts[2];
+    return d + " " + (MONTH_FULL[m - 1] || "") + " " + y;
+  }
   function silentTone(pct) {
     if (pct > 75) return "red";
     if (pct >= 50) return "amber";
@@ -5068,8 +5073,8 @@ function recomputeRanks() {
     var card = document.getElementById("bolu-card");
     if (!r) { card.innerHTML = '<div class="bolu-empty">Office not found.</div>'; return; }
 
-    var bk = r.booking || {total_articles:0,total_amount:0,total_postage:0,total_vas:0,total_tax:0,total_fm:0,total_ps:0,total_ss:0,products:[]};
-    var posb = r.posb || {opened:0,closed:0,net:0};
+    var bk = r.booking || {total_articles:0,total_amount:0,total_postage:0,total_vas:0,total_tax:0,total_fm:0,total_ps:0,total_ss:0,products:[],as_of:null};
+    var posb = r.posb || {opened:0,closed:0,net:0,as_of:null};
     var pli = r.pli || {policies:0,premium:0};
     var rpli = r.rpli || {policies:0,premium:0};
 
@@ -5097,9 +5102,10 @@ function recomputeRanks() {
       + '</div>';
 
     // Booking pane
+    var bkAsOf = fmtAsOf(bk.as_of);
     var bkPane;
     if (!bk.products.length) {
-      bkPane = '<div class="bolu-empty">No booking activity recorded in Apr–Jun 2026.</div>';
+      bkPane = '<div class="bolu-empty">No booking activity recorded up to ' + bkAsOf + '.</div>';
     } else {
       var rows = "";
       bk.products.forEach(function(p){
@@ -5110,19 +5116,20 @@ function recomputeRanks() {
         + '<table class="bolu-table">'
         + '<thead><tr><th>Product</th><th>Article Count</th><th>Postage</th><th>VAS</th><th>Tax</th><th>FM Charges</th><th>PS Charges</th><th>SS Charges</th><th>Total Amount</th></tr></thead>'
         + '<tbody>' + rows + '</tbody>'
-        + '<tfoot><tr><td>Total — Apr–Jun 2026</td><td>'+fmtN(bk.total_articles)+'</td><td>'+fmtMoney(bk.total_postage)+'</td><td>'+fmtMoney(bk.total_vas)+'</td><td>'+fmtMoney(bk.total_tax)+'</td><td>'+fmtMoney(bk.total_fm)+'</td><td>'+fmtMoney(bk.total_ps)+'</td><td>'+fmtMoney(bk.total_ss)+'</td><td>'+fmtMoney(bk.total_amount)+'</td></tr></tfoot>'
+        + '<tfoot><tr><td>Total — Cumulative to ' + bkAsOf + '</td><td>'+fmtN(bk.total_articles)+'</td><td>'+fmtMoney(bk.total_postage)+'</td><td>'+fmtMoney(bk.total_vas)+'</td><td>'+fmtMoney(bk.total_tax)+'</td><td>'+fmtMoney(bk.total_fm)+'</td><td>'+fmtMoney(bk.total_ps)+'</td><td>'+fmtMoney(bk.total_ss)+'</td><td>'+fmtMoney(bk.total_amount)+'</td></tr></tfoot>'
         + '</table>'
         + '</div>';
     }
 
     // POSB pane
     var nilPosb = !!r.nil_posb;
+    var posbAsOf = fmtAsOf(posb.as_of);
     var netCls = nilPosb ? "nil" : posb.net > 0 ? "pos" : posb.net < 0 ? "neg" : "nil";
     var posbPane =
-      (nilPosb ? '<div class="bolu-empty" style="margin-bottom:14px;">NIL — no accounts opened or closed at this office in Apr–Jun 2026. Office exists but recorded no POSB activity.</div>' : '')
+      (nilPosb ? '<div class="bolu-empty" style="margin-bottom:14px;">NIL — no accounts opened or closed at this office up to ' + posbAsOf + '. Office exists but recorded no POSB activity.</div>' : '')
       + '<div class="bolu-kpi-strip cols-3">'
-      + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Opened</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.opened)+'</div><div class="sub">In Apr–Jun 2026</div></div>'
-      + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Closed</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.closed)+'</div><div class="sub">In Apr–Jun 2026</div></div>'
+      + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Opened</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.opened)+'</div><div class="sub">Up to ' + posbAsOf + '</div></div>'
+      + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Closed</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.closed)+'</div><div class="sub">Up to ' + posbAsOf + '</div></div>'
       + '<div class="bolu-kpi-cell"><div class="lbl">Net Addition</div><div class="val '+netCls+'">'+(posb.net>0?'+':'')+fmtN(posb.net)+'</div><div class="sub">'+(nilPosb?'NIL':posb.net>0?'Positive ✓':posb.net<0?'Negative ✗':'Flat')+'</div></div>'
       + '</div>';
 

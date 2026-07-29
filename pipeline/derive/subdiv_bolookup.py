@@ -164,6 +164,23 @@ def _read_booking_cumulative(months: list[str]):
     return cum
 
 
+def _latest_dataset_field(months: list[str], section_name: str, field: str) -> str | None:
+    """Max value of `field` across every month's stored section (booking's
+    latest_booking_date, posb's as_of) — lets BO Lookup show a real as-of
+    date instead of a fixed quarter label once a section is being
+    re-uploaded daily as a month-to-date file rather than once at
+    month-end."""
+    latest = None
+    for month in months:
+        section = _load_section(month, section_name)
+        if not section:
+            continue
+        v = section.get(field)
+        if v and (latest is None or v > latest):
+            latest = v
+    return latest
+
+
 def build(cfg: dict, months: list[str] | None = None) -> dict:
     months = months or _available_months()
     print(f"  Months on record: {months}")
@@ -192,6 +209,8 @@ def build(cfg: dict, months: list[str] | None = None) -> dict:
 
     print("  Building booking cumulative...")
     booking_cum = _read_booking_cumulative(months)
+    booking_as_of = _latest_dataset_field(months, "booking", "latest_booking_date")
+    posb_as_of = _latest_dataset_field(months, "posb", "as_of")
 
     by_div = defaultdict(lambda: defaultdict(lambda: {
         "region": "", "offices": 0,
@@ -237,11 +256,12 @@ def build(cfg: dict, months: list[str] | None = None) -> dict:
         bo_lookup[oid] = {
             "id": oid, "code": code, "name": name, "type": otype,
             "sub_division": sd, "division": div_s, "region": region, "pincode": None,
-            "posb": {"opened": opened, "closed": closed, "net": net},
+            "posb": {"opened": opened, "closed": closed, "net": net, "as_of": posb_as_of},
             "posb_schemes": posb_schemes.get(oid, {}),
             "pli": {"policies": pli_v["policies"], "premium": pli_v["premium"]},
             "rpli": {"policies": rpli_v["policies"], "premium": rpli_v["premium"]},
             "booking": {
+                "as_of": booking_as_of,
                 "total_articles": tot_a, "total_amount": round(tot_amt, 2),
                 "total_postage": round(tot_postage, 2), "total_vas": round(tot_vas, 2),
                 "total_tax": round(tot_tax, 2), "total_fm": round(tot_fm, 2),

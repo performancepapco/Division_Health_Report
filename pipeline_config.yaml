@@ -163,6 +163,10 @@ sections:
     # Activity-only sheet (offices with zero activity are simply absent),
     # so month-to-month row counts swing more than other sections.
     row_count_band: [0.5, 1.6]
+    # This file is a month-to-date export re-uploaded daily (see
+    # booking_productwise below for the full explanation of what this flag
+    # changes in build_dataset.py's row-count check).
+    daily_reupload: true
     sheets:
       "2. BO Totals":
         header_row: 1
@@ -241,6 +245,19 @@ sections:
     file_type: csv
     cumulative_mode: computed
     row_count_band: [0.5, 1.8]
+    # This file is a month-to-date export (all bookings since day 1 of the
+    # month, not just one day's delta), re-uploaded daily rather than once
+    # at month-end. row_count_band above compares a *completed* month
+    # against the prior *completed* month, which would reject every
+    # legitimate partial-month upload (e.g. day 3 of July looks tiny next
+    # to all of June). With this flag set, build_dataset.py instead: (a)
+    # skips the row-count check on the first upload of a new month (no
+    # same-month baseline exists yet to compare a partial file against),
+    # and (b) on later re-uploads that month, compares against that
+    # month's own last stored count (today's total shouldn't be less than
+    # half of what was already on record — catches an accidentally
+    # truncated file or a single day's delta uploaded by mistake instead
+    # of the full month-to-date export) rather than against last month.
     csv_headers:
       required:
         - "office-id"
@@ -262,6 +279,11 @@ sections:
     file_type: csv
     cumulative_mode: computed
     row_count_band: [0.5, 1.8]
+    # Also a daily month-to-date export — see booking_productwise's
+    # daily_reupload comment. (Its own row_count_band/daily_reupload here
+    # aren't actually read: build_dataset.py's booking path shares one
+    # band/flag, sourced from booking_productwise's config, for both files.)
+    daily_reupload: true
     csv_headers:
       required:
         - "Office ID"

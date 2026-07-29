@@ -317,6 +317,12 @@ def extract(productwise_path, booktypewise_path, month_iso: str) -> dict:
     # assemble.py's cross-month "Cumulative" rebuild has everything
     # _build_month() needs without re-parsing the raw book-type-wise CSV.
     pack["mix_by_office"] = {oid: dict(v) for oid, v in mix.items()}
+    # Latest actual booking-date seen in this file — for a daily_reupload
+    # month-to-date file this is "as of" today's pull, not the calendar
+    # month-end; pipeline/derive/subdiv_bolookup.py surfaces this so the
+    # dashboard can show a real as-of date instead of a stale quarter label.
+    pack["latest_booking_date"] = max(
+        (d for rec in by_off.values() for d in rec["daily"]), default=None)
     return pack
 
 

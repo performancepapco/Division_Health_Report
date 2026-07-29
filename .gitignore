@@ -41,6 +41,7 @@ uploads/new*
 uploads/june_2026/*.csv
 uploads/june_2026/*.xlsx
 uploads/june_2026/POSB/
+uploads/July_2026/
 
 # ...except the PLI/RPLI source files that index.html's download links point to
 !uploads/june_2026/PLI_June2026_Distribution.xlsx

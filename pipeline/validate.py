@@ -118,15 +118,20 @@ def validate_csv(section_name: str, label: str, path, csv_cfg: dict) -> list[Val
 
 
 def validate_row_count(section_name: str, label: str, new_count: int,
-                        prev_count: int | None, band: list) -> list[ValidationError]:
+                        prev_count: int | None, band: list,
+                        baseline: str = "last month's") -> list[ValidationError]:
+    """band's upper bound (band[1]) may be None to skip the upper check
+    entirely — used for same-month re-uploads, where growth through the
+    month is expected and not suspicious, only a big drop is."""
     if prev_count is None or prev_count == 0:
         return []
     lo, hi = band
     ratio = new_count / prev_count
-    if ratio < lo or ratio > hi:
+    if ratio < lo or (hi is not None and ratio > hi):
+        hi_txt = f"{hi:.0%}" if hi is not None else "no upper limit"
         return [ValidationError(section_name,
-            f"{label}: row count ({new_count:,}) is {ratio:.0%} of last month's "
-            f"({prev_count:,}) — outside the expected {lo:.0%}-{hi:.0%} range. "
+            f"{label}: row count ({new_count:,}) is {ratio:.0%} of {baseline} "
+            f"({prev_count:,}) — outside the expected {lo:.0%}-{hi_txt} range. "
             f"This usually means a partial upload or a wrong file. If this drop/spike "
             f"is genuinely correct, an admin can approve it manually from staging.")]
     return []
