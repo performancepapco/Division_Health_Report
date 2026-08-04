@@ -158,6 +158,17 @@ def write_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
+def write_bo_lookup_by_month(bo_lookup_by_month: dict) -> None:
+    """One file per month, NOT a single combined file — each month's slice
+    is ~11MB, and Cloudflare Pages rejects any individual deployed file over
+    25MiB, so a combined file breaks the 'Deploy to staging'/'Promote to
+    Production' steps once there's more than ~2 months of data on record."""
+    for label, lookup in bo_lookup_by_month.items():
+        path = DATA_DIR / f"bo_lookup_month_{label}.json"
+        write_json(path, lookup)
+        print(f"  Wrote {path} ({path.stat().st_size:,} bytes)")
+
+
 def build_trends_and_flags(cfg: dict, months: list[str]) -> tuple[dict, dict]:
     print("TRENDS_JSON (FY-target pro-rata attainment)...")
     trends = trends_mod.build(cfg, months)
@@ -173,9 +184,8 @@ def main():
     write_json(out_path, result)
     print(f"\nWrote {out_path} ({out_path.stat().st_size:,} bytes)")
 
-    bo_path = DATA_DIR / "bo_lookup_by_month.json"
-    write_json(bo_path, bo_lookup_by_month)
-    print(f"Wrote {bo_path} ({bo_path.stat().st_size:,} bytes)")
+    print("BO_LOOKUP per-month files (kept under Cloudflare Pages' 25MiB/file limit)...")
+    write_bo_lookup_by_month(bo_lookup_by_month)
 
     cfg = load_config()
     trends, flags = build_trends_and_flags(cfg, result["generated_from_months"])

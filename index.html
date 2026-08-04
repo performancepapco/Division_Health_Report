@@ -4300,23 +4300,43 @@ let BO_LOOKUP = {};
 let BO_SEARCH = [];
 // === END BO_LOOKUP DATA ===
 
-// data/bo_lookup_by_month.json — single-month BO_LOOKUP slices, one per
-// Period-selector month. Kept out of latest.json (it's ~2x the size of
-// everything else in there combined) and fetched lazily, only once BO
-// Lookup is actually opened, so it never sits on the initial-paint path.
+// data/bo_lookup_month_<Label>.json — one file per Period-selector month
+// (NOT a single combined file — each month's slice is ~11MB and Cloudflare
+// Pages rejects any deployed file over 25MiB). Kept out of latest.json and
+// fetched lazily, per month, only for whichever months are actually needed
+// — first when BO Lookup is opened (prefetches the current Period range),
+// and again if the range is widened to cover a month not yet loaded.
 let BO_LOOKUP_BY_MONTH = {};
-let BO_LOOKUP_BY_MONTH_LOADED = false;
-let BO_LOOKUP_BY_MONTH_PROMISE = null;
-function ensureBoLookupByMonth() {
-  if (BO_LOOKUP_BY_MONTH_LOADED) return Promise.resolve();
-  if (BO_LOOKUP_BY_MONTH_PROMISE) return BO_LOOKUP_BY_MONTH_PROMISE;
-  BO_LOOKUP_BY_MONTH_PROMISE = fetch('data/bo_lookup_by_month.json?v=' + Date.now())
+let BO_LOOKUP_MONTH_STATUS = {};   // label -> 'loading' | 'loaded' | 'error'
+let BO_LOOKUP_MONTH_PROMISES = {}; // label -> Promise
+function ensureBoLookupMonth(label) {
+  if (BO_LOOKUP_MONTH_STATUS[label] === 'loaded') return Promise.resolve();
+  if (BO_LOOKUP_MONTH_PROMISES[label]) return BO_LOOKUP_MONTH_PROMISES[label];
+  BO_LOOKUP_MONTH_STATUS[label] = 'loading';
+  BO_LOOKUP_MONTH_PROMISES[label] = fetch('data/bo_lookup_month_' + encodeURIComponent(label) + '.json?v=' + Date.now())
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(j) { BO_LOOKUP_BY_MONTH = j; BO_LOOKUP_BY_MONTH_LOADED = true; })
+    .then(function(j) { BO_LOOKUP_BY_MONTH[label] = j; BO_LOOKUP_MONTH_STATUS[label] = 'loaded'; })
     .catch(function(err) {
-      console.warn('[BO Lookup] data/bo_lookup_by_month.json unavailable — falling back to all-time cumulative figures:', err);
+      BO_LOOKUP_MONTH_STATUS[label] = 'error';
+      console.warn('[BO Lookup] data/bo_lookup_month_' + label + '.json unavailable:', err);
     });
-  return BO_LOOKUP_BY_MONTH_PROMISE;
+  return BO_LOOKUP_MONTH_PROMISES[label];
+}
+// Fetches (or reuses cached fetches of) every month in [fromLabel, toLabel].
+function ensureBoLookupRange(fromLabel, toLabel) {
+  var fromIdx = MONTH_ORDER.indexOf(fromLabel), toIdx = MONTH_ORDER.indexOf(toLabel);
+  if (fromIdx < 0 || toIdx < 0) return Promise.resolve();
+  return Promise.all(MONTH_ORDER.slice(fromIdx, toIdx + 1).map(ensureBoLookupMonth));
+}
+// True once every month in range has either loaded or definitively failed
+// (an 'error' month still counts as "settled" so computeBoLookupRange can
+// proceed and just skip it, rather than waiting forever on a 404).
+function boLookupRangeSettled(fromLabel, toLabel) {
+  var fromIdx = MONTH_ORDER.indexOf(fromLabel), toIdx = MONTH_ORDER.indexOf(toLabel);
+  if (fromIdx < 0 || toIdx < 0) return true;
+  return MONTH_ORDER.slice(fromIdx, toIdx + 1).every(function(m) {
+    return BO_LOOKUP_MONTH_STATUS[m] === 'loaded' || BO_LOOKUP_MONTH_STATUS[m] === 'error';
+  });
 }
 // === SUBDIV_DATA (auto-generated) ===
 let SUBDIV_DATA = {};
@@ -5192,12 +5212,13 @@ function recomputeRanks() {
     STATE.currentId = id;
     var fromLabel = (document.getElementById('month-from') || {}).value;
     var toLabel   = (document.getElementById('month-to')   || {}).value;
-    var r = computeBoLookupRange(id, fromLabel, toLabel) || BO_LOOKUP[id];
+    var rangeReady = boLookupRangeSettled(fromLabel, toLabel);
+    var r = (rangeReady ? computeBoLookupRange(id, fromLabel, toLabel) : null) || BO_LOOKUP[id];
     var card = document.getElementById("bolu-card");
     if (!r) { card.innerHTML = '<div class="bolu-empty">Office not found.</div>'; return; }
 
-    if (!BO_LOOKUP_BY_MONTH_LOADED) {
-      ensureBoLookupByMonth().then(function() {
+    if (!rangeReady) {
+      ensureBoLookupRange(fromLabel, toLabel).then(function() {
         if (STATE.currentId === id) showBOCard(id);
       });
     }
@@ -5360,7 +5381,9 @@ function recomputeRanks() {
   };
 
   window.initBOLookup = function() {
-    ensureBoLookupByMonth();
+    var fromLabel = (document.getElementById('month-from') || {}).value;
+    var toLabel   = (document.getElementById('month-to')   || {}).value;
+    ensureBoLookupRange(fromLabel, toLabel);
     populateFilters();
     var sb = document.getElementById("bolu-search");
     if (sb && !sb.dataset.bound) {

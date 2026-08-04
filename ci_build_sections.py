@@ -173,9 +173,7 @@ def main():
         assemble_mod.write_json(latest_path, result)
         print(f"  Wrote {latest_path} ({latest_path.stat().st_size:,} bytes)")
 
-        bo_lookup_by_month_path = DATA_DIR / "bo_lookup_by_month.json"
-        assemble_mod.write_json(bo_lookup_by_month_path, bo_lookup_by_month)
-        print(f"  Wrote {bo_lookup_by_month_path} ({bo_lookup_by_month_path.stat().st_size:,} bytes)")
+        assemble_mod.write_bo_lookup_by_month(bo_lookup_by_month)
 
         trends, flags = assemble_mod.build_trends_and_flags(cfg, result["generated_from_months"])
         assemble_mod.write_json(DATA_DIR / "trends.json", trends)
