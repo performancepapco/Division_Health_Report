@@ -19,7 +19,7 @@ import re
 from pathlib import Path
 from collections import defaultdict
 
-from pipeline.common import Roster, short_div
+from pipeline.common import Roster, short_div, iso_to_label
 
 BASE = Path(__file__).parent.parent.parent
 DATA_DIR = BASE / "data"
@@ -181,12 +181,23 @@ def _latest_dataset_field(months: list[str], section_name: str, field: str) -> s
     return latest
 
 
-def build(cfg: dict, months: list[str] | None = None) -> dict:
+def build(cfg: dict, months: list[str] | None = None,
+          activity_months: list[str] | None = None,
+          silent_months: list[str] | None = None) -> dict:
+    """`months` scopes SUBDIV_DATA's real-divisions/roster resolution and is
+    the default for the other two. `activity_months` scopes which months'
+    POSB/PLI/RPLI/Booking activity gets summed into BO_LOOKUP (pass a single
+    month here to get a non-cumulative slice — see build_by_month below).
+    `silent_months` scopes the Silent Accounts snapshot lookup, which always
+    wants the latest snapshot across every month on record regardless of
+    activity_months, since it isn't month-summable activity."""
     months = months or _available_months()
+    activity_months = activity_months or months
+    silent_months = silent_months or months
     print(f"  Months on record: {months}")
 
     print("  Building POSB cumulative (office + scheme-wise)...")
-    posb_offices, posb_schemes, real_divisions = _build_posb_cumulative(months)
+    posb_offices, posb_schemes, real_divisions = _build_posb_cumulative(activity_months)
     print(f"    {len(posb_offices):,} offices with POSB activity, {len(real_divisions)} divisions")
 
     print("  Loading master office roster...")
@@ -198,19 +209,19 @@ def build(cfg: dict, months: list[str] | None = None) -> dict:
         name_to_oids[(rec["division"], norm_name(rec["name"]))].append(oid)
 
     print("  Building PLI cumulative...")
-    pli_cum = _build_ins_cumulative(months, "pli")
+    pli_cum = _build_ins_cumulative(activity_months, "pli")
     pli_by_office, pli_unmatched = _distribute_ins_to_offices(pli_cum, name_to_oids)
     print("  Building RPLI cumulative...")
-    rpli_cum = _build_ins_cumulative(months, "rpli")
+    rpli_cum = _build_ins_cumulative(activity_months, "rpli")
     rpli_by_office, rpli_unmatched = _distribute_ins_to_offices(rpli_cum, name_to_oids)
     if pli_unmatched or rpli_unmatched:
         print(f"    NOTE: {len(pli_unmatched)} PLI / {len(rpli_unmatched)} RPLI office names have no "
               f"match in the master roster at all (added as (Unmapped) entries)")
 
     print("  Building booking cumulative...")
-    booking_cum = _read_booking_cumulative(months)
-    booking_as_of = _latest_dataset_field(months, "booking", "latest_booking_date")
-    posb_as_of = _latest_dataset_field(months, "posb", "as_of")
+    booking_cum = _read_booking_cumulative(activity_months)
+    booking_as_of = _latest_dataset_field(activity_months, "booking", "latest_booking_date")
+    posb_as_of = _latest_dataset_field(activity_months, "posb", "as_of")
 
     by_div = defaultdict(lambda: defaultdict(lambda: {
         "region": "", "offices": 0,
@@ -294,7 +305,7 @@ def build(cfg: dict, months: list[str] | None = None) -> dict:
               f"(kept anyway, e.g. hierarchy drift)")
 
     print("  Joining POSB Silent Accounts snapshot...")
-    silent_rows = _load_posb_silent_snapshot(months)
+    silent_rows = _load_posb_silent_snapshot(silent_months)
     code_to_oid = {str(r["code"]): oid for oid, r in bo_lookup.items() if r.get("code")}
     silent_matched, silent_unmatched = 0, []
     for key, srec in silent_rows.items():
@@ -363,3 +374,20 @@ def build(cfg: dict, months: list[str] | None = None) -> dict:
     print(f"  BO_LOOKUP: {len(bo_lookup):,} offices")
 
     return {"subdiv_data": subdiv_out, "bo_lookup": {"lookup": bo_lookup, "index": search_idx}}
+
+
+def build_by_month(cfg: dict, months: list[str] | None = None) -> dict:
+    """Single-month BO_LOOKUP slices, keyed by month label, so the dashboard's
+    Period selector can drive office-level BO Lookup figures the same way it
+    already drives POSB_BY_MONTH/PLI_POLICIES/BOOKING_BY_MONTH — pick a
+    From/To range and sum the relevant slices client-side. Each slice's
+    Silent Accounts snapshot still comes from the latest month on record
+    overall (see build()'s silent_months), since that data isn't
+    month-summable activity."""
+    all_months = months or _available_months()
+    out = {}
+    for month in all_months:
+        print(f"  Building BO_LOOKUP slice for {month}...")
+        result = build(cfg, months=[month], activity_months=[month], silent_months=all_months)
+        out[iso_to_label(month)] = result["bo_lookup"]["lookup"]
+    return out

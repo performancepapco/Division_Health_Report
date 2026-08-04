@@ -168,10 +168,14 @@ def main():
     elif built_sections:
         print(f"\nAll {len(built_sections)} section(s) built cleanly: {', '.join(built_sections)}")
         print("Running assemble.py...")
-        result = assemble_mod.assemble()
+        result, bo_lookup_by_month = assemble_mod.assemble()
         DATA_DIR.mkdir(exist_ok=True)
         assemble_mod.write_json(latest_path, result)
         print(f"  Wrote {latest_path} ({latest_path.stat().st_size:,} bytes)")
+
+        bo_lookup_by_month_path = DATA_DIR / "bo_lookup_by_month.json"
+        assemble_mod.write_json(bo_lookup_by_month_path, bo_lookup_by_month)
+        print(f"  Wrote {bo_lookup_by_month_path} ({bo_lookup_by_month_path.stat().st_size:,} bytes)")
 
         trends, flags = assemble_mod.build_trends_and_flags(cfg, result["generated_from_months"])
         assemble_mod.write_json(DATA_DIR / "trends.json", trends)

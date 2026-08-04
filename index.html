@@ -4299,6 +4299,25 @@ let PREMIUM_TARGET_DATA = { meta: {}, circle: {}, divisions: {} };
 let BO_LOOKUP = {};
 let BO_SEARCH = [];
 // === END BO_LOOKUP DATA ===
+
+// data/bo_lookup_by_month.json — single-month BO_LOOKUP slices, one per
+// Period-selector month. Kept out of latest.json (it's ~2x the size of
+// everything else in there combined) and fetched lazily, only once BO
+// Lookup is actually opened, so it never sits on the initial-paint path.
+let BO_LOOKUP_BY_MONTH = {};
+let BO_LOOKUP_BY_MONTH_LOADED = false;
+let BO_LOOKUP_BY_MONTH_PROMISE = null;
+function ensureBoLookupByMonth() {
+  if (BO_LOOKUP_BY_MONTH_LOADED) return Promise.resolve();
+  if (BO_LOOKUP_BY_MONTH_PROMISE) return BO_LOOKUP_BY_MONTH_PROMISE;
+  BO_LOOKUP_BY_MONTH_PROMISE = fetch('data/bo_lookup_by_month.json?v=' + Date.now())
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(j) { BO_LOOKUP_BY_MONTH = j; BO_LOOKUP_BY_MONTH_LOADED = true; })
+    .catch(function(err) {
+      console.warn('[BO Lookup] data/bo_lookup_by_month.json unavailable — falling back to all-time cumulative figures:', err);
+    });
+  return BO_LOOKUP_BY_MONTH_PROMISE;
+}
 // === SUBDIV_DATA (auto-generated) ===
 let SUBDIV_DATA = {};
 // === END SUBDIV_DATA ===
@@ -4552,6 +4571,33 @@ function onMonthChange() {
   refreshActiveData();
   renderDivision(CUR_DIV_NAME);
   if (typeof renderAllVerticalBands === 'function') renderAllVerticalBands();
+  if (typeof refreshBoLookupCard === 'function') refreshBoLookupCard();
+}
+
+// Rebuilds the #month-from/#month-to option lists from whichever months
+// POSB_BY_MONTH actually has data for (the same source the POSB tab already
+// trusts for its own range slicing — see pickPosbSliceRange). The <option>
+// list in the HTML is a static fallback for before data loads; without this,
+// a newly-live month (e.g. July) would stay unselectable indefinitely since
+// nothing else regenerates that list. Called once after the initial data
+// load, defaulting the range to the full first..latest span on record.
+function populatePeriodSelector() {
+  var fromSel = document.getElementById('month-from');
+  var toSel   = document.getElementById('month-to');
+  if (!fromSel || !toSel || typeof POSB_BY_MONTH === 'undefined') return;
+  var months = MONTH_ORDER.filter(function(m) { return POSB_BY_MONTH[m]; });
+  if (!months.length) return;
+  [fromSel, toSel].forEach(function(sel) {
+    sel.innerHTML = '';
+    months.forEach(function(m) {
+      var o = document.createElement('option');
+      o.value = m;
+      o.textContent = _MONTH_NAME[m] || m;
+      sel.appendChild(o);
+    });
+  });
+  fromSel.value = months[0];
+  toSel.value = months[months.length - 1];
 }
 
 
@@ -4901,11 +4947,6 @@ function recomputeRanks() {
     var parts = iso.split("-"), y = parts[0], m = +parts[1];
     return (MONTH_FULL[m - 1] || "") + " " + y;
   }
-  function fmtAsOf(iso) {
-    if (!iso) return "date";
-    var parts = iso.split("-"), y = parts[0], m = +parts[1], d = +parts[2];
-    return d + " " + (MONTH_FULL[m - 1] || "") + " " + y;
-  }
   function silentTone(pct) {
     if (pct > 75) return "red";
     if (pct >= 50) return "amber";
@@ -5067,16 +5108,106 @@ function recomputeRanks() {
     card.innerHTML = "";
   }
 
+  // Sums this office's single-month BO_LOOKUP_BY_MONTH slices across the
+  // top-right Period selector's From/To range. posb_silent is deliberately
+  // left out of the sum and pulled from the all-time BO_LOOKUP[id] instead —
+  // it's a persistent account-status snapshot, not month activity, so it
+  // isn't meaningful to add across months (same reasoning as the Silent
+  // Accounts rollup elsewhere on this page, which is likewise not linked to
+  // the month selector). Returns null if no month in range has data yet
+  // (e.g. BO_LOOKUP_BY_MONTH hasn't finished loading) so callers can fall
+  // back to the all-time record.
+  function computeBoLookupRange(id, fromLabel, toLabel) {
+    var fromIdx = MONTH_ORDER.indexOf(fromLabel), toIdx = MONTH_ORDER.indexOf(toLabel);
+    if (fromIdx < 0 || toIdx < 0) return null;
+    var months = MONTH_ORDER.slice(fromIdx, toIdx + 1).filter(function(m) {
+      return BO_LOOKUP_BY_MONTH[m] && BO_LOOKUP_BY_MONTH[m][id];
+    });
+    if (!months.length) return null;
+
+    var base = null;
+    var posb = { opened: 0, closed: 0, net: 0, as_of: null };
+    var schemes = {};
+    var pli = { policies: 0, premium: 0 };
+    var rpli = { policies: 0, premium: 0 };
+    var bkProd = {};
+    var bk = { total_articles: 0, total_amount: 0, total_postage: 0, total_vas: 0, total_tax: 0, total_fm: 0, total_ps: 0, total_ss: 0, as_of: null };
+    var anyPosbActivity = false;
+
+    months.forEach(function(m) {
+      var rec = BO_LOOKUP_BY_MONTH[m][id];
+      if (!base) base = rec;
+
+      var p = rec.posb || {};
+      if (!rec.nil_posb) anyPosbActivity = true;
+      posb.opened += p.opened || 0;
+      posb.closed += p.closed || 0;
+      posb.net    += p.net    || 0;
+      if (p.as_of && (!posb.as_of || p.as_of > posb.as_of)) posb.as_of = p.as_of;
+
+      var sch = rec.posb_schemes || {};
+      Object.keys(sch).forEach(function(k) {
+        var acc = schemes[k] || (schemes[k] = { o: 0, c: 0, n: 0 });
+        acc.o += sch[k].o || 0; acc.c += sch[k].c || 0; acc.n += sch[k].n || 0;
+      });
+
+      var pv = rec.pli || {};
+      pli.policies += pv.policies || 0; pli.premium += pv.premium || 0;
+      var rv = rec.rpli || {};
+      rpli.policies += rv.policies || 0; rpli.premium += rv.premium || 0;
+
+      var rbk = rec.booking || {};
+      (rbk.products || []).forEach(function(pr) {
+        var acc = bkProd[pr.n] || (bkProd[pr.n] = { n: pr.n, a: 0, v: 0, postage: 0, vas: 0, tax: 0, fm: 0, ps: 0, ss: 0 });
+        acc.a += pr.a || 0; acc.v += pr.v || 0; acc.postage += pr.postage || 0; acc.vas += pr.vas || 0;
+        acc.tax += pr.tax || 0; acc.fm += pr.fm || 0; acc.ps += pr.ps || 0; acc.ss += pr.ss || 0;
+      });
+      bk.total_articles += rbk.total_articles || 0;
+      bk.total_amount   += rbk.total_amount   || 0;
+      bk.total_postage  += rbk.total_postage  || 0;
+      bk.total_vas      += rbk.total_vas      || 0;
+      bk.total_tax      += rbk.total_tax      || 0;
+      bk.total_fm       += rbk.total_fm       || 0;
+      bk.total_ps       += rbk.total_ps       || 0;
+      bk.total_ss       += rbk.total_ss       || 0;
+      if (rbk.as_of && (!bk.as_of || rbk.as_of > bk.as_of)) bk.as_of = rbk.as_of;
+    });
+
+    bk.products = Object.keys(bkProd).map(function(k) { return bkProd[k]; })
+      .sort(function(a, b) { return b.v - a.v; });
+
+    var cumRec = BO_LOOKUP[id];
+    return Object.assign({}, base, {
+      posb: posb,
+      posb_schemes: schemes,
+      pli: pli,
+      rpli: rpli,
+      booking: bk,
+      nil_posb: !anyPosbActivity,
+      posb_silent: cumRec ? cumRec.posb_silent : base.posb_silent
+    });
+  }
+
   function showBOCard(id) {
     STATE.currentId = id;
-    var r = BO_LOOKUP[id];
+    var fromLabel = (document.getElementById('month-from') || {}).value;
+    var toLabel   = (document.getElementById('month-to')   || {}).value;
+    var r = computeBoLookupRange(id, fromLabel, toLabel) || BO_LOOKUP[id];
     var card = document.getElementById("bolu-card");
     if (!r) { card.innerHTML = '<div class="bolu-empty">Office not found.</div>'; return; }
+
+    if (!BO_LOOKUP_BY_MONTH_LOADED) {
+      ensureBoLookupByMonth().then(function() {
+        if (STATE.currentId === id) showBOCard(id);
+      });
+    }
 
     var bk = r.booking || {total_articles:0,total_amount:0,total_postage:0,total_vas:0,total_tax:0,total_fm:0,total_ps:0,total_ss:0,products:[],as_of:null};
     var posb = r.posb || {opened:0,closed:0,net:0,as_of:null};
     var pli = r.pli || {policies:0,premium:0};
     var rpli = r.rpli || {policies:0,premium:0};
+    var periodLabel = (typeof getPeriodLabel === 'function') ? getPeriodLabel()
+      : (fromLabel === toLabel ? fromLabel : fromLabel + '–' + toLabel);
 
     var head =
       '<div class="bolu-card-head">'
@@ -5102,10 +5233,9 @@ function recomputeRanks() {
       + '</div>';
 
     // Booking pane
-    var bkAsOf = fmtAsOf(bk.as_of);
     var bkPane;
     if (!bk.products.length) {
-      bkPane = '<div class="bolu-empty">No booking activity recorded up to ' + bkAsOf + '.</div>';
+      bkPane = '<div class="bolu-empty">No booking activity recorded for ' + periodLabel + '.</div>';
     } else {
       var rows = "";
       bk.products.forEach(function(p){
@@ -5116,20 +5246,19 @@ function recomputeRanks() {
         + '<table class="bolu-table">'
         + '<thead><tr><th>Product</th><th>Article Count</th><th>Postage</th><th>VAS</th><th>Tax</th><th>FM Charges</th><th>PS Charges</th><th>SS Charges</th><th>Total Amount</th></tr></thead>'
         + '<tbody>' + rows + '</tbody>'
-        + '<tfoot><tr><td>Total — Cumulative to ' + bkAsOf + '</td><td>'+fmtN(bk.total_articles)+'</td><td>'+fmtMoney(bk.total_postage)+'</td><td>'+fmtMoney(bk.total_vas)+'</td><td>'+fmtMoney(bk.total_tax)+'</td><td>'+fmtMoney(bk.total_fm)+'</td><td>'+fmtMoney(bk.total_ps)+'</td><td>'+fmtMoney(bk.total_ss)+'</td><td>'+fmtMoney(bk.total_amount)+'</td></tr></tfoot>'
+        + '<tfoot><tr><td>Total — ' + periodLabel + '</td><td>'+fmtN(bk.total_articles)+'</td><td>'+fmtMoney(bk.total_postage)+'</td><td>'+fmtMoney(bk.total_vas)+'</td><td>'+fmtMoney(bk.total_tax)+'</td><td>'+fmtMoney(bk.total_fm)+'</td><td>'+fmtMoney(bk.total_ps)+'</td><td>'+fmtMoney(bk.total_ss)+'</td><td>'+fmtMoney(bk.total_amount)+'</td></tr></tfoot>'
         + '</table>'
         + '</div>';
     }
 
     // POSB pane
     var nilPosb = !!r.nil_posb;
-    var posbAsOf = fmtAsOf(posb.as_of);
     var netCls = nilPosb ? "nil" : posb.net > 0 ? "pos" : posb.net < 0 ? "neg" : "nil";
     var posbPane =
-      (nilPosb ? '<div class="bolu-empty" style="margin-bottom:14px;">NIL — no accounts opened or closed at this office up to ' + posbAsOf + '. Office exists but recorded no POSB activity.</div>' : '')
+      (nilPosb ? '<div class="bolu-empty" style="margin-bottom:14px;">NIL — no accounts opened or closed at this office in ' + periodLabel + '. Office exists but recorded no POSB activity.</div>' : '')
       + '<div class="bolu-kpi-strip cols-3">'
-      + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Opened</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.opened)+'</div><div class="sub">Up to ' + posbAsOf + '</div></div>'
-      + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Closed</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.closed)+'</div><div class="sub">Up to ' + posbAsOf + '</div></div>'
+      + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Opened</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.opened)+'</div><div class="sub">' + periodLabel + '</div></div>'
+      + '<div class="bolu-kpi-cell"><div class="lbl">Accounts Closed</div><div class="val '+(nilPosb?"nil":"")+'">'+fmtN(posb.closed)+'</div><div class="sub">' + periodLabel + '</div></div>'
       + '<div class="bolu-kpi-cell"><div class="lbl">Net Addition</div><div class="val '+netCls+'">'+(posb.net>0?'+':'')+fmtN(posb.net)+'</div><div class="sub">'+(nilPosb?'NIL':posb.net>0?'Positive ✓':posb.net<0?'Negative ✗':'Flat')+'</div></div>'
       + '</div>';
 
@@ -5169,12 +5298,12 @@ function recomputeRanks() {
     var insPane =
       '<div class="bolu-section-h">PLI — Postal Life Insurance</div>'
       + '<div class="bolu-kpi-strip cols-2">'
-      + '<div class="bolu-kpi-cell"><div class="lbl">Policies Procured</div><div class="val '+(nilPli?"nil":"")+'">'+fmtN(pli.policies)+'</div><div class="sub">'+(nilPli?'NIL — no PLI procurement':'In Apr–Jun 2026')+'</div></div>'
+      + '<div class="bolu-kpi-cell"><div class="lbl">Policies Procured</div><div class="val '+(nilPli?"nil":"")+'">'+fmtN(pli.policies)+'</div><div class="sub">'+(nilPli?'NIL — no PLI procurement':'In ' + periodLabel)+'</div></div>'
       + '<div class="bolu-kpi-cell"><div class="lbl">Premium Collected</div><div class="val '+(nilPli?"nil":"")+'">'+fmtMoney(pli.premium)+'</div><div class="sub">'+(nilPli?'NIL':'₹'+fmtN(pli.policies>0?Math.round(pli.premium/pli.policies):0)+' avg/policy')+'</div></div>'
       + '</div>'
       + '<div class="bolu-section-h">RPLI — Rural Postal Life Insurance</div>'
       + '<div class="bolu-kpi-strip cols-2">'
-      + '<div class="bolu-kpi-cell"><div class="lbl">Policies Procured</div><div class="val '+(nilRpli?"nil":"")+'">'+fmtN(rpli.policies)+'</div><div class="sub">'+(nilRpli?'NIL — no RPLI procurement':'In Apr–Jun 2026')+'</div></div>'
+      + '<div class="bolu-kpi-cell"><div class="lbl">Policies Procured</div><div class="val '+(nilRpli?"nil":"")+'">'+fmtN(rpli.policies)+'</div><div class="sub">'+(nilRpli?'NIL — no RPLI procurement':'In ' + periodLabel)+'</div></div>'
       + '<div class="bolu-kpi-cell"><div class="lbl">Premium Collected</div><div class="val '+(nilRpli?"nil":"")+'">'+fmtMoney(rpli.premium)+'</div><div class="sub">'+(nilRpli?'NIL':'₹'+fmtN(rpli.policies>0?Math.round(rpli.premium/rpli.policies):0)+' avg/policy')+'</div></div>'
       + '</div>';
 
@@ -5223,7 +5352,15 @@ function recomputeRanks() {
     renderMatches();
   };
 
+  // Re-renders whatever office card is currently open so it picks up the
+  // newly-selected Period range. No-op if BO Lookup was never opened this
+  // session (STATE.currentId stays null) — called from onMonthChange().
+  window.refreshBoLookupCard = function() {
+    if (STATE.currentId) showBOCard(STATE.currentId);
+  };
+
   window.initBOLookup = function() {
+    ensureBoLookupByMonth();
     populateFilters();
     var sb = document.getElementById("bolu-search");
     if (sb && !sb.dataset.bound) {
@@ -8720,6 +8857,7 @@ async function loadDashboardData() {
 }
 
 loadDashboardData().then(function() {
+  if (typeof populatePeriodSelector === 'function') populatePeriodSelector();
   if (typeof onMonthChange === 'function') {
     onMonthChange();
   } else {

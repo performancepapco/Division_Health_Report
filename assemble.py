@@ -100,7 +100,13 @@ def _assemble_circle_full(months: list[str]):
     return None
 
 
-def assemble() -> dict:
+def assemble() -> tuple[dict, dict]:
+    """Returns (latest_payload, bo_lookup_by_month). The two are written to
+    separate files — bo_lookup_by_month.json is ~3x the size of everything
+    else in latest.json combined (one BO_LOOKUP-shaped slice per month), and
+    latest.json is on the must-load-before-first-paint critical path, so it
+    stays out. index.html's loader fetches it lazily, only once BO Lookup is
+    actually opened."""
     cfg = load_config()
     months = _available_months()
     print(f"Assembling from months: {months}")
@@ -122,13 +128,16 @@ def assemble() -> dict:
     print("SUBDIV_DATA + BO_LOOKUP...")
     sub_bo = subdiv_bolookup.build(cfg, months)
 
+    print("BO_LOOKUP_BY_MONTH (single-month slices for the Period selector)...")
+    bo_lookup_by_month = subdiv_bolookup.build_by_month(cfg, months)
+
     print("OFFICE_STATUS_BY_MONTH...")
     office_status_by_month = office_status.build(months)
 
     print("SUBDIV_BOOKING...")
     subdiv_booking_out = subdiv_booking.build(cfg, months)
 
-    return {
+    result = {
         "generated_from_months": months,
         "POSB_BY_MONTH": posb_by_month,
         "PLI_POLICIES": pli_policies,
@@ -142,6 +151,7 @@ def assemble() -> dict:
         "OFFICE_STATUS_BY_MONTH": office_status_by_month,
         "SUBDIV_BOOKING": subdiv_booking_out,
     }
+    return result, bo_lookup_by_month
 
 
 def write_json(path: Path, data) -> None:
@@ -157,11 +167,15 @@ def build_trends_and_flags(cfg: dict, months: list[str]) -> tuple[dict, dict]:
 
 
 def main():
-    result = assemble()
+    result, bo_lookup_by_month = assemble()
     DATA_DIR.mkdir(exist_ok=True)
     out_path = DATA_DIR / "latest.json"
     write_json(out_path, result)
     print(f"\nWrote {out_path} ({out_path.stat().st_size:,} bytes)")
+
+    bo_path = DATA_DIR / "bo_lookup_by_month.json"
+    write_json(bo_path, bo_lookup_by_month)
+    print(f"Wrote {bo_path} ({bo_path.stat().st_size:,} bytes)")
 
     cfg = load_config()
     trends, flags = build_trends_and_flags(cfg, result["generated_from_months"])
