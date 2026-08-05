@@ -3732,6 +3732,7 @@ function closeMaintenanceModal() {
     <div class="hm-section-controls">
       <div class="hm-legend" id="heatmap-legend"></div>
       <button type="button" class="hm-export-btn" id="heatmap-export" onclick="hmExportPng()">Export PNG</button>
+      <button type="button" class="hm-export-btn" id="heatmap-export-excel" onclick="hmExportExcel()">Export Excel</button>
       <div class="hm-toggle" id="heatmap-toggle"></div>
     </div>
     <div class="heatmap-wrap">
@@ -6452,6 +6453,67 @@ function hmExportPng() {
   } catch (e) {
     resetBtn();
     alert('PNG export failed — please use a screenshot instead.');
+  }
+}
+
+// Excel export: reads the same live table DOM as the PNG export (so it always
+// matches whatever's on screen — current sort order, %/₹ mode, selected
+// period) and writes it out as an HTML table saved with a .xls extension.
+// Excel opens HTML-formatted .xls files natively; no xlsx-writing library
+// (e.g. SheetJS) is loaded on this page, so this is the dependency-free path.
+function hmExportExcel() {
+  const table = document.getElementById('heatmap-table');
+  const btn = document.getElementById('heatmap-export-excel');
+  if (!table) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Exporting…'; }
+  const resetBtn = () => { if (btn) { btn.disabled = false; btn.textContent = 'Export Excel'; } };
+
+  try {
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const headCells = [...table.querySelectorAll('thead th[data-key]')];
+    const headers = headCells.map(th => {
+      const sortBtn = th.querySelector('.hm-th-btn');
+      return sortBtn ? sortBtn.childNodes[0].textContent.trim() : th.textContent.trim();
+    });
+
+    const bodyRows = [...table.querySelectorAll('tbody tr')].map(tr => [...tr.children].map(td => {
+      const chip = td.querySelector('.hm-rank-chip');
+      if (chip) return chip.textContent.trim();
+      const tag = td.querySelector('.hm-region-tag');
+      if (tag) {
+        const tagText = tag.textContent.trim();
+        const full = td.textContent.trim();
+        const name = full.endsWith(tagText) ? full.slice(0, -tagText.length).trim() : full;
+        return tagText ? `${name} (${tagText})` : name;
+      }
+      return td.textContent.trim();
+    }));
+
+    const titleText = (document.getElementById('heatmap-title') || {}).textContent || 'Division-wise Achievement';
+    const footnoteText = (document.getElementById('heatmap-footnote') || {}).textContent || '';
+
+    const rowHtml = (cells, cellTag) => '<tr>' + cells.map(c => `<${cellTag}>${esc(c)}</${cellTag}>`).join('') + '</tr>';
+    const tableHtml =
+      '<table border="1" cellspacing="0" cellpadding="4">' +
+      '<thead>' + rowHtml(headers, 'th') + '</thead>' +
+      '<tbody>' + bodyRows.map(r => rowHtml(r, 'td')).join('') + '</tbody>' +
+      '</table>';
+    const html = `<html><head><meta charset="UTF-8"></head><body>` +
+      `<h3>${esc(titleText)}</h3>${tableHtml}<p><em>${esc(footnoteText)}</em></p></body></html>`;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const monthTo = (document.getElementById('month-to') || {}).value || 'export';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `division-achievement-${monthTo}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    resetBtn();
+  } catch (e) {
+    resetBtn();
+    alert('Excel export failed: ' + e.message);
   }
 }
 
