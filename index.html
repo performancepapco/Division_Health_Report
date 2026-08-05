@@ -3510,13 +3510,13 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 </style>
 </head>
 <body>
-<!-- ===== MAINTENANCE NOTICE ===== -->
+<!-- ===== DATA UPDATE NOTICE ===== -->
 <div id="maintenance-modal" class="modal-overlay" onclick="if(event.target===this)closeMaintenanceModal()">
   <div class="modal-box">
-    <h3>⚠ Site Under Maintenance</h3>
+    <h3>✓ Data Updated</h3>
     <p style="font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:18px;">
-      ECR and Revenue figures are currently being refreshed and may not reflect the latest data.
-      Updated figures will be live by this evening.
+      Data pertaining to July 2026 has been updated in the dashboard, across all
+      panels — POSB, PLI/RPLI, Booking, ECR/Revenue, and BO Lookup Silent Accounts.
     </p>
     <div class="modal-actions">
       <button class="btn-primary" onclick="closeMaintenanceModal()">Continue to Dashboard</button>
@@ -3529,7 +3529,7 @@ function closeMaintenanceModal() {
   if (m) m.style.display = 'none';
 }
 </script>
-<!-- ===== END MAINTENANCE NOTICE ===== -->
+<!-- ===== END DATA UPDATE NOTICE ===== -->
 
 <div class="frame">
 
@@ -3541,10 +3541,10 @@ function closeMaintenanceModal() {
   </div>
   <div class="masthead-center">
     <h1>Division <em>Health Card</em></h1>
-    <div class="kicker" id="hdr-period-kicker">Apr–Jun 2026 · FY 2026-27 · Issue No. 03</div>
+    <div class="kicker" id="hdr-period-kicker">Apr–Jul 2026 · FY 2026-27 · Issue No. 04</div>
   </div>
   <div class="masthead-right">
-    <div id="hdr-period-vol">Vol. I — Apr–Jun 2026</div>
+    <div id="hdr-period-vol">Vol. I — Apr–Jul 2026</div>
     <div>Auto-refreshed per upload</div>
     <div>33 Divisions · 3 Regions</div>
   </div>
@@ -3632,10 +3632,12 @@ function closeMaintenanceModal() {
   <div class="whats-new-track">
     <div class="whats-new-copies">
       <div class="whats-new-copy">
+        <a class="whats-new-item" href="#overview">Data updated upto <strong>31.07.2026</strong> — July 2026 figures are now live across all panels</a>
         <a class="whats-new-item" href="#circle-tools">New — <strong>Circle Tools</strong> tab added: quick links to the Bulk Parcel Monitoring dashboard &amp; the Delivery Performance Dashboard (MMU)</a>
         <!-- To add another announcement: add one more <a class="whats-new-item"> here... -->
       </div>
       <div class="whats-new-copy" aria-hidden="true">
+        <a class="whats-new-item" href="#overview" tabindex="-1">Data updated upto <strong>31.07.2026</strong> — July 2026 figures are now live across all panels</a>
         <a class="whats-new-item" href="#circle-tools" tabindex="-1">New — <strong>Circle Tools</strong> tab added: quick links to the Bulk Parcel Monitoring dashboard &amp; the Delivery Performance Dashboard (MMU)</a>
         <!-- ...and an identical one here (the duplicate keeps the scroll seamless). -->
       </div>
@@ -3662,7 +3664,7 @@ function closeMaintenanceModal() {
     <div class="kpi-row cols-5" id="agg-circle-summary" style="margin-bottom:24px;"></div>
     <div class="section-head">
       <h2 id="agg-overview-title">Regional split — % of Proportionate Target</h2>
-      <span class="desc" id="agg-region-split-desc">Ranked by % achievement vs pro-rata<br>Apr–Jun 2026</span>
+      <span class="desc" id="agg-region-split-desc">Ranked by % achievement vs pro-rata<br>Apr–Jul 2026</span>
     </div>
     <div class="region-split" id="agg-region-split"></div>
   </div>
@@ -3672,7 +3674,7 @@ function closeMaintenanceModal() {
 
   <div class="section-head">
     <h2 id="ov-title">Headline position</h2>
-    <span class="desc" id="ov-headline-desc">Apr–Jun 2026 actuals (cumulative)<br>FY 2026-27 · 3 months elapsed</span>
+    <span class="desc" id="ov-headline-desc">Apr–Jul 2026 actuals (cumulative)<br>FY 2026-27 · 4 months elapsed</span>
   </div>
   <div class="kpi-row cols-5">
     <div class="kpi feature">
@@ -3896,7 +3898,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
   <div id="verticals-landing" class="vert-subpage active">
     <div class="section-head">
       <h2>Six-vertical attainment vs FY 2026-27 target</h2>
-      <span class="desc" id="vert-progs-desc">Bar fill = YTD / Annual target<br>Tick = period gate (3/12 for Apr–Jun)</span>
+      <span class="desc" id="vert-progs-desc">Bar fill = YTD / Annual target<br>Tick = period gate (4/12 for Apr–Jul)</span>
     </div>
     <div id="vert-progs" style="padding-top: 14px;"></div>
 
@@ -3911,8 +3913,8 @@ actual_revenue   = sum of actual revenue earned in the selected period
 
   <div id="verticals-posb" class="vert-subpage">
     <div class="section-head">
-      <h2>POSB — Account Activity · Apr–Jun 2026</h2>
-      <span class="desc">Accounts Opened · Closed · Net Addition<br>01-Apr-2026 to 30-Jun-2026</span>
+      <h2>POSB — Account Activity · Apr–Jul 2026</h2>
+      <span class="desc">Accounts Opened · Closed · Net Addition<br>01-Apr-2026 to 31-Jul-2026</span>
     </div>
     <div id="posb-accounts-content"></div>
 
@@ -3991,7 +3993,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
 <div id="tab-booking" class="tab-content">
   <div class="section-head">
     <h2 id="bk-title">Booking-side intelligence</h2>
-    <span class="desc" id="bk-subtitle">APT data · Apr 1 – Jun 30, 2026<br>3-month cumulative window</span>
+    <span class="desc" id="bk-subtitle">APT data · Apr 1 – Jul 31, 2026<br>4-month cumulative window</span>
   </div>
   <!-- === BOOKING MONTH SWITCHER === -->
 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -4000,7 +4002,8 @@ actual_revenue   = sum of actual revenue earned in the selected period
     <button class="bk-month-tab" data-bm="Apr-26" onclick="setBookingMonth('Apr-26')">April 2026</button>
     <button class="bk-month-tab" data-bm="May-26" onclick="setBookingMonth('May-26')">May 2026</button>
     <button class="bk-month-tab" data-bm="Jun-26" onclick="setBookingMonth('Jun-26')">June 2026</button>
-    <button class="bk-month-tab active" data-bm="Cumulative" onclick="setBookingMonth('Cumulative')">Apr–Jun 2026</button>
+    <button class="bk-month-tab" data-bm="Jul-26" onclick="setBookingMonth('Jul-26')">July 2026</button>
+    <button class="bk-month-tab active" data-bm="Cumulative" onclick="setBookingMonth('Cumulative')">Apr–Jul 2026</button>
   </div>
 </div>
 <!-- === END BOOKING MONTH SWITCHER === -->
@@ -4044,7 +4047,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
   <div>
     <div class="section-head">
       <h2>Customer-type composition</h2>
-      <span class="desc" id="bk-cmix-desc">Articles by booking channel<br>Apr–Jun 2026 cumulative</span>
+      <span class="desc" id="bk-cmix-desc">Articles by booking channel<br>Apr–Jul 2026 cumulative</span>
     </div>
     <div class="cmix" id="bk-cmix"></div>
     <div class="cmix-legend" id="bk-cmix-legend"></div>
@@ -4117,7 +4120,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
 <!-- === SUBDIV TAB === -->
 <div id="tab-subdiv" class="tab-content">
   <div class="section-head">
-    <h2>Sub-Division Drilldown — Apr–Jun 2026</h2>
+    <h2>Sub-Division Drilldown — Apr–Jul 2026</h2>
     <span class="desc">Sub-division summaries by segment<br>Click any row to expand the Branch Office list (nil-procurement flagged)</span>
   </div>
   <div class="sd-tab-controls">
@@ -4140,7 +4143,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
 <div id="tab-cost" class="tab-content">
   <div class="section-head">
     <h2>Expenditure composition · SWAP</h2>
-    <span class="desc" id="swap-desc">Apr–Jun 2026 cumulative<br>expenditure breakdown</span>
+    <span class="desc" id="swap-desc">Apr–Jul 2026 cumulative<br>expenditure breakdown</span>
   </div>
   <div id="swap-content"></div>
 
@@ -4287,7 +4290,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
 
 <footer class="colophon">
   <div>AP Circle · Division Health Cards</div>
-  <div class="center">— Apr–Jun 2026 —</div>
+  <div class="center">— Apr–Jul 2026 —</div>
   <div class="right" id="footer-meta">v2.0 · 33 divisions</div>
 </footer>
 
@@ -7162,7 +7165,13 @@ function vbBuildPosbSilentSection() {
   var tb5Rows = rows.map(function(r) {
     return { rank: r.rank, name: r.name, region: r.region, value: r.revivalRate, valueFmt: fmtInt(r.silent) + ' silent' };
   });
-  var note = '<div class="tb5-avg-note">Ranked by FY revival rate (revived &divide; silent accounts, approximate) &middot; fixed snapshot as of 2026-06, not linked to the month selector above. See BO Lookup for office-level detail.</div>';
+  var silentAsOf = '';
+  Object.keys(BO_LOOKUP || {}).some(function(oid) {
+    var ps = BO_LOOKUP[oid].posb_silent;
+    if (ps && ps.as_of) { silentAsOf = ps.as_of; return true; }
+    return false;
+  });
+  var note = '<div class="tb5-avg-note">Ranked by FY revival rate (revived &divide; silent accounts, approximate) &middot; fixed snapshot as of ' + (silentAsOf || 'latest upload') + ', not linked to the month selector above. See BO Lookup for office-level detail.</div>';
   return note + vbBuildTopBottomCards(tb5Rows, { subLabel: '% revived this FY' });
 }
 
@@ -7785,7 +7794,7 @@ function renderOfficeNetwork(divName) {
   }).join('');
 }
 
-var BK_MONTH_LABEL = { 'Apr-26': 'April 2026', 'May-26': 'May 2026', 'Jun-26': 'June 2026', 'Cumulative': 'Apr–Jun 2026' };
+var BK_MONTH_LABEL = { 'Apr-26': 'April 2026', 'May-26': 'May 2026', 'Jun-26': 'June 2026', 'Jul-26': 'July 2026', 'Cumulative': 'Apr–Jul 2026' };
 function renderOfficeFlags(divName) {
   const el = document.getElementById('bk-office-flags');
   const { scope, label } = pickOfficeStatusScope(divName);
@@ -7945,8 +7954,8 @@ function getPeriodKey() {
   return { from, to };
 }
 
-var INS_MONTH_LABEL = {'Apr-26':'April 2026', 'May-26':'May 2026', 'Jun-26':'June 2026'};
-var INS_MONTH_ABBR  = {'Apr-26':'Apr', 'May-26':'May', 'Jun-26':'Jun'};
+var INS_MONTH_LABEL = {'Apr-26':'April 2026', 'May-26':'May 2026', 'Jun-26':'June 2026', 'Jul-26':'July 2026'};
+var INS_MONTH_ABBR  = {'Apr-26':'Apr', 'May-26':'May', 'Jun-26':'Jun', 'Jul-26':'Jul'};
 
 // PLI/RPLI tables store STANDALONE month figures (policies/premium booked that
 // month only). A from/to range is the sum of the standalone months it spans;
@@ -7968,12 +7977,18 @@ function getInsData(table, from, to, divKey) {
 
   var offices_procured;
   var cum = table.__CUM__ ? (table.__CUM__[divKey] || null) : null;
+  // __CUM__ is assembled server-side as a distinct-office union across every
+  // month currently on record (assemble.py), so it always covers Apr through
+  // whatever the latest uploaded month is — never hardcode that endpoint here,
+  // or it silently goes stale (and falls back to a single month's own count)
+  // the moment a new month's data lands.
+  var latestDataMonth = MONTH_ORDER.filter(function(m){ return table[m]; }).pop();
   if (from === to) {
     offices_procured = ((table[to] || {})[divKey] || {}).offices_procured || 0;
   } else if (from === 'Apr-26' && cum) {
-    // Exact figure from the provided cumulative-to-`to` distribution file
+    // Exact figure from cumulative office-union across all known months
     offices_procured = cum.offices_procured || 0;
-    if (to !== 'Jun-26') offices_procured = ((table[to] || {})[divKey] || {}).offices_procured || 0;
+    if (to !== latestDataMonth) offices_procured = ((table[to] || {})[divKey] || {}).offices_procured || 0;
   } else {
     offices_procured = ((table[to] || {})[divKey] || {}).offices_procured || 0;
   }
