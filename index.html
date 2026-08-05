@@ -4185,6 +4185,12 @@ actual_revenue   = sum of actual revenue earned in the selected period
   <div id="bolu-status" class="bolu-status">Start typing an office name, ID, or BO code — or pick a Region/Division.</div>
   <div id="bolu-matches" class="bolu-matches" style="display:none;"></div>
   <div id="bolu-card"></div>
+
+  <div class="section-head" style="margin-top: 40px;">
+    <h2>Top Performers — FY 2026-27 (upto Jul 2026)</h2>
+    <span class="desc">Recognizing our top Branch Offices, circle-wide<br>Cumulative Apr–Jul 2026 · click any office to open its full record</span>
+  </div>
+  <div id="bolu-top-performers"></div>
 </div>
 <!-- === END BO LOOKUP TAB === -->
 
@@ -5410,6 +5416,7 @@ function recomputeRanks() {
     var toLabel   = (document.getElementById('month-to')   || {}).value;
     ensureBoLookupRange(fromLabel, toLabel);
     populateFilters();
+    if (typeof boluRenderTopPerformers === 'function') boluRenderTopPerformers();
     var sb = document.getElementById("bolu-search");
     if (sb && !sb.dataset.bound) {
       sb.addEventListener("input", onSearchInput);
@@ -6985,6 +6992,105 @@ function vbBuildTopBottomCards(rows, opts) {
       bottom5.map(rowHtml).join('') +
     '</div>' +
   '</div>';
+}
+
+// ============ BO LOOKUP: TOP PERFORMERS (circle-wide) ============
+// Reuses .div-rank-row/.card-box/.tb5-card styling from vbBuildTopBottomCards
+// above, but single-list (Top 5 only, no Bottom 5 — this section exists to
+// recognize offices, not call out underperformers) and each row is
+// clickable, jumping straight into that office's own BO Lookup card via
+// boluSelect(). Sourced from BO_LOOKUP directly, which is always the full
+// FY-cumulative across every month on record regardless of the Period
+// selector above — see pipeline/derive/subdiv_bolookup.py's module
+// docstring — so "FY 2026-27 upto Jul 2026" in the heading stays accurate
+// without needing to track the selector.
+function boluTopPerformersRow(r, maxVal) {
+  var w = maxVal > 0 ? Math.max(0, Math.min(100, (r.value / maxVal) * 100)) : 0;
+  return '<div class="div-rank-row" style="cursor:pointer;" onclick="boluSelect(\'' + r.id + '\')">' +
+    '<div class="r-num">' + String(r.rank).padStart(2, '0') + '</div>' +
+    '<div class="r-name">' + r.name + '<span class="r-region">' + String(r.region || '').toUpperCase() + '</span></div>' +
+    '<div class="r-bar"><div class="r-fill blue" style="width:' + w + '%;"></div></div>' +
+    '<div class="r-pct blue">' + r.primaryFmt + '</div>' +
+    '<div class="r-rev">' + r.subFmt + '</div>' +
+  '</div>';
+}
+
+function boluBuildTop5Card(title, subLabel, rows) {
+  var body = rows.length
+    ? '<div class="card-sub">' + subLabel + '</div>' + (function() {
+        var maxVal = Math.max.apply(null, rows.map(function(r) { return r.value; }).concat([1]));
+        return rows.map(function(r) { return boluTopPerformersRow(r, maxVal); }).join('');
+      })()
+    : '<div class="placeholder">No data available.</div>';
+  return '<div class="card-box tb5-card" style="border-top: 3px solid var(--green);">' +
+    '<h4 style="color: var(--green);">&#8593; ' + title + '</h4>' + body +
+  '</div>';
+}
+
+function boluTopN(valueFn, primaryFmtFn, subFmtFn, n) {
+  var rows = Object.keys(BO_LOOKUP || {}).map(function(id) {
+    var r = BO_LOOKUP[id];
+    var value = valueFn(r) || 0;
+    return {
+      id: id, name: r.name, region: REG_ABBR[r.region] || String(r.region || '').toUpperCase(),
+      value: value, primaryFmt: primaryFmtFn(r), subFmt: subFmtFn(r),
+    };
+  }).filter(function(r) { return r.value > 0; });
+  rows.sort(function(a, b) { return b.value - a.value; });
+  rows = rows.slice(0, n);
+  rows.forEach(function(r, i) { r.rank = i + 1; });
+  return rows;
+}
+
+function boluRenderTopPerformers() {
+  var el = document.getElementById('bolu-top-performers');
+  if (!el) return;
+  var officeCount = Object.keys(BO_LOOKUP || {}).length;
+  if (!officeCount) return; // BO_LOOKUP hasn't loaded yet — initBOLookup() re-runs this on every tab visit
+
+  var posbRows = boluTopN(
+    function(r) { return (r.posb && r.posb.net) || 0; },
+    function(r) { return '+' + fmtInt(r.posb.net); },
+    function(r) { return 'Opened ' + fmtInt(r.posb.opened) + ' · Closed ' + fmtInt(r.posb.closed); },
+    5
+  );
+  var articleRows = boluTopN(
+    function(r) { return (r.booking && r.booking.total_articles) || 0; },
+    function(r) { return fmtInt(r.booking.total_articles) + ' articles'; },
+    function(r) { return '₹' + fmt(r.booking.total_amount, 0) + ' booked'; },
+    5
+  );
+  var revenueRows = boluTopN(
+    function(r) { return (r.booking && r.booking.total_amount) || 0; },
+    function(r) { return '₹' + fmt(r.booking.total_amount, 0); },
+    function(r) { return fmtInt(r.booking.total_articles) + ' articles'; },
+    5
+  );
+  var pliRows = boluTopN(
+    function(r) { return (r.pli && r.pli.premium) || 0; },
+    function(r) { return '₹' + fmt(r.pli.premium, 0); },
+    function(r) { return fmtInt(r.pli.policies) + ' policies'; },
+    5
+  );
+  var rpliRows = boluTopN(
+    function(r) { return (r.rpli && r.rpli.premium) || 0; },
+    function(r) { return '₹' + fmt(r.rpli.premium, 0); },
+    function(r) { return fmtInt(r.rpli.policies) + ' policies'; },
+    5
+  );
+
+  el.innerHTML =
+    '<div style="margin-bottom:18px;">' +
+      boluBuildTop5Card('POSB — Net Addition', 'Accounts Opened − Closed · of ' + fmtInt(officeCount) + ' offices', posbRows) +
+    '</div>' +
+    '<div class="two-col tb5-grid" style="margin-bottom:18px;">' +
+      boluBuildTop5Card('Booking — Articles Booked', 'Highest article count', articleRows) +
+      boluBuildTop5Card('Booking — Revenue Booked', 'Highest booking revenue', revenueRows) +
+    '</div>' +
+    '<div class="two-col tb5-grid">' +
+      boluBuildTop5Card('PLI — Premium Collected', 'New + renewal premium', pliRows) +
+      boluBuildTop5Card('RPLI — Premium Collected', 'New + renewal premium', rpliRows) +
+    '</div>';
 }
 
 function vbBuildDivTable(verticalKey) {
