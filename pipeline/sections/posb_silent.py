@@ -47,14 +47,20 @@ def _data_checksum16(wb) -> str:
     """Must match however the upstream generator computed data_sha256_16:
     the data sheet's raw cell values (native types, no pandas re-inference —
     read_excel's own dtype guessing mangles the numeric-looking office_id
-    strings) loaded into a DataFrame and serialized with to_csv(index=False)."""
+    strings) loaded into a DataFrame and serialized with to_csv(index=False).
+
+    lineterminator is pinned to '\\r\\n' rather than left at pandas' default,
+    which follows the running OS (\\r\\n on Windows, \\n on Linux) — the
+    upstream generator runs on Windows, so leaving it unpinned made this
+    checksum unreproducible on GitHub Actions' Linux runners: every upload
+    validated fine locally and failed in CI with an identical file."""
     ws = wb[SHEET_DATA]
     rows = list(ws.iter_rows(values_only=True))
     if not rows:
         return ""
     header, data_rows = rows[0], rows[1:]
     df = pd.DataFrame(data_rows, columns=header)
-    csv_text = df.to_csv(index=False)
+    csv_text = df.to_csv(index=False, lineterminator="\r\n")
     return hashlib.sha256(csv_text.encode("utf-8")).hexdigest()[:16]
 
 
