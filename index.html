@@ -3510,6 +3510,27 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 </style>
 </head>
 <body>
+<!-- ===== MAINTENANCE NOTICE ===== -->
+<div id="maintenance-modal" class="modal-overlay" onclick="if(event.target===this)closeMaintenanceModal()">
+  <div class="modal-box">
+    <h3>⚠ Site Under Maintenance</h3>
+    <p style="font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:18px;">
+      ECR and Revenue figures are currently being refreshed and may not reflect the latest data.
+      Updated figures will be live by this evening.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="closeMaintenanceModal()">Continue to Dashboard</button>
+    </div>
+  </div>
+</div>
+<script>
+function closeMaintenanceModal() {
+  var m = document.getElementById('maintenance-modal');
+  if (m) m.style.display = 'none';
+}
+</script>
+<!-- ===== END MAINTENANCE NOTICE ===== -->
+
 <div class="frame">
 
 <header class="masthead">
