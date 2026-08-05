@@ -2,34 +2,34 @@
   "circle": {
     "pli": {
       "nbp": {
-        "achievement": 50.86,
-        "pct_actual": 14.9588,
-        "pct_prorata": 59.8353,
-        "prorata_target": 85,
+        "achievement": 67.4,
+        "pct_actual": 19.82,
+        "pct_prorata": 59.47,
+        "prorata_target": 113.33,
         "target": 340
       },
       "tb": {
-        "achievement": 225.1691,
-        "pct_actual": 16.5566,
-        "pct_prorata": 66.2262,
-        "prorata_target": 340.0,
-        "target": 1360.0
+        "achievement": 298.86,
+        "pct_actual": 21.97,
+        "pct_prorata": 65.92,
+        "prorata_target": 453.33,
+        "target": 1360
       }
     },
     "rpli": {
       "nbp": {
-        "achievement": 65.8039,
-        "pct_actual": 20.6931,
-        "pct_prorata": 82.7722,
-        "prorata_target": 79.5,
+        "achievement": 88,
+        "pct_actual": 27.67,
+        "pct_prorata": 83.02,
+        "prorata_target": 106,
         "target": 318
       },
       "tb": {
-        "achievement": 211.4423,
-        "pct_actual": 19.947,
-        "pct_prorata": 79.7879,
-        "prorata_target": 265.0053,
-        "target": 1060.0214
+        "achievement": 283.36,
+        "pct_actual": 26.73,
+        "pct_prorata": 80.19,
+        "prorata_target": 353.34,
+        "target": 1060.02
       }
     }
   },
@@ -39,42 +39,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 0.9567,
-            "pct_actual": 15.9448,
-            "pct_prorata": 63.779,
-            "prev_year_achievement": 0.7552,
-            "prorata_target": 1.5,
+            "achievement": 1.22,
+            "pct_actual": 20.37,
+            "pct_prorata": 61.11,
+            "prev_year_achievement": 0.98,
+            "prorata_target": 2,
             "target": 6,
-            "yoy_growth_pct": 26.6874
+            "yoy_growth_pct": 24.56
           },
           "tb": {
-            "achievement": 4.5032,
-            "pct_actual": 16.0827,
-            "pct_prorata": 64.331,
-            "prev_year_achievement": 3.3486,
-            "prorata_target": 7,
+            "achievement": 5.98,
+            "pct_actual": 21.36,
+            "pct_prorata": 64.09,
+            "prev_year_achievement": 4.31,
+            "prorata_target": 9.33,
             "target": 28,
-            "yoy_growth_pct": 34.4802
+            "yoy_growth_pct": 38.88
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.7995,
-            "pct_actual": 17.9952,
-            "pct_prorata": 71.9809,
-            "prev_year_achievement": 1.3444,
-            "prorata_target": 2.5,
+            "achievement": 2.31,
+            "pct_actual": 23.07,
+            "pct_prorata": 69.22,
+            "prev_year_achievement": 1.69,
+            "prorata_target": 3.33,
             "target": 10,
-            "yoy_growth_pct": 33.8521
+            "yoy_growth_pct": 36.49
           },
           "tb": {
-            "achievement": 5.1164,
-            "pct_actual": 19.6783,
-            "pct_prorata": 78.7132,
-            "prev_year_achievement": 3.4462,
-            "prorata_target": 6.5,
+            "achievement": 6.83,
+            "pct_actual": 26.25,
+            "pct_prorata": 78.76,
+            "prev_year_achievement": 4.41,
+            "prorata_target": 8.67,
             "target": 26,
-            "yoy_growth_pct": 48.463
+            "yoy_growth_pct": 54.77
           }
         }
       },
@@ -85,42 +85,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.9784,
-            "pct_actual": 19.7841,
-            "pct_prorata": 79.1363,
-            "prev_year_achievement": 1.1882,
-            "prorata_target": 2.5,
+            "achievement": 2.42,
+            "pct_actual": 24.24,
+            "pct_prorata": 72.71,
+            "prev_year_achievement": 1.46,
+            "prorata_target": 3.33,
             "target": 10,
-            "yoy_growth_pct": 66.5013
+            "yoy_growth_pct": 65.76
           },
           "tb": {
-            "achievement": 7.1296,
-            "pct_actual": 17.3893,
-            "pct_prorata": 69.5571,
-            "prev_year_achievement": 5.1034,
-            "prorata_target": 10.25,
+            "achievement": 9.25,
+            "pct_actual": 22.57,
+            "pct_prorata": 67.7,
+            "prev_year_achievement": 6.43,
+            "prorata_target": 13.67,
             "target": 41,
-            "yoy_growth_pct": 39.7033
+            "yoy_growth_pct": 43.92
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.4053,
-            "pct_actual": 21.866,
-            "pct_prorata": 87.464,
-            "prev_year_achievement": 1.6918,
-            "prorata_target": 2.75,
+            "achievement": 2.95,
+            "pct_actual": 26.86,
+            "pct_prorata": 80.59,
+            "prev_year_achievement": 2.06,
+            "prorata_target": 3.67,
             "target": 11,
-            "yoy_growth_pct": 42.1721
+            "yoy_growth_pct": 43.15
           },
           "tb": {
-            "achievement": 6.5982,
-            "pct_actual": 21.2844,
-            "pct_prorata": 85.1375,
-            "prev_year_achievement": 4.5589,
-            "prorata_target": 7.75,
+            "achievement": 8.57,
+            "pct_actual": 27.63,
+            "pct_prorata": 82.9,
+            "prev_year_achievement": 5.69,
+            "prorata_target": 10.33,
             "target": 31,
-            "yoy_growth_pct": 44.7299
+            "yoy_growth_pct": 50.46
           }
         }
       },
@@ -131,42 +131,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.8595,
-            "pct_actual": 12.3607,
-            "pct_prorata": 49.4427,
-            "prev_year_achievement": 1.1382,
-            "prorata_target": 3.7608,
-            "target": 15.0433,
-            "yoy_growth_pct": 63.3705
+            "achievement": 2.6,
+            "pct_actual": 17.28,
+            "pct_prorata": 51.83,
+            "prev_year_achievement": 1.4,
+            "prorata_target": 5.01,
+            "target": 15.04,
+            "yoy_growth_pct": 85.05
           },
           "tb": {
-            "achievement": 8.4947,
-            "pct_actual": 17.5835,
-            "pct_prorata": 70.3341,
-            "prev_year_achievement": 6.6387,
-            "prorata_target": 12.0776,
-            "target": 48.3103,
-            "yoy_growth_pct": 27.9565
+            "achievement": 11.2,
+            "pct_actual": 23.19,
+            "pct_prorata": 69.57,
+            "prev_year_achievement": 8.28,
+            "prorata_target": 16.1,
+            "target": 48.31,
+            "yoy_growth_pct": 35.23
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.2147,
-            "pct_actual": 15.7323,
-            "pct_prorata": 62.9293,
-            "prev_year_achievement": 1.1204,
-            "prorata_target": 3.5193,
-            "target": 14.0772,
-            "yoy_growth_pct": 97.6728
+            "achievement": 3.34,
+            "pct_actual": 23.7,
+            "pct_prorata": 71.09,
+            "prev_year_achievement": 1.41,
+            "prorata_target": 4.69,
+            "target": 14.08,
+            "yoy_growth_pct": 136.66
           },
           "tb": {
-            "achievement": 6.0004,
-            "pct_actual": 19.4883,
-            "pct_prorata": 77.9532,
-            "prev_year_achievement": 4.0527,
-            "prorata_target": 7.6974,
-            "target": 30.7897,
-            "yoy_growth_pct": 48.0595
+            "achievement": 8.34,
+            "pct_actual": 27.09,
+            "pct_prorata": 81.27,
+            "prev_year_achievement": 5.04,
+            "prorata_target": 10.26,
+            "target": 30.79,
+            "yoy_growth_pct": 65.56
           }
         }
       },
@@ -177,42 +177,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 2.1109,
-            "pct_actual": 20.2003,
-            "pct_prorata": 80.8014,
-            "prev_year_achievement": 1.3602,
-            "prorata_target": 2.6125,
+            "achievement": 2.76,
+            "pct_actual": 26.39,
+            "pct_prorata": 79.18,
+            "prev_year_achievement": 1.71,
+            "prorata_target": 3.48,
             "target": 10.45,
-            "yoy_growth_pct": 55.1984
+            "yoy_growth_pct": 60.96
           },
           "tb": {
-            "achievement": 7.9916,
-            "pct_actual": 17.8543,
-            "pct_prorata": 71.417,
-            "prev_year_achievement": 5.8479,
-            "prorata_target": 11.19,
+            "achievement": 10.52,
+            "pct_actual": 23.51,
+            "pct_prorata": 70.52,
+            "prev_year_achievement": 7.38,
+            "prorata_target": 14.92,
             "target": 44.76,
-            "yoy_growth_pct": 36.6567
+            "yoy_growth_pct": 42.57
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 3.0864,
-            "pct_actual": 34.1414,
-            "pct_prorata": 136.5657,
-            "prev_year_achievement": 2.4518,
-            "prorata_target": 2.26,
+            "achievement": 4.13,
+            "pct_actual": 45.65,
+            "pct_prorata": 136.96,
+            "prev_year_achievement": 3.23,
+            "prorata_target": 3.01,
             "target": 9.04,
-            "yoy_growth_pct": 25.8821
+            "yoy_growth_pct": 27.88
           },
           "tb": {
-            "achievement": 9.6408,
-            "pct_actual": 21.8168,
-            "pct_prorata": 87.2672,
-            "prev_year_achievement": 6.8384,
-            "prorata_target": 11.0475,
+            "achievement": 13.11,
+            "pct_actual": 29.66,
+            "pct_prorata": 88.97,
+            "prev_year_achievement": 8.86,
+            "prorata_target": 14.73,
             "target": 44.19,
-            "yoy_growth_pct": 40.9802
+            "yoy_growth_pct": 47.98
           }
         }
       },
@@ -223,42 +223,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.6196,
-            "pct_actual": 11.9571,
-            "pct_prorata": 47.8285,
-            "prev_year_achievement": 1.1116,
-            "prorata_target": 3.3863,
-            "target": 13.5453,
-            "yoy_growth_pct": 45.7061
+            "achievement": 2.41,
+            "pct_actual": 17.78,
+            "pct_prorata": 53.33,
+            "prev_year_achievement": 1.39,
+            "prorata_target": 4.52,
+            "target": 13.55,
+            "yoy_growth_pct": 73
           },
           "tb": {
-            "achievement": 8.4625,
-            "pct_actual": 16.6201,
-            "pct_prorata": 66.4804,
-            "prev_year_achievement": 6.7943,
-            "prorata_target": 12.7293,
-            "target": 50.9174,
-            "yoy_growth_pct": 24.5535
+            "achievement": 11.57,
+            "pct_actual": 22.72,
+            "pct_prorata": 68.16,
+            "prev_year_achievement": 8.64,
+            "prorata_target": 16.97,
+            "target": 50.92,
+            "yoy_growth_pct": 33.87
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.6516,
-            "pct_actual": 20.9192,
-            "pct_prorata": 83.677,
-            "prev_year_achievement": 1.5192,
-            "prorata_target": 3.1689,
-            "target": 12.6754,
-            "yoy_growth_pct": 74.5436
+            "achievement": 3.94,
+            "pct_actual": 31.07,
+            "pct_prorata": 93.2,
+            "prev_year_achievement": 1.98,
+            "prorata_target": 4.23,
+            "target": 12.68,
+            "yoy_growth_pct": 98.96
           },
           "tb": {
-            "achievement": 8.2378,
-            "pct_actual": 19.1457,
-            "pct_prorata": 76.5829,
-            "prev_year_achievement": 5.8334,
-            "prorata_target": 10.7567,
-            "target": 43.0267,
-            "yoy_growth_pct": 41.2183
+            "achievement": 11.61,
+            "pct_actual": 26.99,
+            "pct_prorata": 80.96,
+            "prev_year_achievement": 7.52,
+            "prorata_target": 14.34,
+            "target": 43.03,
+            "yoy_growth_pct": 54.48
           }
         }
       },
@@ -269,42 +269,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 2.1334,
-            "pct_actual": 14.9415,
-            "pct_prorata": 59.7659,
-            "prev_year_achievement": 1.3875,
-            "prorata_target": 3.5696,
-            "target": 14.2784,
-            "yoy_growth_pct": 53.7533
+            "achievement": 2.93,
+            "pct_actual": 20.51,
+            "pct_prorata": 61.53,
+            "prev_year_achievement": 1.82,
+            "prorata_target": 4.76,
+            "target": 14.28,
+            "yoy_growth_pct": 60.86
           },
           "tb": {
-            "achievement": 9.0668,
-            "pct_actual": 17.2878,
-            "pct_prorata": 69.1513,
-            "prev_year_achievement": 6.624,
-            "prorata_target": 13.1115,
-            "target": 52.4462,
-            "yoy_growth_pct": 36.8773
+            "achievement": 12.11,
+            "pct_actual": 23.1,
+            "pct_prorata": 69.29,
+            "prev_year_achievement": 8.56,
+            "prorata_target": 17.48,
+            "target": 52.45,
+            "yoy_growth_pct": 41.44
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 3.5751,
-            "pct_actual": 26.7572,
-            "pct_prorata": 107.0289,
-            "prev_year_achievement": 2.6279,
-            "prorata_target": 3.3404,
-            "target": 13.3614,
-            "yoy_growth_pct": 36.0441
+            "achievement": 5.09,
+            "pct_actual": 38.09,
+            "pct_prorata": 114.26,
+            "prev_year_achievement": 3.4,
+            "prorata_target": 4.45,
+            "target": 13.36,
+            "yoy_growth_pct": 49.56
           },
           "tb": {
-            "achievement": 11.5209,
-            "pct_actual": 19.8494,
-            "pct_prorata": 79.3978,
-            "prev_year_achievement": 8.304,
-            "prorata_target": 14.5104,
-            "target": 58.0414,
-            "yoy_growth_pct": 38.7394
+            "achievement": 15.77,
+            "pct_actual": 27.17,
+            "pct_prorata": 81.5,
+            "prev_year_achievement": 10.61,
+            "prorata_target": 19.35,
+            "target": 58.04,
+            "yoy_growth_pct": 48.57
           }
         }
       },
@@ -315,42 +315,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.2283,
-            "pct_actual": 14.5367,
-            "pct_prorata": 58.1467,
-            "prev_year_achievement": 1.0755,
-            "prorata_target": 2.1125,
+            "achievement": 1.57,
+            "pct_actual": 18.64,
+            "pct_prorata": 55.91,
+            "prev_year_achievement": 1.34,
+            "prorata_target": 2.82,
             "target": 8.45,
-            "yoy_growth_pct": 14.2095
+            "yoy_growth_pct": 17.41
           },
           "tb": {
-            "achievement": 5.9636,
-            "pct_actual": 16.2276,
-            "pct_prorata": 64.9103,
-            "prev_year_achievement": 4.6987,
-            "prorata_target": 9.1875,
+            "achievement": 7.87,
+            "pct_actual": 21.41,
+            "pct_prorata": 64.22,
+            "prev_year_achievement": 5.98,
+            "prorata_target": 12.25,
             "target": 36.75,
-            "yoy_growth_pct": 26.9201
+            "yoy_growth_pct": 31.54
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.0391,
-            "pct_actual": 26.4137,
-            "pct_prorata": 105.6547,
-            "prev_year_achievement": 1.7114,
-            "prorata_target": 1.93,
+            "achievement": 2.71,
+            "pct_actual": 35.09,
+            "pct_prorata": 105.26,
+            "prev_year_achievement": 2.19,
+            "prorata_target": 2.57,
             "target": 7.72,
-            "yoy_growth_pct": 19.1533
+            "yoy_growth_pct": 23.88
           },
           "tb": {
-            "achievement": 6.2071,
-            "pct_actual": 19.6428,
-            "pct_prorata": 78.5711,
-            "prev_year_achievement": 4.3347,
-            "prorata_target": 7.9,
+            "achievement": 8.49,
+            "pct_actual": 26.86,
+            "pct_prorata": 80.59,
+            "prev_year_achievement": 5.57,
+            "prorata_target": 10.53,
             "target": 31.6,
-            "yoy_growth_pct": 43.1956
+            "yoy_growth_pct": 52.53
           }
         }
       },
@@ -361,42 +361,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 0.9542,
-            "pct_actual": 12.9291,
-            "pct_prorata": 51.7165,
-            "prev_year_achievement": 0.6162,
-            "prorata_target": 1.845,
+            "achievement": 1.23,
+            "pct_actual": 16.69,
+            "pct_prorata": 50.08,
+            "prev_year_achievement": 0.77,
+            "prorata_target": 2.46,
             "target": 7.38,
-            "yoy_growth_pct": 54.8513
+            "yoy_growth_pct": 59.07
           },
           "tb": {
-            "achievement": 4.3092,
-            "pct_actual": 14.2123,
-            "pct_prorata": 56.8492,
-            "prev_year_achievement": 3.3787,
-            "prorata_target": 7.58,
+            "achievement": 5.73,
+            "pct_actual": 18.91,
+            "pct_prorata": 56.74,
+            "prev_year_achievement": 4.38,
+            "prorata_target": 10.11,
             "target": 30.32,
-            "yoy_growth_pct": 27.5402
+            "yoy_growth_pct": 30.81
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.4989,
-            "pct_actual": 34.9494,
-            "pct_prorata": 139.7975,
-            "prev_year_achievement": 2.0556,
-            "prorata_target": 1.7875,
+            "achievement": 3.24,
+            "pct_actual": 45.29,
+            "pct_prorata": 135.87,
+            "prev_year_achievement": 2.58,
+            "prorata_target": 2.38,
             "target": 7.15,
-            "yoy_growth_pct": 21.5642
+            "yoy_growth_pct": 25.58
           },
           "tb": {
-            "achievement": 8.6034,
-            "pct_actual": 19.9152,
-            "pct_prorata": 79.6608,
-            "prev_year_achievement": 6.4695,
-            "prorata_target": 10.8,
+            "achievement": 11.49,
+            "pct_actual": 26.59,
+            "pct_prorata": 79.76,
+            "prev_year_achievement": 8.1,
+            "prorata_target": 14.4,
             "target": 43.2,
-            "yoy_growth_pct": 32.9834
+            "yoy_growth_pct": 41.85
           }
         }
       },
@@ -407,42 +407,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 0.8574,
-            "pct_actual": 8.9683,
-            "pct_prorata": 35.8731,
-            "prev_year_achievement": 0.534,
-            "prorata_target": 2.39,
+            "achievement": 1.06,
+            "pct_actual": 11.04,
+            "pct_prorata": 33.13,
+            "prev_year_achievement": 0.66,
+            "prorata_target": 3.19,
             "target": 9.56,
-            "yoy_growth_pct": 60.5486
+            "yoy_growth_pct": 60.37
           },
           "tb": {
-            "achievement": 4.3942,
-            "pct_actual": 14.8352,
-            "pct_prorata": 59.3407,
-            "prev_year_achievement": 3.5397,
-            "prorata_target": 7.405,
+            "achievement": 5.77,
+            "pct_actual": 19.48,
+            "pct_prorata": 58.45,
+            "prev_year_achievement": 4.51,
+            "prorata_target": 9.87,
             "target": 29.62,
-            "yoy_growth_pct": 24.1397
+            "yoy_growth_pct": 28.02
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.4833,
-            "pct_actual": 15.5325,
-            "pct_prorata": 62.1298,
-            "prev_year_achievement": 0.8929,
-            "prorata_target": 2.3875,
+            "achievement": 1.82,
+            "pct_actual": 19.09,
+            "pct_prorata": 57.27,
+            "prev_year_achievement": 1.09,
+            "prorata_target": 3.18,
             "target": 9.55,
-            "yoy_growth_pct": 66.1252
+            "yoy_growth_pct": 67.07
           },
           "tb": {
-            "achievement": 5.006,
-            "pct_actual": 18.2035,
-            "pct_prorata": 72.8139,
-            "prev_year_achievement": 3.6796,
-            "prorata_target": 6.875,
+            "achievement": 6.49,
+            "pct_actual": 23.61,
+            "pct_prorata": 70.83,
+            "prev_year_achievement": 4.53,
+            "prorata_target": 9.17,
             "target": 27.5,
-            "yoy_growth_pct": 36.0473
+            "yoy_growth_pct": 43.32
           }
         }
       },
@@ -453,42 +453,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.4894,
-            "pct_actual": 19.9655,
-            "pct_prorata": 79.862,
-            "prev_year_achievement": 0.9732,
-            "prorata_target": 1.865,
+            "achievement": 1.92,
+            "pct_actual": 25.72,
+            "pct_prorata": 77.15,
+            "prev_year_achievement": 1.26,
+            "prorata_target": 2.49,
             "target": 7.46,
-            "yoy_growth_pct": 53.0381
+            "yoy_growth_pct": 52.7
           },
           "tb": {
-            "achievement": 7.7603,
-            "pct_actual": 16.5784,
-            "pct_prorata": 66.3135,
-            "prev_year_achievement": 6.412,
-            "prorata_target": 11.7025,
+            "achievement": 10.32,
+            "pct_actual": 22.05,
+            "pct_prorata": 66.14,
+            "prev_year_achievement": 8.2,
+            "prorata_target": 15.6,
             "target": 46.81,
-            "yoy_growth_pct": 21.0282
+            "yoy_growth_pct": 25.92
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 0.9223,
-            "pct_actual": 15.5271,
-            "pct_prorata": 62.1085,
-            "prev_year_achievement": 0.8479,
-            "prorata_target": 1.485,
+            "achievement": 1.18,
+            "pct_actual": 19.82,
+            "pct_prorata": 59.45,
+            "prev_year_achievement": 1.07,
+            "prorata_target": 1.98,
             "target": 5.94,
-            "yoy_growth_pct": 8.7766
+            "yoy_growth_pct": 10.49
           },
           "tb": {
-            "achievement": 4.1757,
-            "pct_actual": 17.4714,
-            "pct_prorata": 69.8856,
-            "prev_year_achievement": 3.3864,
-            "prorata_target": 5.975,
+            "achievement": 5.56,
+            "pct_actual": 23.26,
+            "pct_prorata": 69.77,
+            "prev_year_achievement": 4.27,
+            "prorata_target": 7.97,
             "target": 23.9,
-            "yoy_growth_pct": 23.3085
+            "yoy_growth_pct": 30.29
           }
         }
       },
@@ -499,42 +499,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.5734,
-            "pct_actual": 10.4593,
-            "pct_prorata": 41.8372,
-            "prev_year_achievement": 0.962,
-            "prorata_target": 3.7608,
-            "target": 15.0433,
-            "yoy_growth_pct": 63.5584
+            "achievement": 2.78,
+            "pct_actual": 18.51,
+            "pct_prorata": 55.52,
+            "prev_year_achievement": 1.2,
+            "prorata_target": 5.01,
+            "target": 15.04,
+            "yoy_growth_pct": 132.13
           },
           "tb": {
-            "achievement": 5.6324,
-            "pct_actual": 14.5893,
-            "pct_prorata": 58.3573,
-            "prev_year_achievement": 3.8279,
-            "prorata_target": 9.6516,
-            "target": 38.6064,
-            "yoy_growth_pct": 47.1416
+            "achievement": 8.26,
+            "pct_actual": 21.4,
+            "pct_prorata": 64.19,
+            "prev_year_achievement": 4.82,
+            "prorata_target": 12.87,
+            "target": 38.61,
+            "yoy_growth_pct": 71.28
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.4552,
-            "pct_actual": 17.4412,
-            "pct_prorata": 69.7648,
-            "prev_year_achievement": 1.7042,
-            "prorata_target": 3.5193,
-            "target": 14.0772,
-            "yoy_growth_pct": 44.0673
+            "achievement": 4.11,
+            "pct_actual": 29.22,
+            "pct_prorata": 87.66,
+            "prev_year_achievement": 2.21,
+            "prorata_target": 4.69,
+            "target": 14.08,
+            "yoy_growth_pct": 86.15
           },
           "tb": {
-            "achievement": 6.183,
-            "pct_actual": 20.51,
-            "pct_prorata": 82.0402,
-            "prev_year_achievement": 4.0426,
-            "prorata_target": 7.5366,
-            "target": 30.1464,
-            "yoy_growth_pct": 52.9473
+            "achievement": 9.15,
+            "pct_actual": 30.34,
+            "pct_prorata": 91.03,
+            "prev_year_achievement": 5.17,
+            "prorata_target": 10.05,
+            "target": 30.15,
+            "yoy_growth_pct": 76.84
           }
         }
       },
@@ -545,42 +545,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.4652,
-            "pct_actual": 16.28,
-            "pct_prorata": 65.1202,
-            "prev_year_achievement": 1.1039,
-            "prorata_target": 2.25,
+            "achievement": 1.9,
+            "pct_actual": 21.16,
+            "pct_prorata": 63.48,
+            "prev_year_achievement": 1.39,
+            "prorata_target": 3,
             "target": 9,
-            "yoy_growth_pct": 32.7282
+            "yoy_growth_pct": 37.05
           },
           "tb": {
-            "achievement": 7.5333,
-            "pct_actual": 15.6943,
-            "pct_prorata": 62.7771,
-            "prev_year_achievement": 6.1233,
-            "prorata_target": 12,
+            "achievement": 9.94,
+            "pct_actual": 20.72,
+            "pct_prorata": 62.15,
+            "prev_year_achievement": 7.76,
+            "prorata_target": 16,
             "target": 48,
-            "yoy_growth_pct": 23.0262
+            "yoy_growth_pct": 28.19
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.6188,
-            "pct_actual": 20.2355,
-            "pct_prorata": 80.9419,
-            "prev_year_achievement": 1.1012,
-            "prorata_target": 2,
+            "achievement": 2.09,
+            "pct_actual": 26.16,
+            "pct_prorata": 78.48,
+            "prev_year_achievement": 1.42,
+            "prorata_target": 2.67,
             "target": 8,
-            "yoy_growth_pct": 47.0005
+            "yoy_growth_pct": 47.78
           },
           "tb": {
-            "achievement": 4.8271,
-            "pct_actual": 20.1128,
-            "pct_prorata": 80.451,
-            "prev_year_achievement": 3.3661,
-            "prorata_target": 6,
+            "achievement": 6.43,
+            "pct_actual": 26.8,
+            "pct_prorata": 80.41,
+            "prev_year_achievement": 4.25,
+            "prorata_target": 8,
             "target": 24,
-            "yoy_growth_pct": 43.4013
+            "yoy_growth_pct": 51.52
           }
         }
       },
@@ -591,42 +591,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.5983,
-            "pct_actual": 11.5549,
-            "pct_prorata": 46.2195,
-            "prev_year_achievement": 0.8415,
-            "prorata_target": 3.458,
-            "target": 13.8322,
-            "yoy_growth_pct": 89.9404
+            "achievement": 2.24,
+            "pct_actual": 16.16,
+            "pct_prorata": 48.48,
+            "prev_year_achievement": 1,
+            "prorata_target": 4.61,
+            "target": 13.83,
+            "yoy_growth_pct": 122.72
           },
           "tb": {
-            "achievement": 9.01,
-            "pct_actual": 16.6284,
-            "pct_prorata": 66.5136,
-            "prev_year_achievement": 7.3342,
-            "prorata_target": 13.546,
-            "target": 54.1842,
-            "yoy_growth_pct": 22.8492
+            "achievement": 12.1,
+            "pct_actual": 22.33,
+            "pct_prorata": 67,
+            "prev_year_achievement": 8.74,
+            "prorata_target": 18.06,
+            "target": 54.18,
+            "yoy_growth_pct": 38.43
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.0518,
-            "pct_actual": 15.8519,
-            "pct_prorata": 63.4075,
-            "prev_year_achievement": 1.1976,
-            "prorata_target": 3.236,
-            "target": 12.9439,
-            "yoy_growth_pct": 71.3322
+            "achievement": 3.03,
+            "pct_actual": 23.4,
+            "pct_prorata": 70.19,
+            "prev_year_achievement": 1.49,
+            "prorata_target": 4.31,
+            "target": 12.94,
+            "yoy_growth_pct": 102.95
           },
           "tb": {
-            "achievement": 6.2128,
-            "pct_actual": 18.954,
-            "pct_prorata": 75.8161,
-            "prev_year_achievement": 4.3621,
-            "prorata_target": 8.1945,
-            "target": 32.778,
-            "yoy_growth_pct": 42.4263
+            "achievement": 8.58,
+            "pct_actual": 26.19,
+            "pct_prorata": 78.56,
+            "prev_year_achievement": 5.24,
+            "prorata_target": 10.93,
+            "target": 32.78,
+            "yoy_growth_pct": 63.68
           }
         }
       },
@@ -637,42 +637,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.4996,
-            "pct_actual": 21.9564,
-            "pct_prorata": 87.8257,
-            "prev_year_achievement": 0.9253,
-            "prorata_target": 1.7075,
+            "achievement": 1.83,
+            "pct_actual": 26.74,
+            "pct_prorata": 80.22,
+            "prev_year_achievement": 1.09,
+            "prorata_target": 2.28,
             "target": 6.83,
-            "yoy_growth_pct": 62.0751
+            "yoy_growth_pct": 67.06
           },
           "tb": {
-            "achievement": 5.963,
-            "pct_actual": 16.3639,
-            "pct_prorata": 65.4554,
-            "prev_year_achievement": 4.319,
-            "prorata_target": 9.11,
+            "achievement": 7.81,
+            "pct_actual": 21.43,
+            "pct_prorata": 64.3,
+            "prev_year_achievement": 5.29,
+            "prorata_target": 12.15,
             "target": 36.44,
-            "yoy_growth_pct": 38.0636
+            "yoy_growth_pct": 47.62
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.667,
-            "pct_actual": 27.3272,
-            "pct_prorata": 109.3088,
-            "prev_year_achievement": 1.1606,
-            "prorata_target": 1.525,
+            "achievement": 1.96,
+            "pct_actual": 32.1,
+            "pct_prorata": 96.29,
+            "prev_year_achievement": 1.37,
+            "prorata_target": 2.03,
             "target": 6.1,
-            "yoy_growth_pct": 43.632
+            "yoy_growth_pct": 42.55
           },
           "tb": {
-            "achievement": 5.7373,
-            "pct_actual": 18.9977,
-            "pct_prorata": 75.9909,
-            "prev_year_achievement": 4.1165,
-            "prorata_target": 7.55,
+            "achievement": 7.26,
+            "pct_actual": 24.05,
+            "pct_prorata": 72.15,
+            "prev_year_achievement": 4.98,
+            "prorata_target": 10.07,
             "target": 30.2,
-            "yoy_growth_pct": 39.3724
+            "yoy_growth_pct": 45.76
           }
         }
       },
@@ -683,42 +683,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.06,
-            "pct_actual": 8.4062,
-            "pct_prorata": 33.625,
-            "prev_year_achievement": 0.5862,
-            "prorata_target": 3.1525,
+            "achievement": 1.28,
+            "pct_actual": 10.17,
+            "pct_prorata": 30.52,
+            "prev_year_achievement": 0.73,
+            "prorata_target": 4.2,
             "target": 12.61,
-            "yoy_growth_pct": 80.8213
+            "yoy_growth_pct": 76.33
           },
           "tb": {
-            "achievement": 5.1977,
-            "pct_actual": 16.1319,
-            "pct_prorata": 64.5274,
-            "prev_year_achievement": 4.011,
-            "prorata_target": 8.055,
+            "achievement": 6.79,
+            "pct_actual": 21.07,
+            "pct_prorata": 63.21,
+            "prev_year_achievement": 5.02,
+            "prorata_target": 10.74,
             "target": 32.22,
-            "yoy_growth_pct": 29.5849
+            "yoy_growth_pct": 35.19
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.1722,
-            "pct_actual": 16.9702,
-            "pct_prorata": 67.8807,
-            "prev_year_achievement": 1.486,
-            "prorata_target": 3.2,
+            "achievement": 2.56,
+            "pct_actual": 20.02,
+            "pct_prorata": 60.05,
+            "prev_year_achievement": 1.84,
+            "prorata_target": 4.27,
             "target": 12.8,
-            "yoy_growth_pct": 46.1738
+            "yoy_growth_pct": 39.6
           },
           "tb": {
-            "achievement": 8.5044,
-            "pct_actual": 20.5667,
-            "pct_prorata": 82.267,
-            "prev_year_achievement": 6.3335,
-            "prorata_target": 10.3375,
+            "achievement": 10.9,
+            "pct_actual": 26.36,
+            "pct_prorata": 79.09,
+            "prev_year_achievement": 7.85,
+            "prorata_target": 13.78,
             "target": 41.35,
-            "yoy_growth_pct": 34.2748
+            "yoy_growth_pct": 38.95
           }
         }
       },
@@ -729,42 +729,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.4138,
-            "pct_actual": 13.4021,
-            "pct_prorata": 53.6086,
-            "prev_year_achievement": 0.7654,
-            "prorata_target": 2.6374,
-            "target": 10.5494,
-            "yoy_growth_pct": 84.729
+            "achievement": 1.91,
+            "pct_actual": 18.13,
+            "pct_prorata": 54.39,
+            "prev_year_achievement": 0.95,
+            "prorata_target": 3.52,
+            "target": 10.55,
+            "yoy_growth_pct": 101.75
           },
           "tb": {
-            "achievement": 5.6151,
-            "pct_actual": 16.2289,
-            "pct_prorata": 64.9157,
-            "prev_year_achievement": 4.3022,
-            "prorata_target": 8.6498,
-            "target": 34.5994,
-            "yoy_growth_pct": 30.5166
+            "achievement": 7.52,
+            "pct_actual": 21.73,
+            "pct_prorata": 65.19,
+            "prev_year_achievement": 5.4,
+            "prorata_target": 11.53,
+            "target": 34.6,
+            "yoy_growth_pct": 39.19
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.8793,
-            "pct_actual": 19.0366,
-            "pct_prorata": 76.1464,
-            "prev_year_achievement": 1.2494,
-            "prorata_target": 2.468,
-            "target": 9.8719,
-            "yoy_growth_pct": 50.4199
+            "achievement": 2.61,
+            "pct_actual": 26.41,
+            "pct_prorata": 79.22,
+            "prev_year_achievement": 1.56,
+            "prorata_target": 3.29,
+            "target": 9.87,
+            "yoy_growth_pct": 67.1
           },
           "tb": {
-            "achievement": 5.9715,
-            "pct_actual": 20.871,
-            "pct_prorata": 83.484,
-            "prev_year_achievement": 4.1549,
-            "prorata_target": 7.1528,
-            "target": 28.6113,
-            "yoy_growth_pct": 43.7222
+            "achievement": 8,
+            "pct_actual": 27.95,
+            "pct_prorata": 83.84,
+            "prev_year_achievement": 5.21,
+            "prorata_target": 9.54,
+            "target": 28.61,
+            "yoy_growth_pct": 53.53
           }
         }
       },
@@ -775,42 +775,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.4133,
-            "pct_actual": 11.1637,
-            "pct_prorata": 44.6546,
-            "prev_year_achievement": 0.6329,
-            "prorata_target": 3.165,
+            "achievement": 1.81,
+            "pct_actual": 14.3,
+            "pct_prorata": 42.89,
+            "prev_year_achievement": 0.83,
+            "prorata_target": 4.22,
             "target": 12.66,
-            "yoy_growth_pct": 123.297
+            "yoy_growth_pct": 117.87
           },
           "tb": {
-            "achievement": 7.1222,
-            "pct_actual": 15.9333,
-            "pct_prorata": 63.733,
-            "prev_year_achievement": 5.6324,
-            "prorata_target": 11.175,
+            "achievement": 9.38,
+            "pct_actual": 20.98,
+            "pct_prorata": 62.93,
+            "prev_year_achievement": 7.24,
+            "prorata_target": 14.9,
             "target": 44.7,
-            "yoy_growth_pct": 26.4494
+            "yoy_growth_pct": 29.47
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.8243,
-            "pct_actual": 22.3445,
-            "pct_prorata": 89.3778,
-            "prev_year_achievement": 1.6419,
-            "prorata_target": 3.16,
+            "achievement": 3.59,
+            "pct_actual": 28.44,
+            "pct_prorata": 85.32,
+            "prev_year_achievement": 2.17,
+            "prorata_target": 4.21,
             "target": 12.64,
-            "yoy_growth_pct": 72.0117
+            "yoy_growth_pct": 65.65
           },
           "tb": {
-            "achievement": 9.5234,
-            "pct_actual": 20.2626,
-            "pct_prorata": 81.0506,
-            "prev_year_achievement": 6.7702,
-            "prorata_target": 11.75,
+            "achievement": 12.26,
+            "pct_actual": 26.09,
+            "pct_prorata": 78.28,
+            "prev_year_achievement": 8.54,
+            "prorata_target": 15.67,
             "target": 47,
-            "yoy_growth_pct": 40.6669
+            "yoy_growth_pct": 43.53
           }
         }
       },
@@ -821,42 +821,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.6983,
-            "pct_actual": 12.8177,
-            "pct_prorata": 51.2709,
-            "prev_year_achievement": 0.994,
-            "prorata_target": 3.3125,
+            "achievement": 2.13,
+            "pct_actual": 16.04,
+            "pct_prorata": 48.13,
+            "prev_year_achievement": 1.3,
+            "prorata_target": 4.42,
             "target": 13.25,
-            "yoy_growth_pct": 70.862
+            "yoy_growth_pct": 62.88
           },
           "tb": {
-            "achievement": 7.2366,
-            "pct_actual": 15.2928,
-            "pct_prorata": 61.1712,
-            "prev_year_achievement": 5.7059,
-            "prorata_target": 11.83,
+            "achievement": 9.58,
+            "pct_actual": 20.24,
+            "pct_prorata": 60.73,
+            "prev_year_achievement": 7.41,
+            "prorata_target": 15.77,
             "target": 47.32,
-            "yoy_growth_pct": 26.8254
+            "yoy_growth_pct": 29.34
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.3413,
-            "pct_actual": 18.3201,
-            "pct_prorata": 73.2803,
-            "prev_year_achievement": 1.6128,
-            "prorata_target": 3.195,
+            "achievement": 2.83,
+            "pct_actual": 22.18,
+            "pct_prorata": 66.53,
+            "prev_year_achievement": 2.19,
+            "prorata_target": 4.26,
             "target": 12.78,
-            "yoy_growth_pct": 45.1682
+            "yoy_growth_pct": 29.41
           },
           "tb": {
-            "achievement": 8.1151,
-            "pct_actual": 19.2528,
-            "pct_prorata": 77.0114,
-            "prev_year_achievement": 5.9914,
-            "prorata_target": 10.5375,
+            "achievement": 10.55,
+            "pct_actual": 25.03,
+            "pct_prorata": 75.1,
+            "prev_year_achievement": 7.75,
+            "prorata_target": 14.05,
             "target": 42.15,
-            "yoy_growth_pct": 35.4445
+            "yoy_growth_pct": 36.17
           }
         }
       },
@@ -867,42 +867,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.524,
-            "pct_actual": 15.2404,
-            "pct_prorata": 60.9618,
-            "prev_year_achievement": 1.2585,
-            "prorata_target": 2.5,
+            "achievement": 2.05,
+            "pct_actual": 20.5,
+            "pct_prorata": 61.51,
+            "prev_year_achievement": 1.56,
+            "prorata_target": 3.33,
             "target": 10,
-            "yoy_growth_pct": 21.103
+            "yoy_growth_pct": 31.38
           },
           "tb": {
-            "achievement": 8.0454,
-            "pct_actual": 16.4191,
-            "pct_prorata": 65.6766,
-            "prev_year_achievement": 6.1092,
-            "prorata_target": 12.25,
+            "achievement": 10.71,
+            "pct_actual": 21.86,
+            "pct_prorata": 65.58,
+            "prev_year_achievement": 7.75,
+            "prorata_target": 16.33,
             "target": 49,
-            "yoy_growth_pct": 31.6924
+            "yoy_growth_pct": 38.22
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 3.4632,
-            "pct_actual": 20.3715,
-            "pct_prorata": 81.4859,
-            "prev_year_achievement": 2.4183,
-            "prorata_target": 4.25,
+            "achievement": 4.49,
+            "pct_actual": 26.44,
+            "pct_prorata": 79.31,
+            "prev_year_achievement": 3.12,
+            "prorata_target": 5.67,
             "target": 17,
-            "yoy_growth_pct": 43.2071
+            "yoy_growth_pct": 43.84
           },
           "tb": {
-            "achievement": 10.8764,
-            "pct_actual": 20.5215,
-            "pct_prorata": 82.0861,
-            "prev_year_achievement": 7.418,
-            "prorata_target": 13.25,
+            "achievement": 14.2,
+            "pct_actual": 26.8,
+            "pct_prorata": 80.39,
+            "prev_year_achievement": 9.31,
+            "prorata_target": 17.67,
             "target": 53,
-            "yoy_growth_pct": 46.6218
+            "yoy_growth_pct": 52.52
           }
         }
       },
@@ -913,42 +913,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.3129,
-            "pct_actual": 9.6748,
-            "pct_prorata": 38.6992,
-            "prev_year_achievement": 1.2102,
-            "prorata_target": 3.3925,
+            "achievement": 1.68,
+            "pct_actual": 12.41,
+            "pct_prorata": 37.22,
+            "prev_year_achievement": 1.49,
+            "prorata_target": 4.52,
             "target": 13.57,
-            "yoy_growth_pct": 8.4823
+            "yoy_growth_pct": 13.21
           },
           "tb": {
-            "achievement": 6.5807,
-            "pct_actual": 15.09,
-            "pct_prorata": 60.3599,
-            "prev_year_achievement": 5.1839,
-            "prorata_target": 10.9025,
+            "achievement": 8.65,
+            "pct_actual": 19.84,
+            "pct_prorata": 59.51,
+            "prev_year_achievement": 6.51,
+            "prorata_target": 14.54,
             "target": 43.61,
-            "yoy_growth_pct": 26.9457
+            "yoy_growth_pct": 32.89
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.8813,
-            "pct_actual": 14.5724,
-            "pct_prorata": 58.2894,
-            "prev_year_achievement": 1.5541,
-            "prorata_target": 3.2275,
+            "achievement": 2.47,
+            "pct_actual": 19.13,
+            "pct_prorata": 57.38,
+            "prev_year_achievement": 2,
+            "prorata_target": 4.3,
             "target": 12.91,
-            "yoy_growth_pct": 21.0522
+            "yoy_growth_pct": 23.41
           },
           "tb": {
-            "achievement": 6.4477,
-            "pct_actual": 18.798,
-            "pct_prorata": 75.1918,
-            "prev_year_achievement": 4.7069,
-            "prorata_target": 8.575,
+            "achievement": 8.55,
+            "pct_actual": 24.94,
+            "pct_prorata": 74.82,
+            "prev_year_achievement": 5.97,
+            "prorata_target": 11.43,
             "target": 34.3,
-            "yoy_growth_pct": 36.9827
+            "yoy_growth_pct": 43.39
           }
         }
       },
@@ -959,42 +959,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.3172,
-            "pct_actual": 10.9913,
-            "pct_prorata": 43.9651,
-            "prev_year_achievement": 0.8352,
-            "prorata_target": 2.9959,
-            "target": 11.9836,
-            "yoy_growth_pct": 57.7047
+            "achievement": 1.77,
+            "pct_actual": 14.76,
+            "pct_prorata": 44.27,
+            "prev_year_achievement": 1.05,
+            "prorata_target": 3.99,
+            "target": 11.98,
+            "yoy_growth_pct": 68.94
           },
           "tb": {
-            "achievement": 5.6143,
-            "pct_actual": 15.2946,
-            "pct_prorata": 61.1785,
-            "prev_year_achievement": 4.3658,
-            "prorata_target": 9.1769,
-            "target": 36.7075,
-            "yoy_growth_pct": 28.5958
+            "achievement": 7.51,
+            "pct_actual": 20.45,
+            "pct_prorata": 61.36,
+            "prev_year_achievement": 5.56,
+            "prorata_target": 12.24,
+            "target": 36.71,
+            "yoy_growth_pct": 35.16
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.4619,
-            "pct_actual": 13.0359,
-            "pct_prorata": 52.1438,
-            "prev_year_achievement": 0.9287,
-            "prorata_target": 2.8035,
-            "target": 11.214,
-            "yoy_growth_pct": 57.4013
+            "achievement": 2.14,
+            "pct_actual": 19.05,
+            "pct_prorata": 57.15,
+            "prev_year_achievement": 1.2,
+            "prorata_target": 3.74,
+            "target": 11.21,
+            "yoy_growth_pct": 77.37
           },
           "tb": {
-            "achievement": 4.5283,
-            "pct_actual": 20.0605,
-            "pct_prorata": 80.242,
-            "prev_year_achievement": 3.1005,
-            "prorata_target": 5.6433,
-            "target": 22.5733,
-            "yoy_growth_pct": 46.05
+            "achievement": 6.2,
+            "pct_actual": 27.48,
+            "pct_prorata": 82.43,
+            "prev_year_achievement": 3.89,
+            "prorata_target": 7.52,
+            "target": 22.57,
+            "yoy_growth_pct": 59.56
           }
         }
       },
@@ -1005,42 +1005,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.7582,
-            "pct_actual": 19.5357,
-            "pct_prorata": 78.143,
-            "prev_year_achievement": 1.1183,
-            "prorata_target": 2.25,
+            "achievement": 2.21,
+            "pct_actual": 24.58,
+            "pct_prorata": 73.74,
+            "prev_year_achievement": 1.43,
+            "prorata_target": 3,
             "target": 9,
-            "yoy_growth_pct": 57.2287
+            "yoy_growth_pct": 54.79
           },
           "tb": {
-            "achievement": 7.3735,
-            "pct_actual": 16.758,
-            "pct_prorata": 67.0319,
-            "prev_year_achievement": 5.6438,
-            "prorata_target": 11,
+            "achievement": 9.71,
+            "pct_actual": 22.06,
+            "pct_prorata": 66.17,
+            "prev_year_achievement": 7.21,
+            "prorata_target": 14.67,
             "target": 44,
-            "yoy_growth_pct": 30.6484
+            "yoy_growth_pct": 34.69
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.1668,
-            "pct_actual": 19.6984,
-            "pct_prorata": 78.7937,
-            "prev_year_achievement": 1.5173,
-            "prorata_target": 2.75,
+            "achievement": 2.84,
+            "pct_actual": 25.78,
+            "pct_prorata": 77.34,
+            "prev_year_achievement": 1.98,
+            "prorata_target": 3.67,
             "target": 11,
-            "yoy_growth_pct": 42.8115
+            "yoy_growth_pct": 43.32
           },
           "tb": {
-            "achievement": 6.551,
-            "pct_actual": 19.8516,
-            "pct_prorata": 79.4065,
-            "prev_year_achievement": 4.5518,
-            "prorata_target": 8.25,
+            "achievement": 8.79,
+            "pct_actual": 26.63,
+            "pct_prorata": 79.9,
+            "prev_year_achievement": 5.83,
+            "prorata_target": 11,
             "target": 33,
-            "yoy_growth_pct": 43.9223
+            "yoy_growth_pct": 50.67
           }
         }
       },
@@ -1051,42 +1051,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 2.9526,
-            "pct_actual": 18.4539,
-            "pct_prorata": 73.8157,
-            "prev_year_achievement": 2.5006,
-            "prorata_target": 4,
+            "achievement": 3.84,
+            "pct_actual": 23.99,
+            "pct_prorata": 71.98,
+            "prev_year_achievement": 3.12,
+            "prorata_target": 5.33,
             "target": 16,
-            "yoy_growth_pct": 18.0766
+            "yoy_growth_pct": 23.21
           },
           "tb": {
-            "achievement": 14.5756,
-            "pct_actual": 17.1478,
-            "pct_prorata": 68.5913,
-            "prev_year_achievement": 11.4583,
-            "prorata_target": 21.25,
+            "achievement": 19.22,
+            "pct_actual": 22.61,
+            "pct_prorata": 67.83,
+            "prev_year_achievement": 14.63,
+            "prorata_target": 28.33,
             "target": 85,
-            "yoy_growth_pct": 27.2058
+            "yoy_growth_pct": 31.39
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 5.4129,
-            "pct_actual": 22.5538,
-            "pct_prorata": 90.2152,
-            "prev_year_achievement": 4.1239,
-            "prorata_target": 6,
+            "achievement": 7.05,
+            "pct_actual": 29.38,
+            "pct_prorata": 88.13,
+            "prev_year_achievement": 5.23,
+            "prorata_target": 8,
             "target": 24,
-            "yoy_growth_pct": 31.2584
+            "yoy_growth_pct": 34.68
           },
           "tb": {
-            "achievement": 16.5518,
-            "pct_actual": 20.9517,
-            "pct_prorata": 83.8067,
-            "prev_year_achievement": 11.447,
-            "prorata_target": 19.75,
+            "achievement": 22.06,
+            "pct_actual": 27.93,
+            "pct_prorata": 83.79,
+            "prev_year_achievement": 14.59,
+            "prorata_target": 26.33,
             "target": 79,
-            "yoy_growth_pct": 44.595
+            "yoy_growth_pct": 51.22
           }
         }
       },
@@ -1097,42 +1097,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.4304,
-            "pct_actual": 20.5225,
-            "pct_prorata": 82.0901,
-            "prev_year_achievement": 0.7174,
-            "prorata_target": 1.7425,
+            "achievement": 1.82,
+            "pct_actual": 26.11,
+            "pct_prorata": 78.34,
+            "prev_year_achievement": 0.93,
+            "prorata_target": 2.32,
             "target": 6.97,
-            "yoy_growth_pct": 99.3941
+            "yoy_growth_pct": 96.41
           },
           "tb": {
-            "achievement": 4.7944,
-            "pct_actual": 17.3082,
-            "pct_prorata": 69.2329,
-            "prev_year_achievement": 3.2947,
-            "prorata_target": 6.925,
+            "achievement": 6.24,
+            "pct_actual": 22.52,
+            "pct_prorata": 67.55,
+            "prev_year_achievement": 4.25,
+            "prorata_target": 9.23,
             "target": 27.7,
-            "yoy_growth_pct": 45.5158
+            "yoy_growth_pct": 46.75
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.7401,
-            "pct_actual": 25.741,
-            "pct_prorata": 102.9639,
-            "prev_year_achievement": 1.0906,
-            "prorata_target": 1.69,
+            "achievement": 2.15,
+            "pct_actual": 31.87,
+            "pct_prorata": 95.62,
+            "prev_year_achievement": 1.4,
+            "prorata_target": 2.25,
             "target": 6.76,
-            "yoy_growth_pct": 59.5577
+            "yoy_growth_pct": 54.3
           },
           "tb": {
-            "achievement": 5.3908,
-            "pct_actual": 19.9215,
-            "pct_prorata": 79.686,
-            "prev_year_achievement": 3.7272,
-            "prorata_target": 6.765,
+            "achievement": 7.11,
+            "pct_actual": 26.26,
+            "pct_prorata": 78.79,
+            "prev_year_achievement": 4.77,
+            "prorata_target": 9.02,
             "target": 27.06,
-            "yoy_growth_pct": 44.6316
+            "yoy_growth_pct": 48.84
           }
         }
       },
@@ -1143,42 +1143,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.4991,
-            "pct_actual": 16.4016,
-            "pct_prorata": 65.6065,
-            "prev_year_achievement": 1.0121,
-            "prorata_target": 2.285,
+            "achievement": 1.92,
+            "pct_actual": 20.98,
+            "pct_prorata": 62.94,
+            "prev_year_achievement": 1.26,
+            "prorata_target": 3.05,
             "target": 9.14,
-            "yoy_growth_pct": 48.1177
+            "yoy_growth_pct": 52.26
           },
           "tb": {
-            "achievement": 6.9686,
-            "pct_actual": 17.6064,
-            "pct_prorata": 70.4257,
-            "prev_year_achievement": 5.543,
-            "prorata_target": 9.895,
+            "achievement": 9.06,
+            "pct_actual": 22.89,
+            "pct_prorata": 68.67,
+            "prev_year_achievement": 7.01,
+            "prorata_target": 13.19,
             "target": 39.58,
-            "yoy_growth_pct": 25.7194
+            "yoy_growth_pct": 29.2
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.5729,
-            "pct_actual": 19.1351,
-            "pct_prorata": 76.5406,
-            "prev_year_achievement": 1.3381,
-            "prorata_target": 2.055,
+            "achievement": 2.07,
+            "pct_actual": 25.19,
+            "pct_prorata": 75.57,
+            "prev_year_achievement": 1.7,
+            "prorata_target": 2.74,
             "target": 8.22,
-            "yoy_growth_pct": 17.5523
+            "yoy_growth_pct": 21.98
           },
           "tb": {
-            "achievement": 5.9932,
-            "pct_actual": 18.2442,
-            "pct_prorata": 72.9766,
-            "prev_year_achievement": 4.7571,
-            "prorata_target": 8.2125,
+            "achievement": 8.04,
+            "pct_actual": 24.47,
+            "pct_prorata": 73.42,
+            "prev_year_achievement": 5.99,
+            "prorata_target": 10.95,
             "target": 32.85,
-            "yoy_growth_pct": 25.9832
+            "yoy_growth_pct": 34.21
           }
         }
       },
@@ -1189,42 +1189,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 2.4625,
-            "pct_actual": 16.7235,
-            "pct_prorata": 66.894,
-            "prev_year_achievement": 1.5838,
-            "prorata_target": 3.6811,
-            "target": 14.7246,
-            "yoy_growth_pct": 55.4791
+            "achievement": 3.44,
+            "pct_actual": 23.37,
+            "pct_prorata": 70.11,
+            "prev_year_achievement": 1.99,
+            "prorata_target": 4.91,
+            "target": 14.72,
+            "yoy_growth_pct": 72.99
           },
           "tb": {
-            "achievement": 12.038,
-            "pct_actual": 17.1412,
-            "pct_prorata": 68.5648,
-            "prev_year_achievement": 9.0277,
-            "prorata_target": 17.5572,
-            "target": 70.2286,
-            "yoy_growth_pct": 33.345
+            "achievement": 16.02,
+            "pct_actual": 22.81,
+            "pct_prorata": 68.42,
+            "prev_year_achievement": 11.37,
+            "prorata_target": 23.41,
+            "target": 70.23,
+            "yoy_growth_pct": 40.81
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 2.8682,
-            "pct_actual": 20.8158,
-            "pct_prorata": 83.263,
-            "prev_year_achievement": 1.8371,
-            "prorata_target": 3.4447,
-            "target": 13.7789,
-            "yoy_growth_pct": 56.1242
+            "achievement": 4.09,
+            "pct_actual": 29.71,
+            "pct_prorata": 89.13,
+            "prev_year_achievement": 2.3,
+            "prorata_target": 4.59,
+            "target": 13.78,
+            "yoy_growth_pct": 77.77
           },
           "tb": {
-            "achievement": 10.6067,
-            "pct_actual": 19.0718,
-            "pct_prorata": 76.2873,
-            "prev_year_achievement": 7.8817,
-            "prorata_target": 13.9036,
-            "target": 55.6145,
-            "yoy_growth_pct": 34.5731
+            "achievement": 14.53,
+            "pct_actual": 26.13,
+            "pct_prorata": 78.39,
+            "prev_year_achievement": 9.83,
+            "prorata_target": 18.54,
+            "target": 55.61,
+            "yoy_growth_pct": 47.83
           }
         }
       },
@@ -1235,42 +1235,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 3.0402,
-            "pct_actual": 22.2403,
-            "pct_prorata": 88.9611,
-            "prev_year_achievement": 2.0295,
-            "prorata_target": 3.4175,
+            "achievement": 3.95,
+            "pct_actual": 28.87,
+            "pct_prorata": 86.6,
+            "prev_year_achievement": 2.6,
+            "prorata_target": 4.56,
             "target": 13.67,
-            "yoy_growth_pct": 49.8049
+            "yoy_growth_pct": 51.59
           },
           "tb": {
-            "achievement": 12.6989,
-            "pct_actual": 18.0973,
-            "pct_prorata": 72.3892,
-            "prev_year_achievement": 9.7317,
-            "prorata_target": 17.5425,
+            "achievement": 16.68,
+            "pct_actual": 23.78,
+            "pct_prorata": 71.33,
+            "prev_year_achievement": 12.49,
+            "prorata_target": 23.39,
             "target": 70.17,
-            "yoy_growth_pct": 30.4893
+            "yoy_growth_pct": 33.58
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 3.0966,
-            "pct_actual": 27.1866,
-            "pct_prorata": 108.7466,
-            "prev_year_achievement": 2.2918,
-            "prorata_target": 2.8475,
+            "achievement": 4.05,
+            "pct_actual": 35.58,
+            "pct_prorata": 106.74,
+            "prev_year_achievement": 2.92,
+            "prorata_target": 3.8,
             "target": 11.39,
-            "yoy_growth_pct": 35.1151
+            "yoy_growth_pct": 38.74
           },
           "tb": {
-            "achievement": 9.8186,
-            "pct_actual": 21.7514,
-            "pct_prorata": 87.0054,
-            "prev_year_achievement": 7.0962,
-            "prorata_target": 11.285,
+            "achievement": 13.15,
+            "pct_actual": 29.12,
+            "pct_prorata": 87.37,
+            "prev_year_achievement": 8.99,
+            "prorata_target": 15.05,
             "target": 45.14,
-            "yoy_growth_pct": 38.3636
+            "yoy_growth_pct": 46.31
           }
         }
       },
@@ -1281,42 +1281,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 4.7536,
-            "pct_actual": 17.6061,
-            "pct_prorata": 70.4244,
-            "prev_year_achievement": 3.2939,
-            "prorata_target": 6.75,
+            "achievement": 6.27,
+            "pct_actual": 23.21,
+            "pct_prorata": 69.62,
+            "prev_year_achievement": 4.09,
+            "prorata_target": 9,
             "target": 27,
-            "yoy_growth_pct": 44.3157
+            "yoy_growth_pct": 53.07
           },
           "tb": {
-            "achievement": 16.4778,
-            "pct_actual": 17.1644,
-            "pct_prorata": 68.6576,
-            "prev_year_achievement": 12.7476,
-            "prorata_target": 24,
+            "achievement": 22,
+            "pct_actual": 22.92,
+            "pct_prorata": 68.75,
+            "prev_year_achievement": 16.09,
+            "prorata_target": 32,
             "target": 96,
-            "yoy_growth_pct": 29.2622
+            "yoy_growth_pct": 36.74
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 0.6259,
-            "pct_actual": 20.8624,
-            "pct_prorata": 83.4495,
-            "prev_year_achievement": 0.445,
-            "prorata_target": 0.75,
+            "achievement": 0.85,
+            "pct_actual": 28.44,
+            "pct_prorata": 85.33,
+            "prev_year_achievement": 0.6,
+            "prorata_target": 1,
             "target": 3,
-            "yoy_growth_pct": 40.6322
+            "yoy_growth_pct": 43.26
           },
           "tb": {
-            "achievement": 2.1177,
-            "pct_actual": 21.1766,
-            "pct_prorata": 84.7064,
-            "prev_year_achievement": 1.4808,
-            "prorata_target": 2.5,
+            "achievement": 2.85,
+            "pct_actual": 28.48,
+            "pct_prorata": 85.45,
+            "prev_year_achievement": 1.9,
+            "prorata_target": 3.33,
             "target": 10,
-            "yoy_growth_pct": 43.0106
+            "yoy_growth_pct": 49.94
           }
         }
       },
@@ -1327,42 +1327,42 @@
       "products": {
         "pli": {
           "nbp": {
-            "achievement": 1.8918,
-            "pct_actual": 15.7646,
-            "pct_prorata": 63.0585,
-            "prev_year_achievement": 1.6387,
-            "prorata_target": 3,
+            "achievement": 2.44,
+            "pct_actual": 20.33,
+            "pct_prorata": 60.99,
+            "prev_year_achievement": 1.86,
+            "prorata_target": 4,
             "target": 12,
-            "yoy_growth_pct": 15.4418
+            "yoy_growth_pct": 30.95
           },
           "tb": {
-            "achievement": 8.6161,
-            "pct_actual": 16.2568,
-            "pct_prorata": 65.0273,
-            "prev_year_achievement": 6.9041,
-            "prorata_target": 13.25,
+            "achievement": 11.34,
+            "pct_actual": 21.41,
+            "pct_prorata": 64.22,
+            "prev_year_achievement": 8.21,
+            "prorata_target": 17.67,
             "target": 53,
-            "yoy_growth_pct": 24.7978
+            "yoy_growth_pct": 38.13
           }
         },
         "rpli": {
           "nbp": {
-            "achievement": 1.828,
-            "pct_actual": 20.3115,
-            "pct_prorata": 81.2461,
-            "prev_year_achievement": 1.6773,
-            "prorata_target": 2.25,
+            "achievement": 2.3,
+            "pct_actual": 25.54,
+            "pct_prorata": 76.63,
+            "prev_year_achievement": 2.03,
+            "prorata_target": 3,
             "target": 9,
-            "yoy_growth_pct": 8.9848
+            "yoy_growth_pct": 13.43
           },
           "tb": {
-            "achievement": 6.3739,
-            "pct_actual": 19.9184,
-            "pct_prorata": 79.6735,
-            "prev_year_achievement": 4.8623,
-            "prorata_target": 8,
+            "achievement": 8.5,
+            "pct_actual": 26.56,
+            "pct_prorata": 79.67,
+            "prev_year_achievement": 6,
+            "prorata_target": 10.67,
             "target": 32,
-            "yoy_growth_pct": 31.0868
+            "yoy_growth_pct": 41.56
           }
         }
       },
@@ -1370,8 +1370,8 @@
     }
   },
   "meta": {
-    "data_as_on": "2026-06",
-    "generated_on": "2026-07-19T13:10:38.766957+00:00",
-    "source": "PLI RPLI NBP/TB — Upto June-26 (manual upload, uploads/june_2026/Insurance/)"
+    "data_as_on": "2026-07",
+    "generated_on": "2026-08-05T18:37:50.597636+00:00",
+    "source": "PLI RPLI NBP/TBP Target vs Achievement - Upto July-2026 (manual upload, uploads/July_2026/PLI_RPLI_NBP_TBP_Target_vs_Achievement_July_2026.xlsx)"
   }
 }
