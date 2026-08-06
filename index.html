@@ -6834,10 +6834,17 @@ function vbBuildLineChartSvg(monthly, opts) {
 
   var points = monthly.map(function(m, i) { return x(i) + ',' + y(m.pct_prorata || 0); }).join(' ');
 
+  // opts.tooltipFn lets a caller supply richer per-point hover text (e.g.
+  // ovBuildSparkline's Prop. Target/Ach./%Ach./MoM Growth breakdown) — when
+  // given, it overrides the plain "% of pro-rata" default and applies even
+  // in sparkline mode, which otherwise skips tooltips entirely (a sparkline
+  // is small enough on-screen that a title would usually just repeat the
+  // number already shown beside it, so it stays opt-in per caller).
   var dots = monthly.map(function(m, i) {
-    var tip = vbMonthLabel(m.month) + ': ' + fmt(m.pct_prorata, 1) + '% of pro-rata';
+    var tip = opts.tooltipFn ? opts.tooltipFn(m, i, monthly)
+      : (sparkline ? '' : vbMonthLabel(m.month) + ': ' + fmt(m.pct_prorata, 1) + '% of pro-rata');
     return '<circle class="point" cx="' + x(i) + '" cy="' + y(m.pct_prorata || 0) + '" r="' + (sparkline ? 2 : 3.5) + '">' +
-      (sparkline ? '' : '<title>' + tip + '</title>') + '</circle>';
+      (tip ? '<title>' + tip + '</title>' : '') + '</circle>';
   }).join('');
 
   return '<svg class="vb-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Pro-rata attainment trend">' +
@@ -7537,12 +7544,30 @@ function ovCircleTotalMonthly() {
   });
 }
 
+// Hover text for each Circle MoM trend point: the month's Prop. Target and
+// Achievement in ₹, the %Ach. already plotted as the line's y-value, and
+// MoM Growth — the change in Achievement (₹) vs the previous month, a
+// genuinely different signal from %Ach. (which tracks against pro-rata
+// target, not against last month) so it's worth showing alongside rather
+// than leaving implicit in the line's slope.
+function ovSparklineTooltip(m, i, monthly) {
+  var prev = i > 0 ? monthly[i - 1] : null;
+  var momGrowth = (prev && prev.achievement > 0) ? ((m.achievement - prev.achievement) / prev.achievement * 100) : null;
+  return [
+    vbMonthLabel(m.month),
+    'Prop. Target: ₹' + fmt(m.prorata_target, 2) + ' Cr',
+    'Achievement: ₹' + fmt(m.achievement, 2) + ' Cr',
+    '% Ach.: ' + fmt(m.pct_prorata, 1) + '%',
+    'MoM Growth: ' + (momGrowth === null ? '—' : (momGrowth >= 0 ? '+' : '') + fmt(momGrowth, 1) + '%'),
+  ].join('\n');
+}
+
 function ovBuildSparkline() {
   var monthly = ovCircleTotalMonthly();
   if (!monthly.length) return '<div class="placeholder">No trend data</div>';
   var last = monthly[monthly.length - 1];
   return '<div class="ov-spark-row">' +
-    '<div class="ov-spark-chart">' + vbBuildLineChartSvg(monthly, { sparkline: true }) + '</div>' +
+    '<div class="ov-spark-chart">' + vbBuildLineChartSvg(monthly, { sparkline: true, tooltipFn: ovSparklineTooltip }) + '</div>' +
     '<div class="ov-spark-figure">' +
       '<span class="ov-spark-value ' + statusClass(last.pct_prorata) + '">' + fmt(last.pct_prorata, 1) + '%</span>' +
       '<span class="ov-spark-label">of pro-rata &middot; ' + vbMonthLabel(last.month) + '</span>' +
