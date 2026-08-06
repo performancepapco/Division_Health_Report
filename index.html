@@ -6470,28 +6470,43 @@ function hmExportPng() {
   }
 }
 
-// Excel export: reads the same live table DOM as the PNG export (so it always
-// matches whatever's on screen — current sort order, %/₹ mode, selected
-// period) and writes it out as an HTML table saved with a .xls extension.
-// Excel opens HTML-formatted .xls files natively; no xlsx-writing library
-// (e.g. SheetJS) is loaded on this page, so this is the dependency-free path.
+// Excel export: two sheets, both dependency-free HTML-as-.xls (Excel opens
+// HTML-formatted .xls files natively — no xlsx-writing library like SheetJS
+// is loaded on this page).
+//   Sheet 1 "Overview" — reads the live table DOM, so it always matches
+//     whatever's on screen (current sort order, %/₹ mode, selected period).
+//   Sheet 2 "Division Detail" — recomputed from HM_LAST_MEMBERS via the same
+//     computeHeatmapRows/sortHeatmapRows/hmAggregateCircleRow functions that
+//     built the on-screen table (same sort, same 33 divisions + circle
+//     total), but expanded per vertical into Target/Prop. Target/Ach./
+//     % Ach./Yet to Ach. — the on-screen heatmap only ever shows one of
+//     those five at a time (via hmVerticalTip's hover tooltip); this sheet
+//     is the "all five, every vertical, one row per division" version.
+// Multiple real Excel tabs from a single HTML file relies on the
+// <x:ExcelWorksheet>/<div id="..."> pairing below — a long-standing, widely
+// used technique, but only verified here by inspecting the generated HTML,
+// not by opening it in Excel itself (no Excel in this environment) — if a
+// downloaded file doesn't split into two tabs, that pairing is the first
+// thing to check.
 function hmExportExcel() {
   const table = document.getElementById('heatmap-table');
   const btn = document.getElementById('heatmap-export-excel');
-  if (!table) return;
+  if (!table || !HM_LAST_MEMBERS) return;
   if (btn) { btn.disabled = true; btn.textContent = 'Exporting…'; }
   const resetBtn = () => { if (btn) { btn.disabled = false; btn.textContent = 'Export Excel'; } };
 
   try {
     const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const rowHtml = (cells, cellTag) => '<tr>' + cells.map(c => `<${cellTag}>${esc(c)}</${cellTag}>`).join('') + '</tr>';
+    const titleText = (document.getElementById('heatmap-title') || {}).textContent || 'Division-wise Achievement';
 
+    // ---- Sheet 1: Overview (exactly what's on screen) ----
     const headCells = [...table.querySelectorAll('thead th[data-key]')];
     const headers = headCells.map(th => {
       const sortBtn = th.querySelector('.hm-th-btn');
       return sortBtn ? sortBtn.childNodes[0].textContent.trim() : th.textContent.trim();
     });
-
-    const bodyRows = [...table.querySelectorAll('tbody tr')].map(tr => [...tr.children].map(td => {
+    const overviewRows = [...table.querySelectorAll('tbody tr')].map(tr => [...tr.children].map(td => {
       const chip = td.querySelector('.hm-rank-chip');
       if (chip) return chip.textContent.trim();
       const tag = td.querySelector('.hm-region-tag');
@@ -6503,18 +6518,58 @@ function hmExportExcel() {
       }
       return td.textContent.trim();
     }));
-
-    const titleText = (document.getElementById('heatmap-title') || {}).textContent || 'Division-wise Achievement';
     const footnoteText = (document.getElementById('heatmap-footnote') || {}).textContent || '';
-
-    const rowHtml = (cells, cellTag) => '<tr>' + cells.map(c => `<${cellTag}>${esc(c)}</${cellTag}>`).join('') + '</tr>';
-    const tableHtml =
+    const sheet1Body =
+      '<h3>' + esc(titleText) + '</h3>' +
       '<table border="1" cellspacing="0" cellpadding="4">' +
       '<thead>' + rowHtml(headers, 'th') + '</thead>' +
-      '<tbody>' + bodyRows.map(r => rowHtml(r, 'td')).join('') + '</tbody>' +
+      '<tbody>' + overviewRows.map(r => rowHtml(r, 'td')).join('') + '</tbody>' +
+      '</table>' +
+      '<p><em>' + esc(footnoteText) + '</em></p>';
+
+    // ---- Sheet 2: Division Detail — Target/Prop. Target/Ach./% Ach./Yet to Ach. per vertical ----
+    const detailVerticals = HM_VERTICALS.concat([{ key: 'Total', label: 'Total Revenue' }]);
+    const subCols = ['Target', 'Prop. Target', 'Ach.', '% Ach.', 'Yet to Ach.'];
+    const rawRows = computeHeatmapRows(HM_LAST_MEMBERS);
+    const detailRows = sortHeatmapRows(rawRows).concat([hmAggregateCircleRow(rawRows)]);
+
+    const groupHeaderRow = '<tr><th rowspan="2">Rank</th><th rowspan="2">Division</th>' +
+      detailVerticals.map(v => `<th colspan="${subCols.length}">${esc(v.label)}</th>`).join('') + '</tr>';
+    const subHeaderRow = '<tr>' +
+      detailVerticals.map(() => subCols.map(c => `<th>${esc(c)}</th>`).join('')).join('') +
+      '</tr>';
+    function detailRowHtml(r) {
+      const rankCell = r.rank === null ? String.fromCharCode(8212) : r.rank; // — for the circle total row
+      const nameCell = r.region ? `${r.name} (${REG_ABBR[r.region] || r.region})` : r.name;
+      let cells = `<td>${rankCell}</td><td>${esc(nameCell)}</td>`;
+      detailVerticals.forEach(v => {
+        const target = (r.targets && r.targets[v.key]) || 0;
+        const pro = (r.pro_rata && r.pro_rata[v.key]) || 0;
+        const ach = (r.actuals && r.actuals[v.key]) || 0;
+        const pct = pro > 0 ? (ach / pro * 100) : 0;
+        const yetTo = target - ach;
+        cells += `<td>${fmt(target, 2)}</td><td>${fmt(pro, 2)}</td><td>${fmt(ach, 2)}</td><td>${fmt(pct, 2)}%</td><td>${fmt(yetTo, 2)}</td>`;
+      });
+      return '<tr>' + cells + '</tr>';
+    }
+    const sheet2Body =
+      '<h3>' + esc(titleText) + ' — Division Detail (₹ in Cr)</h3>' +
+      '<table border="1" cellspacing="0" cellpadding="4">' +
+      '<thead>' + groupHeaderRow + subHeaderRow + '</thead>' +
+      '<tbody>' + detailRows.map(detailRowHtml).join('') + '</tbody>' +
       '</table>';
-    const html = `<html><head><meta charset="UTF-8"></head><body>` +
-      `<h3>${esc(titleText)}</h3>${tableHtml}<p><em>${esc(footnoteText)}</em></p></body></html>`;
+
+    const html =
+      '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+      '<head><meta charset="UTF-8"><meta name="ProgId" content="Excel.Sheet">' +
+      '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>' +
+      '<x:ExcelWorksheet><x:Name>Overview</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>' +
+      '<x:ExcelWorksheet><x:Name>Division Detail</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>' +
+      '</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->' +
+      '</head><body>' +
+      '<div id="Overview">' + sheet1Body + '</div>' +
+      '<div id="Division Detail">' + sheet2Body + '</div>' +
+      '</body></html>';
 
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const monthTo = (document.getElementById('month-to') || {}).value || 'export';
