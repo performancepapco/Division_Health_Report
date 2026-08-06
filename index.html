@@ -5910,6 +5910,11 @@ const HM_VERTICALS = [
 ];
 const HM_STATE = { mode: 'pct', sortKey: 'rank', sortDir: 'asc' };
 let HM_LAST_MEMBERS = null;
+// Circle benchmark targets for the ECR columns — ECR is a real ratio
+// (revenue / expenditure), not itself a "% of target" the way the other
+// heatmap columns are, so it needs its own conversion before it can share
+// hmDivergingColor's 0/100/170 scale (100 = "on target").
+const HM_ECR_TARGET = { ecr_with: 50, ecr_without: 65 };
 
 function hmHideSection() {
   const el = document.getElementById('agg-heatmap-section');
@@ -6239,11 +6244,13 @@ function hmBuildRow(r, extents, isCircle) {
     td.className = 'hm-cell';
     td.textContent = fmt(val, 2) + '%';
     if (!isCircle) {
-      const color = hmDivergingColor(val);
+      const target = HM_ECR_TARGET[key];
+      const pctOfTarget = target > 0 ? (val / target * 100) : 0;
+      const color = hmDivergingColor(pctOfTarget);
       td.style.backgroundColor = color.bg;
       td.style.color = color.text;
       const expShown = excludePension ? (r.total_exp - r.pension) : r.total_exp;
-      td.setAttribute('data-tip', `Revenue: ₹${fmt((r.actuals && r.actuals.Total) || 0,2)} Cr<br>Expenditure${excludePension ? ' (excl. pension)' : ''}: ₹${fmt(expShown,2)} Cr<br>ECR: ${fmt(val,2)}%`);
+      td.setAttribute('data-tip', `Revenue: ₹${fmt((r.actuals && r.actuals.Total) || 0,2)} Cr<br>Expenditure${excludePension ? ' (excl. pension)' : ''}: ₹${fmt(expShown,2)} Cr<br>ECR: ${fmt(val,2)}% · Target: ${target}% · ${fmt(pctOfTarget,0)}% of target`);
     }
     tr.appendChild(td);
   });
