@@ -53,3 +53,9 @@ uploads/July_2026/
 # pipeline/common.py:Roster), maintained centrally and rarely, not a monthly
 # branch upload, but it must reach CI.
 !uploads/Hierarchy_data.xlsx
+
+# ...and the office location reference (pincode/lat-long/district/
+# constituency/tribal-area) — same deal as the roster above, see
+# pipeline/common.py:OfficeGeo.
+!uploads/Hierarchy_data_AP_Circle.xlsx
+!uploads/AP Circle Hierarchy data containing lat_long.xlsx

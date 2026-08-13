@@ -19,7 +19,7 @@ import re
 from pathlib import Path
 from collections import defaultdict
 
-from pipeline.common import Roster, short_div, iso_to_label
+from pipeline.common import Roster, OfficeGeo, short_div, iso_to_label
 
 BASE = Path(__file__).parent.parent.parent
 DATA_DIR = BASE / "data"
@@ -204,6 +204,10 @@ def build(cfg: dict, months: list[str] | None = None,
     roster = Roster.offices_in_divisions(cfg, real_divisions)
     print(f"    {len(roster):,} real counter offices (BPO/SPO/HPO) in master roster")
 
+    print("  Loading office location reference (pincode/lat-long/district/constituency)...")
+    office_geo = OfficeGeo.load(cfg)
+    print(f"    {len(office_geo):,} offices with location data")
+
     name_to_oids = defaultdict(list)
     for oid, rec in roster.items():
         name_to_oids[(rec["division"], norm_name(rec["name"]))].append(oid)
@@ -264,9 +268,14 @@ def build(cfg: dict, months: list[str] | None = None,
             tot_postage += v["postage"]; tot_vas += v["vas"]; tot_tax += v["tax"]
             tot_fm += v["fm_charges"]; tot_ps += v["ps_charges"]; tot_ss += v["ss_charges"]
 
+        geo = office_geo.get(oid, {})
         bo_lookup[oid] = {
             "id": oid, "code": code, "name": name, "type": otype,
-            "sub_division": sd, "division": div_s, "region": region, "pincode": None,
+            "sub_division": sd, "division": div_s, "region": region,
+            "pincode": geo.get("pincode"),
+            "district": geo.get("district"), "constituency": geo.get("constituency"),
+            "tribal": geo.get("tribal", False),
+            "lat": geo.get("lat"), "lon": geo.get("lon"),
             "posb": {"opened": opened, "closed": closed, "net": net, "as_of": posb_as_of},
             "posb_schemes": posb_schemes.get(oid, {}),
             "pli": {"policies": pli_v["policies"], "premium": pli_v["premium"]},

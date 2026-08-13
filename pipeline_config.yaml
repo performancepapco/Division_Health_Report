@@ -18,6 +18,15 @@ circle:
   master_roster_sheet: "Worksheet"
   real_office_types: ["BPO", "SPO", "HPO"]
 
+  # Static per-office location reference (pincode/lat/long/district/
+  # constituency/tribal-area) — also NOT a monthly upload, changes rarely.
+  # Split across two files by whoever supplied them; both keyed by
+  # office_id and merged in pipeline/common.py:OfficeGeo.load().
+  office_geo_file: "uploads/Hierarchy_data_AP_Circle.xlsx"
+  office_geo_sheet: "Sheet1"
+  office_district_file: "uploads/AP Circle Hierarchy data containing lat_long.xlsx"
+  office_district_sheet: "Sheet1"
+
 # Anchors reused by both PLI and RPLI (identical sheet shapes).
 _pli_rpli_division_headers: &pli_rpli_division_headers
   header_row: dynamic   # first row where column A == "Sl."

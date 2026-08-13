@@ -126,3 +126,71 @@ class Roster:
         oid -> record dict filtered that way, without touching the cache."""
         roster = cls.load(cfg)
         return {oid: rec for oid, rec in roster.offices.items() if rec["division"] in real_divisions}
+
+
+def _oid_key(v):
+    """office_id shows up as int in some source files and float (11100001.0)
+    in others; normalize both to the same plain-digit string Roster uses."""
+    if v is None:
+        return None
+    return str(int(v)) if isinstance(v, float) else str(v)
+
+
+class OfficeGeo:
+    """Static per-office location reference — pincode, latitude/longitude,
+    district, constituency, tribal-area flag. Split across two source files
+    (see pipeline_config.yaml circle.office_geo_file / office_district_file),
+    both keyed by office_id, merged here since neither file alone has every
+    field. Cached per-process like Roster, since this is roster-like
+    reference data, not monthly activity."""
+
+    _cache = None
+
+    @classmethod
+    def load(cls, cfg: dict) -> dict:
+        if cls._cache is not None:
+            return cls._cache
+        circle = cfg["circle"]
+        geo: dict[str, dict] = {}
+
+        def _blank():
+            return {"pincode": None, "lat": None, "lon": None,
+                     "district": None, "constituency": None, "tribal": False}
+
+        geo_path = BASE / circle["office_geo_file"]
+        if geo_path.exists():
+            wb = openpyxl.load_workbook(geo_path, data_only=True, read_only=True)
+            ws = wb[circle["office_geo_sheet"]]
+            rows = ws.iter_rows(values_only=True)
+            idx = {h: i for i, h in enumerate(next(rows))}
+            for r in rows:
+                oid = _oid_key(r[idx["office_id"]])
+                if not oid:
+                    continue
+                rec = geo.setdefault(oid, _blank())
+                pincode = r[idx["pincode"]]
+                rec["pincode"] = int(pincode) if isinstance(pincode, float) else pincode
+                rec["lat"] = r[idx["latitude"]]
+                rec["lon"] = r[idx["longitude"]]
+
+        dist_path = BASE / circle["office_district_file"]
+        if dist_path.exists():
+            wb = openpyxl.load_workbook(dist_path, data_only=True, read_only=True)
+            ws = wb[circle["office_district_sheet"]]
+            rows = ws.iter_rows(values_only=True)
+            idx = {h: i for i, h in enumerate(next(rows))}
+            for r in rows:
+                oid = _oid_key(r[idx["office_id"]])
+                if not oid:
+                    continue
+                rec = geo.setdefault(oid, _blank())
+                rec["district"] = r[idx["District Name"]]
+                rec["constituency"] = r[idx["Lok Sabha/Parliamentary/Constituency Name"]]
+                tribal = r[idx["Tribal area or not (YES/NO)"]]
+                rec["tribal"] = bool(tribal) and str(tribal).strip().upper() == "YES"
+                if rec["pincode"] is None:
+                    pincode = r[idx["pincode"]]
+                    rec["pincode"] = int(pincode) if isinstance(pincode, float) else pincode
+
+        cls._cache = geo
+        return cls._cache

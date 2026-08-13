@@ -3151,6 +3151,20 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
   display: flex; gap: 18px; flex-wrap: wrap;
 }
 .bolu-office-meta .item strong { color: var(--ink-soft); }
+.bolu-tribal-badge {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 2px; margin-left: 8px; vertical-align: middle;
+  background: var(--amber-pale); color: var(--amber); border: 1px solid oklch(0.55 0.12 75 / 0.4);
+}
+.bolu-map-btn {
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.03em; text-decoration: none;
+  padding: 3px 10px; border-radius: 3px;
+  color: var(--accent-deep); border: 1px solid var(--accent); background: var(--accent-pale);
+  transition: background 0.14s, color 0.14s;
+}
+.bolu-map-btn:hover { background: var(--accent); color: var(--paper); }
 
 .bolu-subtabs {
   display: flex; gap: 0; padding: 0 18px;
@@ -5253,6 +5267,11 @@ function recomputeRanks() {
     var periodLabel = (typeof getPeriodLabel === 'function') ? getPeriodLabel()
       : (fromLabel === toLabel ? fromLabel : fromLabel + '–' + toLabel);
 
+    var tribalBadge = r.tribal ? '<span class="bolu-tribal-badge">Tribal Area</span>' : '';
+    var mapBtn = (r.lat && r.lon)
+      ? '<a class="bolu-map-btn" href="https://www.google.com/maps?q=' + r.lat + ',' + r.lon + '" target="_blank" rel="noopener">📍 View on Map</a>'
+      : '';
+
     var head =
       '<div class="bolu-card-head">'
       + '<div class="bolu-breadcrumb">'
@@ -5260,12 +5279,15 @@ function recomputeRanks() {
         + (r.division || "—") + ' Division<span class="sep">›</span>'
         + (r.sub_division || "—")
       + '</div>'
-      + '<div class="bolu-office-name">' + r.name + '</div>'
+      + '<div class="bolu-office-name">' + r.name + tribalBadge + '</div>'
       + '<div class="bolu-office-meta">'
         + '<div class="item"><strong>Office ID:</strong> ' + r.id + '</div>'
         + '<div class="item"><strong>BO Code:</strong> ' + (r.code||"—") + '</div>'
         + '<div class="item"><strong>Type:</strong> ' + (r.type||"—") + '</div>'
         + (r.pincode ? '<div class="item"><strong>Pincode:</strong> ' + r.pincode + '</div>' : '')
+        + (r.district ? '<div class="item"><strong>District:</strong> ' + r.district + '</div>' : '')
+        + (r.constituency ? '<div class="item"><strong>Constituency:</strong> ' + r.constituency + '</div>' : '')
+        + (mapBtn ? '<div class="item">' + mapBtn + '</div>' : '')
       + '</div>'
       + '</div>';
 
