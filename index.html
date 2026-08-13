@@ -3523,27 +3523,6 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 </style>
 </head>
 <body>
-<!-- ===== DATA UPDATE NOTICE ===== -->
-<div id="maintenance-modal" class="modal-overlay" onclick="if(event.target===this)closeMaintenanceModal()">
-  <div class="modal-box">
-    <h3>✓ Data Updated</h3>
-    <p style="font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:18px;">
-      Data pertaining to July 2026 has been updated in the dashboard, across all
-      panels — POSB, PLI/RPLI, Booking, ECR/Revenue, and Office Lookup Silent Accounts.
-    </p>
-    <div class="modal-actions">
-      <button class="btn-primary" onclick="closeMaintenanceModal()">Continue to Dashboard</button>
-    </div>
-  </div>
-</div>
-<script>
-function closeMaintenanceModal() {
-  var m = document.getElementById('maintenance-modal');
-  if (m) m.style.display = 'none';
-}
-</script>
-<!-- ===== END DATA UPDATE NOTICE ===== -->
-
 <div class="frame">
 
 <header class="masthead">
