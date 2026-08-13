@@ -357,6 +357,15 @@ body {
   background: var(--accent);
   color: var(--paper);
 }
+.tab.tab-highlight {
+  background: var(--accent);
+  color: var(--ink-strong);
+  opacity: 1;
+  font-weight: 700;
+  border-radius: 4px 4px 0 0;
+}
+.tab.tab-highlight:hover { background: var(--accent-deep); color: var(--paper); }
+.tab.tab-highlight.active { background: var(--accent-deep); color: var(--paper); border-bottom-color: var(--paper); }
 
 /* ============ TAB CONTENT ============ */
 .tab-content { display: none; }
@@ -3655,7 +3664,7 @@ function closeMaintenanceModal() {
   <a class="tab" href="#cost-ecr">Cost &amp; ECR</a>
   <a class="tab" href="#booking">Booking <span class="count" id="booking-count"></span></a>
   <a class="tab" href="#drilldown">Sub-Division Drilldown</a>
-  <a class="tab" href="#bo-lookup">Office Lookup</a>
+  <a class="tab tab-highlight" href="#bo-lookup">🔍 Office Lookup</a>
   <a class="tab" href="#my-division">My Division</a>
   <a class="tab" href="#circle-tools">Circle Tools</a>
 </div>
