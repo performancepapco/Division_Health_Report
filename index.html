@@ -6606,11 +6606,18 @@ function hmExportPng() {
     const canvasW = totalWidth + pad * 2;
     const canvasH = titleH + tableHeight + pad * 2 + footnoteLines.length * footnoteLineH + 10;
 
+    // The live table is deliberately dense (small text keeps every column
+    // visible on screen), but a downloaded PNG gets shared, printed, or
+    // read on a phone by people who aren't sitting at that screen — so
+    // enlarge everything relative to the live table rather than exporting
+    // it 1:1. Canvas transforms scale font size along with position/size,
+    // so bumping this one factor is enough; no per-cell font math needed.
+    const enlarge = 1.4;
     const canvas = document.createElement('canvas');
-    canvas.width = canvasW * scale;
-    canvas.height = canvasH * scale;
+    canvas.width = canvasW * enlarge * scale;
+    canvas.height = canvasH * enlarge * scale;
     const ctx = canvas.getContext('2d');
-    ctx.scale(scale, scale);
+    ctx.scale(enlarge * scale, enlarge * scale);
     ctx.fillStyle = '#f8f5ef';
     ctx.fillRect(0, 0, canvasW, canvasH);
 
