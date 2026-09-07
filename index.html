@@ -4571,6 +4571,50 @@ Object.entries(PLI_RPLI_PATCH).forEach(([div, v]) => {
   if (_apr[div].rpli) _apr[div].rpli.tbp_ach = v.rpli;
 });
 
+// ============ CIRCLE / REGION OFFICE RESIDUALS ============
+// These are revenue heads booked at HO / RO / PSD level that are not attributable to any one
+// division. They roll up into Circle and (where region-tagged) into their Region — but they
+// are hidden from the dropdown and the division-ranking chart.
+// Must run before the May-26 snapshot below clones DATA_BY_MONTH['Apr-26'] — every later
+// month (May onward) is built by cloning forward from the previous month in MONTH_ORDER
+// (see applyEcrMonth()), so these entries need to exist on Apr-26 first or every subsequent
+// month permanently misses them (silently undercounting circle-wide vertical totals — caught
+// August 2026 via a discrepancy between the ECR source file's Mail Operations figure and the
+// Vertical Wise Analysis page's circle total).
+const OFFICE_ENTRIES = {
+  "AP GM (Finance)":      {region: "Circle",        CCS: 0.000147,  PLIRPLI: 1.747254596, MO: 0,        total_exp: 5.9809157, pension: 3.32298},
+  "Andhra Pradesh Circle":{region: "Circle",        CCS: 0.002313,  PLIRPLI: 0.089745952, MO: 0,        total_exp: 2.2016514, pension: 0.4281441},
+  "Kurnool Region":       {region: "Kurnool",       CCS: 0.0002452, PLIRPLI: 0.037334152, MO: 0,        total_exp: 0.5111864, pension: 0.0256281},
+  "PSD Vijayawada":       {region: "Vijayawada",    CCS: 0.0103468, PLIRPLI: 0.000562656, MO: 0.009751, total_exp: 0.6908451, pension: 0.0278204},
+  "Vijayawada Region":    {region: "Vijayawada",    CCS: 0.0001468, PLIRPLI: 0.07697302,  MO: 0,        total_exp: 1.043364,  pension: 0.059239},
+  "Visakhapatnam Region": {region: "Visakhapatnam", CCS: 0.0008945, PLIRPLI: 0.053272036, MO: 0,        total_exp: 0.7929395, pension: 0.0422202},
+};
+Object.entries(OFFICE_ENTRIES).forEach(([name, e]) => {
+  const total = e.POSB || 0;
+  const Parcel = e.Parcel || 0;
+  const MO = e.MO || 0;
+  const IRGB = e.IRGB || 0;
+  const CCS = e.CCS || 0;
+  const POSB = e.POSB || 0;
+  const PLIRPLI = e.PLIRPLI || 0;
+  DATA_BY_MONTH['Apr-26'][name] = {
+    isOffice: true,
+    region: e.region,
+    targets:  {Parcel:0,'Mail Operations':0,'IR & GB':0,CCS:0,POSB:0,'PLI/RPLI':0,Total:0},
+    actuals:  {Parcel,'Mail Operations':MO,'IR & GB':IRGB,CCS,POSB,'PLI/RPLI':PLIRPLI,Total:Parcel+MO+IRGB+CCS+POSB+PLIRPLI},
+    pro_rata: {Parcel:0,'Mail Operations':0,'IR & GB':0,CCS:0,POSB:0,'PLI/RPLI':0,Total:0},
+    attainments: {Parcel:0,'Mail Operations':0,'IR & GB':0,CCS:0,POSB:0,'PLI/RPLI':0},
+    composite_score: 0,
+    total_exp: e.total_exp || 0,
+    ecr_with_pension: 0,
+    ecr_without_pension: 0,
+    swap: {Salaries:0,Wages:0,Pension:e.pension||0,Allowances:0,Plan:0,Other:0,Total:e.total_exp||0},
+    booking: {total_business_cr:0,total_articles:0,active_offices:0,total_offices_in_hier:0,inactive_offices:0,wi_share:0,bnpl_share:0,wi_arts:0,bnpl_arts:0,products:[],top_offices:[]},
+    pli: null, rpli: null, posb_hist: null, posb_tgt: null,
+    mmu: {ebo:null,obo:null},
+  };
+});
+
 // ─── May-26 snapshot ───
 DATA_BY_MONTH['May-26'] = JSON.parse(JSON.stringify(DATA_BY_MONTH['Apr-26']));
 (function(){
@@ -4632,45 +4676,8 @@ function applyAllEcrMonths(ecrByMonth) {
 }
 // === END ECR month patcher ===
 
-
-
-// ============ CIRCLE / REGION OFFICE RESIDUALS ============
-// These are revenue heads booked at HO / RO / PSD level that are not attributable to any one
-// division. They roll up into Circle and (where region-tagged) into their Region — but they
-// are hidden from the dropdown and the division-ranking chart.
-const OFFICE_ENTRIES = {
-  "AP GM (Finance)":      {region: "Circle",        CCS: 0.000147,  PLIRPLI: 1.747254596, MO: 0,        total_exp: 5.9809157, pension: 3.32298},
-  "Andhra Pradesh Circle":{region: "Circle",        CCS: 0.002313,  PLIRPLI: 0.089745952, MO: 0,        total_exp: 2.2016514, pension: 0.4281441},
-  "Kurnool Region":       {region: "Kurnool",       CCS: 0.0002452, PLIRPLI: 0.037334152, MO: 0,        total_exp: 0.5111864, pension: 0.0256281},
-  "PSD Vijayawada":       {region: "Vijayawada",    CCS: 0.0103468, PLIRPLI: 0.000562656, MO: 0.009751, total_exp: 0.6908451, pension: 0.0278204},
-  "Vijayawada Region":    {region: "Vijayawada",    CCS: 0.0001468, PLIRPLI: 0.07697302,  MO: 0,        total_exp: 1.043364,  pension: 0.059239},
-  "Visakhapatnam Region": {region: "Visakhapatnam", CCS: 0.0008945, PLIRPLI: 0.053272036, MO: 0,        total_exp: 0.7929395, pension: 0.0422202},
-};
-Object.entries(OFFICE_ENTRIES).forEach(([name, e]) => {
-  const total = e.POSB || 0;
-  const Parcel = e.Parcel || 0;
-  const MO = e.MO || 0;
-  const IRGB = e.IRGB || 0;
-  const CCS = e.CCS || 0;
-  const POSB = e.POSB || 0;
-  const PLIRPLI = e.PLIRPLI || 0;
-  DATA_BY_MONTH['Apr-26'][name] = {
-    isOffice: true,
-    region: e.region,
-    targets:  {Parcel:0,'Mail Operations':0,'IR & GB':0,CCS:0,POSB:0,'PLI/RPLI':0,Total:0},
-    actuals:  {Parcel,'Mail Operations':MO,'IR & GB':IRGB,CCS,POSB,'PLI/RPLI':PLIRPLI,Total:Parcel+MO+IRGB+CCS+POSB+PLIRPLI},
-    pro_rata: {Parcel:0,'Mail Operations':0,'IR & GB':0,CCS:0,POSB:0,'PLI/RPLI':0,Total:0},
-    attainments: {Parcel:0,'Mail Operations':0,'IR & GB':0,CCS:0,POSB:0,'PLI/RPLI':0},
-    composite_score: 0,
-    total_exp: e.total_exp || 0,
-    ecr_with_pension: 0,
-    ecr_without_pension: 0,
-    swap: {Salaries:0,Wages:0,Pension:e.pension||0,Allowances:0,Plan:0,Other:0,Total:e.total_exp||0},
-    booking: {total_business_cr:0,total_articles:0,active_offices:0,total_offices_in_hier:0,inactive_offices:0,wi_share:0,bnpl_share:0,wi_arts:0,bnpl_arts:0,products:[],top_offices:[]},
-    pli: null, rpli: null, posb_hist: null, posb_tgt: null,
-    mmu: {ebo:null,obo:null},
-  };
-});
+// (CIRCLE / REGION OFFICE RESIDUALS block moved above the May-26 snapshot —
+// see the comment there — so every month inherits it via the clone chain.)
 
 function fmt(v, decimals=2) {
   if (v === null || v === undefined || isNaN(v)) return "—";

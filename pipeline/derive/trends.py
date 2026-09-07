@@ -134,6 +134,22 @@ def build(cfg: dict, months: list[str]) -> dict:
             "name": div_name, "region": region_abbr, "verticals": verticals_out,
         }
 
+    # HO/RO/PSD revenue residuals (circle_full_extra_rows in pipeline_config.yaml)
+    # aren't real divisions — no FY target exists for them (absent from
+    # targets.json by design) and they're excluded from divisions_out so they
+    # never appear in the per-division breakdown. But their achievement IS
+    # part of the circle's true total (CIRCLE_FULL includes them — see that
+    # key's comment in pipeline_config.yaml), so it must be added to the
+    # circle-wide sum here too, or this circle total silently disagrees with
+    # CIRCLE_FULL's (caught August 2026 via a Mail Operations mismatch
+    # between the ECR source file and the Vertical Wise Analysis page).
+    for extra_name in cfg["sections"]["ecr"].get("circle_full_extra_rows", []):
+        for disp_key, vkey in VERTICAL_KEYS.items():
+            for month in months:
+                achievement = (ecr_by_month[month].get(extra_name, {})
+                               .get("actuals", {}).get(disp_key, 0)) or 0
+                circle_monthly_sums[vkey][month]["ach"] += achievement
+
     circle_out = {}
     for vkey, per_month in circle_monthly_sums.items():
         monthly = []
