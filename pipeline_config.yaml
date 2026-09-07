@@ -130,26 +130,29 @@ sections:
           # PLI/RPLI Rev." by the source file itself (not summed separately
           # by the pipeline), which is why it isn't read into `actuals` on
           # its own; every column from here on shifted right by one to make
-          # room for it.
+          # room for it. The RPLI equivalent ("RPLI Revenue collected") was
+          # added August 2026 immediately before this column, shifting
+          # everything below by one more.
           - name: "PLI Online Apportionment"
-            column: 24
-          - name: "Total PLI/RPLI Rev."
             column: 25
-          - name: "Parcel"
+            alternates: ["PLI Online apportionment"]
+          - name: "Total PLI/RPLI Rev."
             column: 26
-          - name: "MO"
+          - name: "Parcel"
             column: 27
-          - name: "IRGB"
+          - name: "MO"
             column: 28
-          - name: "CCS"
+          - name: "IRGB"
             column: 29
+          - name: "CCS"
+            column: 30
           - name: "Total revenue"
-            column: 32
+            column: 33
           - name: "Exp. For ECR calculation"
-            column: 35
+            column: 36
           # Header cell literally contains the GL code, not text.
           - name: "320107"
-            column: 37
+            column: 38
             match: numeric
       SWAP:
         header_row: 1
@@ -162,7 +165,7 @@ sections:
           - name: "Total expenditure"
           # Source system has spelled this two different ways across months.
           - name: "Others"
-            alternates: ["Others than swap"]
+            alternates: ["Others than swap", "Others than SWAP"]
 
   posb:
     label: "POSB — Accounts Opened/Closed"
