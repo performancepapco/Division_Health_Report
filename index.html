@@ -9235,18 +9235,25 @@ function sdToggleMore(btn) {
 // globals that used to be baked into this file as literals. Gates the
 // first render until the fetch resolves — nothing above this point in the
 // script relies on these globals being populated synchronously anymore.
+// data/bo_lookup_latest.json is the current BO_LOOKUP/BO_SEARCH snapshot
+// split into its own file (assemble.py's write_latest()) purely to keep
+// latest.json under Cloudflare Pages' 25MiB-per-file deploy limit — fetched
+// in parallel here so this split doesn't change load timing or ordering.
 async function loadDashboardData() {
-  var url = 'data/latest.json?v=' + Date.now();
-  var resp = await fetch(url);
-  if (!resp.ok) throw new Error('Failed to load data/latest.json: HTTP ' + resp.status);
-  var data = await resp.json();
+  var v = Date.now();
+  var fetched = await Promise.all([
+    fetch('data/latest.json?v=' + v).then(function(r) { if (!r.ok) throw new Error('Failed to load data/latest.json: HTTP ' + r.status); return r.json(); }),
+    fetch('data/bo_lookup_latest.json?v=' + v).then(function(r) { if (!r.ok) throw new Error('Failed to load data/bo_lookup_latest.json: HTTP ' + r.status); return r.json(); }),
+  ]);
+  var data = fetched[0];
+  var boLookupData = fetched[1];
 
   POSB_BY_MONTH          = data.POSB_BY_MONTH || {};
   PLI_POLICIES           = data.PLI_POLICIES || {};
   RPLI_POLICIES          = data.RPLI_POLICIES || {};
   BOOKING_BY_MONTH       = data.BOOKING_BY_MONTH || {};
-  BO_LOOKUP              = data.BO_LOOKUP || {};
-  BO_SEARCH              = data.BO_SEARCH || [];
+  BO_LOOKUP              = boLookupData.BO_LOOKUP || {};
+  BO_SEARCH              = boLookupData.BO_SEARCH || [];
   SUBDIV_DATA            = data.SUBDIV_DATA || {};
   OFFICE_STATUS_BY_MONTH = data.OFFICE_STATUS_BY_MONTH || {};
   SUBDIV_BOOKING         = data.SUBDIV_BOOKING || {};

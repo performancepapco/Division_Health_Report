@@ -158,6 +158,25 @@ def write_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
+def write_latest(result: dict) -> None:
+    """Splits BO_LOOKUP/BO_SEARCH (the current cumulative snapshot, ~14MB
+    and growing every month as the roster/history grows) out of latest.json
+    into their own file, data/bo_lookup_latest.json. latest.json is on the
+    must-load-before-first-paint critical path and Cloudflare Pages rejects
+    any deployed file over 25MiB — keeping the snapshot inline was fine
+    while it was small, but FY2026-27 growth pushed latest.json itself past
+    the limit (first hit trying to promote August 2026 to production).
+    index.html's loader fetches both files in parallel (see Phase 2), so
+    this only splits the file — it doesn't change load timing or make
+    BO_LOOKUP lazy. Does not mutate `result`, so callers that still expect
+    result["BO_LOOKUP"] in memory (e.g. ci_build_sections.py's headline
+    summary) keep working."""
+    snapshot = {"BO_LOOKUP": result.get("BO_LOOKUP", {}), "BO_SEARCH": result.get("BO_SEARCH", [])}
+    trimmed = {k: v for k, v in result.items() if k not in ("BO_LOOKUP", "BO_SEARCH")}
+    write_json(DATA_DIR / "latest.json", trimmed)
+    write_json(DATA_DIR / "bo_lookup_latest.json", snapshot)
+
+
 def write_bo_lookup_by_month(bo_lookup_by_month: dict) -> None:
     """One file per month, NOT a single combined file — each month's slice
     is ~11MB, and Cloudflare Pages rejects any individual deployed file over
@@ -180,9 +199,11 @@ def build_trends_and_flags(cfg: dict, months: list[str]) -> tuple[dict, dict]:
 def main():
     result, bo_lookup_by_month = assemble()
     DATA_DIR.mkdir(exist_ok=True)
-    out_path = DATA_DIR / "latest.json"
-    write_json(out_path, result)
-    print(f"\nWrote {out_path} ({out_path.stat().st_size:,} bytes)")
+    write_latest(result)
+    latest_path = DATA_DIR / "latest.json"
+    snapshot_path = DATA_DIR / "bo_lookup_latest.json"
+    print(f"\nWrote {latest_path} ({latest_path.stat().st_size:,} bytes)")
+    print(f"Wrote {snapshot_path} ({snapshot_path.stat().st_size:,} bytes)")
 
     print("BO_LOOKUP per-month files (kept under Cloudflare Pages' 25MiB/file limit)...")
     write_bo_lookup_by_month(bo_lookup_by_month)

@@ -170,8 +170,10 @@ def main():
         print("Running assemble.py...")
         result, bo_lookup_by_month = assemble_mod.assemble()
         DATA_DIR.mkdir(exist_ok=True)
-        assemble_mod.write_json(latest_path, result)
+        assemble_mod.write_latest(result)
+        snapshot_path = DATA_DIR / "bo_lookup_latest.json"
         print(f"  Wrote {latest_path} ({latest_path.stat().st_size:,} bytes)")
+        print(f"  Wrote {snapshot_path} ({snapshot_path.stat().st_size:,} bytes)")
 
         assemble_mod.write_bo_lookup_by_month(bo_lookup_by_month)
 
