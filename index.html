@@ -3601,6 +3601,47 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 </style>
 </head>
 <body>
+<!-- ===== DATA UPDATE NOTICE ===== -->
+<!-- Shown once per new month's data refresh, gated by localStorage (bump
+     UPDATE_VALUE below whenever a new month goes live) — NOT unconditionally
+     on every load. An earlier version of this fired every time for every
+     visitor with no dismiss-once gating and was removed (see git history);
+     don't repeat that. -->
+<div id="update-notice-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="update-notice-title" onclick="if(event.target===this)closeUpdateNotice()">
+  <div class="modal-box">
+    <h3 id="update-notice-title">✓ Dashboard Updated</h3>
+    <p style="font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:18px;">
+      August 2026 data is available now — POSB, PLI/RPLI, Booking, ECR/Revenue, and
+      BO Lookup Silent Accounts have all been refreshed with this month's figures
+      across every panel.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="closeUpdateNotice()">View Dashboard</button>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var UPDATE_KEY = 'update_notice_seen';
+  var UPDATE_VALUE = '2026-08';
+  window.closeUpdateNotice = function() {
+    var m = document.getElementById('update-notice-modal');
+    if (m) m.style.display = 'none';
+    try { localStorage.setItem(UPDATE_KEY, UPDATE_VALUE); } catch (e) {}
+  };
+  try {
+    if (localStorage.getItem(UPDATE_KEY) === UPDATE_VALUE) return;
+  } catch (e) {
+    return; // localStorage unavailable — don't risk showing on every load
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    var m = document.getElementById('update-notice-modal');
+    if (m) m.style.display = 'flex';
+  });
+})();
+</script>
+<!-- ===== END DATA UPDATE NOTICE ===== -->
+
 <div class="frame">
 
 <header class="masthead">
@@ -3702,13 +3743,13 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
   <div class="whats-new-track">
     <div class="whats-new-copies">
       <div class="whats-new-copy">
-        <a class="whats-new-item" href="#overview">Data updated upto <strong>31.07.2026</strong> — July 2026 figures are now live across all panels</a>
+        <a class="whats-new-item" href="#overview">Data updated upto <strong>31.08.2026</strong> — August 2026 figures are now live across all panels</a>
         <a class="whats-new-item" href="#circle-tools">New — <strong>Circle Tools</strong> tab added: quick links to the Bulk Parcel Monitoring dashboard &amp; the Delivery Performance Dashboard (MMU)</a>
         <a class="whats-new-item" href="#circle-tools">Real time dashboard is now live &mdash; find it under <strong>Circle Tools</strong></a>
         <!-- To add another announcement: add one more <a class="whats-new-item"> here... -->
       </div>
       <div class="whats-new-copy" aria-hidden="true">
-        <a class="whats-new-item" href="#overview" tabindex="-1">Data updated upto <strong>31.07.2026</strong> — July 2026 figures are now live across all panels</a>
+        <a class="whats-new-item" href="#overview" tabindex="-1">Data updated upto <strong>31.08.2026</strong> — August 2026 figures are now live across all panels</a>
         <a class="whats-new-item" href="#circle-tools" tabindex="-1">New — <strong>Circle Tools</strong> tab added: quick links to the Bulk Parcel Monitoring dashboard &amp; the Delivery Performance Dashboard (MMU)</a>
         <a class="whats-new-item" href="#circle-tools" tabindex="-1">Real time dashboard is now live &mdash; find it under <strong>Circle Tools</strong></a>
         <!-- ...and an identical one here (the duplicate keeps the scroll seamless). -->
