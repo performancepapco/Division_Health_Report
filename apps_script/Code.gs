@@ -56,7 +56,7 @@ var SECTION_CANONICAL_FILENAME = {
   pli: 'PLI.xlsx',
   rpli: 'RPLI.xlsx',
   booking_productwise: 'Booking_Productwise.csv',
-  booking_booktypewise: 'Booking_BookTypewise.csv',
+  booking_booktypewise: 'Booking_BookTypewise_Datewise.csv',
   posb_silent: 'BO_Lookup_Upload.xlsx',
 };
 

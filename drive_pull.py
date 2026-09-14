@@ -16,9 +16,9 @@ even if some/all sections are missing. It only exits non-zero if it
 genuinely can't reach Drive (bad credentials, DHCUploads not shared).
 
 Booking needs special handling downstream: this script downloads
-Booking_Productwise.csv and Booking_BookTypewise.csv as two independent
-sections (booking_productwise / booking_booktypewise), matching how the
-Form/Apps Script treats them — build_dataset.py's `--section booking` path
+Booking_Productwise.csv and Booking_BookTypewise_Datewise.csv as two
+independent sections (booking_productwise / booking_booktypewise), matching
+how the Form/Apps Script treats them — build_dataset.py's `--section booking` path
 then takes both resulting file paths together.
 """
 import argparse
