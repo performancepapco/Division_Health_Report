@@ -7,12 +7,21 @@ stored data/dataset_<YYYY-MM>.json files instead of re-parsing raw
 uploads, so it only ever depends on Phase 1's already-validated output —
 never on raw files still being present on disk.
 
-POSB and PLI/RPLI use different office-ID schemes with no shared key, so —
-matching the legacy approach — PLI/RPLI records are joined to the master
-roster by (division, normalized office name) instead of ID, splitting
+POSB and PLI/RPLI use different office-ID schemes. They do share one key,
+though: the PLI/RPLI detail sheets' "Office Code" is the master data's
+`pli_id`, which circle.office_geo_file carries per office_id. So insurance is
+attributed by ID wherever that ID resolves to exactly one roster office
+(~99.5% of rows), which is the only way a single office's real premium can be
+shown on its own BO Lookup card.
+
+Where it can't — a `pli_id` shared by several offices, a placeholder 0/blank,
+or a feed code absent from the geo export — the legacy behaviour is the
+fallback: join by (division, normalized office name) and split
 policies/premium evenly (largest-remainder for the integer policy count)
-across same-named offices in the rare case of a collision, so totals still
-reconcile exactly.
+across same-named offices. That keeps division and circle totals reconciling
+exactly, at the cost of a per-office figure that is an average rather than the
+office's own. pli_id_overrides.json corrects individual offices whose
+master-data pli_id is wrong; see _load_pli_id_overrides below.
 """
 import json
 import re
@@ -89,34 +98,104 @@ def _build_posb_cumulative(months: list[str]):
     return cum_offices, cum_schemes, real_divisions
 
 
+def _load_pli_id_overrides() -> dict:
+    """office_id -> corrected pli_id, from pli_id_overrides.json at the repo
+    root (optional — an absent file just means no corrections). Only the
+    "applied" block is honoured; "pending_upstream" records corrections whose
+    ID doesn't exist in any feed yet, so applying them would attribute
+    nothing. An override wins over the geo file's own pli_id."""
+    p = BASE / "pli_id_overrides.json"
+    if not p.exists():
+        return {}
+    blob = json.loads(p.read_text(encoding="utf-8"))
+    return {str(k).strip(): str(v).strip()
+            for k, v in (blob.get("applied") or {}).items() if v}
+
+
+def _build_code_to_oid(roster: dict, office_geo: dict, overrides: dict):
+    """pli_id -> office_id, but only where the ID identifies exactly ONE
+    office in this roster. An ID claimed by several offices is deliberately
+    left out rather than resolved arbitrarily — those fall through to the
+    name-based split, which at least keeps totals right. Returns
+    (code_to_oid, shared_ids, offices_without_id)."""
+    by_code = defaultdict(list)
+    without = 0
+    for oid in roster:
+        code = overrides.get(oid) or (office_geo.get(oid) or {}).get("pli_id")
+        if code:
+            by_code[str(code).strip()].append(oid)
+        else:
+            without += 1
+    code_to_oid = {c: oids[0] for c, oids in by_code.items() if len(oids) == 1}
+    shared = {c: oids for c, oids in by_code.items() if len(oids) > 1}
+    return code_to_oid, shared, without
+
+
 def _build_ins_cumulative(months: list[str], section_name: str):
-    cum = defaultdict(lambda: {"policies": 0, "premium": 0.0})
+    by_code = defaultdict(lambda: {"policies": 0, "premium": 0.0,
+                                   "division": None, "name": None})
+    by_name = defaultdict(lambda: {"policies": 0, "premium": 0.0})
     for month in months:
         section = _load_section(month, section_name)
         if not section:
             continue
         for r in section.get("offices", []):
-            key = (r["division"], norm_name(r["name"]))
-            cum[key]["policies"] += r["policies"]
-            cum[key]["premium"] += r["premium"]
-    return cum
+            code = str(r.get("code") or "").strip()
+            if code:
+                # Accumulated per feed code, NOT per name: two same-named
+                # offices in one division have distinct codes, and merging
+                # them here is what used to force an even split.
+                acc = by_code[code]
+                acc["division"], acc["name"] = r["division"], r["name"]
+            else:
+                acc = by_name[(r["division"], norm_name(r["name"]))]
+            acc["policies"] += r["policies"]
+            acc["premium"] += r["premium"]
+    return by_code, by_name
 
 
-def _distribute_ins_to_offices(cum: dict, name_to_oids: dict):
+def _distribute_ins_to_offices(by_code: dict, by_name: dict,
+                               name_to_oids: dict, code_to_oid: dict):
+    """Attribute insurance to offices by pli_id first, falling back to the
+    even name-split for anything that can't be resolved by ID. Returns
+    (per_office, unmatched, stats) — `unmatched` keeps its legacy
+    (division, normalized name) key shape, since callers roll those into
+    "(Unmapped)" sub-divisions."""
     per_office = defaultdict(lambda: {"policies": 0, "premium": 0.0})
     unmatched = []
-    for key, v in cum.items():
+    fallback = defaultdict(lambda: {"policies": 0, "premium": 0.0})
+    stats = {"by_id": 0, "by_name": 0, "id_unresolved": 0}
+
+    for code, v in by_code.items():
+        oid = code_to_oid.get(code)
+        if oid:
+            per_office[oid]["policies"] += v["policies"]
+            per_office[oid]["premium"] += v["premium"]
+            stats["by_id"] += 1
+        else:
+            stats["id_unresolved"] += 1
+            acc = fallback[(v["division"], norm_name(v["name"]))]
+            acc["policies"] += v["policies"]
+            acc["premium"] += v["premium"]
+
+    for key, v in by_name.items():
+        acc = fallback[key]
+        acc["policies"] += v["policies"]
+        acc["premium"] += v["premium"]
+
+    for key, v in fallback.items():
         oids = name_to_oids.get(key, [])
         if not oids:
             if v["policies"] or v["premium"]:
                 unmatched.append((key, v))
             continue
+        stats["by_name"] += len(oids)
         n = len(oids)
         base_pol, rem = divmod(v["policies"], n)
         for i, oid in enumerate(oids):
             per_office[oid]["policies"] += base_pol + (1 if i < rem else 0)
             per_office[oid]["premium"] += v["premium"] / n
-    return per_office, unmatched
+    return per_office, unmatched, stats
 
 
 def _load_posb_silent_snapshot(months: list[str]) -> dict:
@@ -212,12 +291,29 @@ def build(cfg: dict, months: list[str] | None = None,
     for oid, rec in roster.items():
         name_to_oids[(rec["division"], norm_name(rec["name"]))].append(oid)
 
+    overrides = _load_pli_id_overrides()
+    code_to_oid, shared_ids, no_id = _build_code_to_oid(roster, office_geo, overrides)
+    bits = [f"{len(code_to_oid):,} pli_id -> office_id mappings"]
+    if overrides:
+        bits.append(f"{len(overrides)} corrected via pli_id_overrides.json")
+    if shared_ids:
+        bits.append(f"{len(shared_ids)} pli_id(s) claimed by >1 office")
+    if no_id:
+        bits.append(f"{no_id} office(s) with no pli_id")
+    print("    " + "; ".join(bits))
+
     print("  Building PLI cumulative...")
-    pli_cum = _build_ins_cumulative(activity_months, "pli")
-    pli_by_office, pli_unmatched = _distribute_ins_to_offices(pli_cum, name_to_oids)
+    pli_code, pli_name = _build_ins_cumulative(activity_months, "pli")
+    pli_by_office, pli_unmatched, pli_stats = _distribute_ins_to_offices(
+        pli_code, pli_name, name_to_oids, code_to_oid)
     print("  Building RPLI cumulative...")
-    rpli_cum = _build_ins_cumulative(activity_months, "rpli")
-    rpli_by_office, rpli_unmatched = _distribute_ins_to_offices(rpli_cum, name_to_oids)
+    rpli_code, rpli_name = _build_ins_cumulative(activity_months, "rpli")
+    rpli_by_office, rpli_unmatched, rpli_stats = _distribute_ins_to_offices(
+        rpli_code, rpli_name, name_to_oids, code_to_oid)
+    for label, st in (("PLI", pli_stats), ("RPLI", rpli_stats)):
+        print(f"    {label}: {st['by_id']:,} attributed by pli_id, "
+              f"{st['by_name']:,} by name-split "
+              f"({st['id_unresolved']} feed code(s) unresolved)")
     if pli_unmatched or rpli_unmatched:
         print(f"    NOTE: {len(pli_unmatched)} PLI / {len(rpli_unmatched)} RPLI office names have no "
               f"match in the master roster at all (added as (Unmapped) entries)")

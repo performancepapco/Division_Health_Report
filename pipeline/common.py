@@ -155,7 +155,8 @@ class OfficeGeo:
 
         def _blank():
             return {"pincode": None, "lat": None, "lon": None,
-                     "district": None, "constituency": None, "tribal": False}
+                     "district": None, "constituency": None, "tribal": False,
+                     "pli_id": None}
 
         geo_path = BASE / circle["office_geo_file"]
         if geo_path.exists():
@@ -172,6 +173,16 @@ class OfficeGeo:
                 rec["pincode"] = int(pincode) if isinstance(pincode, float) else pincode
                 rec["lat"] = r[idx["latitude"]]
                 rec["lon"] = r[idx["longitude"]]
+                # pli_id is the insurance feeds' own office key ("Office Code"
+                # in the PLI/RPLI detail sheets) — the only shared key between
+                # the master roster and those feeds. Optional: a circle whose
+                # geo export lacks the column simply gets None everywhere, and
+                # pipeline/derive/subdiv_bolookup.py falls back to name-based
+                # attribution as before.
+                if "pli_id" in idx:
+                    pli_id = r[idx["pli_id"]]
+                    pli_id = "" if pli_id is None else str(pli_id).strip()
+                    rec["pli_id"] = pli_id if pli_id not in ("", "0", "None") else None
 
         dist_path = BASE / circle["office_district_file"]
         if dist_path.exists():
