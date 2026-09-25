@@ -4321,7 +4321,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
 <!-- === SUBDIV TAB === -->
 <div id="tab-subdiv" class="tab-content">
   <div class="section-head">
-    <h2>Sub-Division Drilldown — Apr–Aug 2026</h2>
+    <h2 id="sd-tab-title">Sub-Division Drilldown — Apr–Aug 2026</h2>
     <span class="desc">Sub-division summaries by segment<br>Click any row to expand the Branch Office list (nil-procurement flagged)</span>
   </div>
   <div class="sd-tab-controls">
@@ -4844,6 +4844,11 @@ function onMonthChange() {
   renderDivision(CUR_DIV_NAME);
   if (typeof renderAllVerticalBands === 'function') renderAllVerticalBands();
   if (typeof refreshBoLookupCard === 'function') refreshBoLookupCard();
+  // Only re-render the drilldown while it's on screen — a narrower range
+  // fetches ~11MB per month, so don't pull that for a hidden tab (router()
+  // re-renders it on entry anyway).
+  var sdTab = document.getElementById('tab-subdiv');
+  if (sdTab && sdTab.classList.contains('active') && typeof renderSubdivTab === 'function') renderSubdivTab();
 }
 
 // Rebuilds the #month-from/#month-to option lists from whichever months
@@ -5055,9 +5060,12 @@ function recomputeRanks() {
     return 'zero';
   }
 
-  function rowsForSegment(division, segment) {
-    var d = SUBDIV_DATA[division];
+  // `d` is a SUBDIV_DATA[division]-shaped object — the all-time record, or a
+  // Period-range view from subdivRangeView(). `view` tags each row so
+  // toggleBOList expands the Branch Office list from the same data.
+  function rowsForSegment(division, segment, d, view) {
     if (!d) return '';
+    var viewAttr = ' data-view="' + (view || 'cum') + '"';
     var subs = d.subdivs;
     var keys = Object.keys(subs).sort();
     var html = '';
@@ -5070,7 +5078,7 @@ function recomputeRanks() {
         var posbBadge = nonOp > 0
           ? '<span class="badge '+(nonOp/s.offices>0.7?'danger':'warn')+'">'+nonOp+' nil</span>'
           : '';
-        html += '<tr data-div="'+division+'" data-sd="'+sd+'" data-seg="posb" onclick="toggleBOList(this)">'
+        html += '<tr data-div="'+division+'" data-sd="'+sd+'" data-seg="posb"'+viewAttr+' onclick="toggleBOList(this)">'
               + '<td>' + sd + ' ' + posbBadge + '</td>'
               + '<td>' + s.offices + '</td>'
               + '<td>' + fmtN(s.posb.opened) + '</td>'
@@ -5082,7 +5090,7 @@ function recomputeRanks() {
         var badge = nonPr > 0
           ? '<span class="badge '+(nonPr/s.offices>0.7?'danger':'warn')+'">'+nonPr+' nil</span>'
           : '';
-        html += '<tr data-div="'+division+'" data-sd="'+sd+'" data-seg="'+segment+'" onclick="toggleBOList(this)">'
+        html += '<tr data-div="'+division+'" data-sd="'+sd+'" data-seg="'+segment+'"'+viewAttr+' onclick="toggleBOList(this)">'
               + '<td>' + sd + ' ' + badge + '</td>'
               + '<td>' + s.offices + '</td>'
               + '<td>' + seg.offices_procured + '</td>'
@@ -5104,7 +5112,7 @@ function recomputeRanks() {
     var heads = (segment === 'posb')
       ? '<tr><th>Sub-Division</th><th>Offices</th><th>Opened</th><th>Closed</th><th>Net Addition</th></tr>'
       : '<tr><th>Sub-Division</th><th>Offices</th><th>Procured</th><th>Policies</th><th>Premium</th></tr>';
-    var rows = rowsForSegment(divName, segment);
+    var rows = rowsForSegment(divName, segment, SUBDIV_DATA[divName], 'cum');
     el.innerHTML =
       '<div class="subdiv-wrap">'
       + '<div class="subdiv-head"><h3>Sub-Division breakdown</h3>'
@@ -5124,7 +5132,9 @@ function recomputeRanks() {
     var tbody = tr.parentElement;
     tbody.querySelectorAll('tr.bo-list-row').forEach(function(r){ r.remove(); });
 
-    var s = SUBDIV_DATA[div].subdivs[sd];
+    var src = (tr.dataset.view === 'range' && RANGE_CACHE.data && RANGE_CACHE.div === div)
+      ? RANGE_CACHE.data : SUBDIV_DATA[div];
+    var s = src.subdivs[sd];
     var bos = s.bos.slice();
     // sort: non-procurers first if seg is pli/rpli, else by net desc
     if (seg === 'posb') bos.sort(function(a,b){ return b.posb_net - a.posb_net; });
@@ -5169,28 +5179,110 @@ function recomputeRanks() {
     tr.parentElement.insertBefore(newRow, tr.nextSibling);
   };
 
-  // Sub-Div Drilldown tab
+  // Sub-Div Drilldown tab — follows the top-right Period selector.
+  // SUBDIV_DATA is the all-time cumulative (every month on record), so it's
+  // used as-is when the selected range spans every month. Any narrower range
+  // is rebuilt from the per-month BO_LOOKUP_BY_MONTH slices (the same files
+  // BO Lookup sums for its office card), keeping SUBDIV_DATA's own office
+  // roster and sub-division assignment and summing only each office's
+  // POSB/PLI/RPLI activity. The "(Unmapped)" insurance remainder — feed rows
+  // that match no roster office — exists only in the cumulative, so it's
+  // dropped from a narrower range.
+  var RANGE_CACHE = { key: null, div: null, data: null };
+
+  function periodRange() {
+    var fromSel = document.getElementById('month-from');
+    var toSel   = document.getElementById('month-to');
+    var from = fromSel ? fromSel.value : '', to = toSel ? toSel.value : '';
+    var first = fromSel && fromSel.options.length ? fromSel.options[0].value : from;
+    var last  = toSel && toSel.options.length ? toSel.options[toSel.options.length - 1].value : to;
+    return { from: from, to: to, full: from === first && to === last };
+  }
+
+  function subdivRangeView(division, from, to) {
+    var key = division + '|' + from + '|' + to;
+    if (RANGE_CACHE.key === key) return RANGE_CACHE.data;
+    var fromIdx = MONTH_ORDER.indexOf(from), toIdx = MONTH_ORDER.indexOf(to);
+    var months = MONTH_ORDER.slice(fromIdx, toIdx + 1).filter(function(m) { return BO_LOOKUP_BY_MONTH[m]; });
+    if (!months.length) return null;
+    var subdivs = {};
+    Object.keys(SUBDIV_DATA[division].subdivs).forEach(function(sd) {
+      var src = SUBDIV_DATA[division].subdivs[sd];
+      if (!src.bos || !src.bos.length) return;
+      var out = {
+        region: src.region, offices: src.bos.length,
+        posb: { opened: 0, closed: 0, net: 0 },
+        pli:  { offices_procured: 0, policies: 0, premium: 0, non_procurers: 0 },
+        rpli: { offices_procured: 0, policies: 0, premium: 0, non_procurers: 0 },
+        bos: []
+      };
+      src.bos.forEach(function(b) {
+        var r = { id: b.id, code: b.code, name: b.name, type: b.type,
+                  posb_opened: 0, posb_closed: 0, posb_net: 0,
+                  pli_policies: 0, pli_premium: 0, rpli_policies: 0, rpli_premium: 0 };
+        months.forEach(function(m) {
+          var rec = BO_LOOKUP_BY_MONTH[m][b.id];
+          if (!rec) return;
+          var p = rec.posb || {}, pl = rec.pli || {}, rp = rec.rpli || {};
+          r.posb_opened += p.opened || 0; r.posb_closed += p.closed || 0; r.posb_net += p.net || 0;
+          r.pli_policies += pl.policies || 0; r.pli_premium += pl.premium || 0;
+          r.rpli_policies += rp.policies || 0; r.rpli_premium += rp.premium || 0;
+        });
+        out.posb.opened += r.posb_opened; out.posb.closed += r.posb_closed; out.posb.net += r.posb_net;
+        ['pli', 'rpli'].forEach(function(k) {
+          var pol = r[k + '_policies'];
+          out[k].policies += pol; out[k].premium += r[k + '_premium'];
+          if (pol > 0) out[k].offices_procured++; else out[k].non_procurers++;
+        });
+        out.bos.push(r);
+      });
+      subdivs[sd] = out;
+    });
+    RANGE_CACHE = { key: key, div: division, data: { subdivs: subdivs } };
+    return RANGE_CACHE.data;
+  }
+
   window.renderSubdivTab = function() {
     var el = document.getElementById('subdiv-tab-content');
     if (!el) return;
     var pick = document.getElementById('sd-tab-div');
     var seg  = document.getElementById('sd-tab-seg');
     if (!pick || !seg) return;
+    var title = document.getElementById('sd-tab-title');
+    if (title) title.textContent = 'Sub-Division Drilldown — ' + getPeriodLabel();
     var div = pick.value;
     var s   = seg.value;
     if (!div || !SUBDIV_DATA[div]) { el.innerHTML = '<div class="placeholder">Select a division and segment above.</div>'; return; }
+
+    var pr = periodRange(), data = SUBDIV_DATA[div], view = 'cum', note = '';
+    if (!pr.full) {
+      if (!boLookupRangeSettled(pr.from, pr.to)) {
+        el.innerHTML = '<div class="placeholder">Loading office-level data for ' + getPeriodLabel() + '…</div>';
+        ensureBoLookupRange(pr.from, pr.to).then(function() {
+          var now = periodRange();
+          if (now.from === pr.from && now.to === pr.to) renderSubdivTab();
+        });
+        return;
+      }
+      var ranged = subdivRangeView(div, pr.from, pr.to);
+      if (ranged) { data = ranged; view = 'range'; }
+      else note = '<div class="placeholder">Monthly office data for ' + getPeriodLabel()
+        + ' could not be loaded — showing the full cumulative instead.</div>';
+    }
     var heads = (s === 'posb')
       ? '<tr><th>Sub-Division</th><th>Offices</th><th>Opened</th><th>Closed</th><th>Net Addition</th></tr>'
       : '<tr><th>Sub-Division</th><th>Offices</th><th>Procured</th><th>Policies</th><th>Premium</th></tr>';
-    var rows = rowsForSegment(div, s);
-    el.innerHTML = '<table class="subdiv-table"><thead>' + heads + '</thead><tbody>' + rows + '</tbody></table>';
+    var rows = rowsForSegment(div, s, data, view);
+    el.innerHTML = note + '<table class="subdiv-table"><thead>' + heads + '</thead><tbody>' + rows + '</tbody></table>';
   };
 
   window.initSubdivTab = function() {
     var pick = document.getElementById('sd-tab-div');
-    if (!pick || pick.options.length > 0) return;
-    var divs = Object.keys(SUBDIV_DATA).sort();
-    pick.innerHTML = divs.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+    if (!pick) return;
+    if (pick.options.length === 0) {
+      var divs = Object.keys(SUBDIV_DATA).sort();
+      pick.innerHTML = divs.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+    }
     renderSubdivTab();
   };
 })();
@@ -8269,7 +8361,10 @@ function renderOfficeNetwork(divName) {
     { key: 'BO',    name: 'Branch Post Offices', short: 'BO' },
     { key: 'Other', name: 'BPC / RMS / Other',   short: 'Other' },
   ];
-  el.innerHTML = types.map(t => {
+  // RMS units carry only an 'Other' slice (no HO/SO/BO) — skip absent types
+  // rather than throwing, which would abort renderDivision mid-way and leave
+  // the POSB/PLI/RPLI/Cost tabs showing the previously selected division.
+  el.innerHTML = types.filter(t => scope[t.key]).map(t => {
     const s = scope[t.key];
     const active = s.total - s.nil;
     const activePct = s.total > 0 ? (active / s.total * 100) : 0;
@@ -8302,7 +8397,7 @@ function renderOfficeFlags(divName) {
   ];
   el.innerHTML = types.map((t, i) => {
     const s = scope[t.key];
-    if (s.total === 0) return '';
+    if (!s || s.total === 0) return '';
     const nilPct = s.total > 0 ? (s.nil / s.total * 100) : 0;
     const lowPct = s.total > 0 ? (s.low / s.total * 100) : 0;
     const inactivePct = s.total > 0 ? ((s.nil + s.low) / s.total * 100) : 0;
@@ -9314,7 +9409,10 @@ let SUBDIV_BOOKING = {};
       return;
     }
 
-    const divData = SUBDIV_BOOKING[divName];
+    // SUBDIV_BOOKING is keyed by month ('Apr-26'..'Cumulative') then division;
+    // follow the Booking tab's "View month" selection like the office flags do.
+    const monthSlice = SUBDIV_BOOKING[CUR_BOOKING_MONTH] || SUBDIV_BOOKING['Cumulative'] || {};
+    const divData = monthSlice[divName];
     if (!divData) {
       section.style.display = 'none';
       return;
