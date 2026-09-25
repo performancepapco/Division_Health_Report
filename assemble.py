@@ -208,6 +208,12 @@ def main():
     print("BO_LOOKUP per-month files (kept under Cloudflare Pages' 25MiB/file limit)...")
     write_bo_lookup_by_month(bo_lookup_by_month)
 
+    # Lazily fetched by the Booking tab's NIL & low-booking card only when a
+    # partial From/To range is selected (see office_status.build_offices).
+    offices_path = DATA_DIR / "office_status_offices.json"
+    write_json(offices_path, office_status.build_offices(result["generated_from_months"]))
+    print(f"Wrote {offices_path} ({offices_path.stat().st_size:,} bytes)")
+
     cfg = load_config()
     trends, flags = build_trends_and_flags(cfg, result["generated_from_months"])
     write_json(DATA_DIR / "trends.json", trends)

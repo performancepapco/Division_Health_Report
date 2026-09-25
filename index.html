@@ -5895,6 +5895,8 @@ function router() {
     document.querySelectorAll('.verticals-subtabs a').forEach(function(el) {
       el.classList.toggle('active', el.dataset.route === r.sub);
     });
+  } else if (top === 'booking') {
+    refreshOfficeFlagsIfPending();
   } else if (top === 'drilldown') {
     initSubdivTab();
     var div = r.query.get('div'), vertical = r.query.get('vertical');
@@ -8376,6 +8378,10 @@ function pickOfficeStatusScope(divName) {
   // following the same "View month" selection (CUR_BOOKING_MONTH) as Top 25
   // offices / product mix elsewhere in the Booking tab.
   const OS = (typeof OFFICE_STATUS_BY_MONTH !== 'undefined') ? OFFICE_STATUS_BY_MONTH[CUR_BOOKING_MONTH] : null;
+  return officeStatusScopeFrom(OS, divName);
+}
+
+function officeStatusScopeFrom(OS, divName) {
   if (!OS) return { scope: null, label: divName || 'Division' };
   if (divName === '__CIRCLE__') return { scope: OS.circle, label: 'AP Circle' };
   if (typeof divName === 'string' && divName.startsWith('__REGION__')) {
@@ -8383,6 +8389,88 @@ function pickOfficeStatusScope(divName) {
     return { scope: OS.byReg[reg] || null, label: reg + ' Region' };
   }
   return { scope: OS.byDiv[divName] || null, label: divName || 'Division' };
+}
+
+// The NIL & low-booking card follows the top-right Period selector (the rest
+// of the Booking tab, incl. the office-network cards, follows its own "View
+// month" buttons). A single month or the full range uses OFFICE_STATUS_BY_MONTH's
+// own slices; a partial range (e.g. Jun–Aug) is rebuilt from per-office monthly
+// articles in data/office_status_offices.json — fetched lazily, only while the
+// card is on screen (see office_status.build_offices for the file's shape).
+let OFFICE_STATUS_OFFICES = null;
+let OFFICE_STATUS_OFFICES_STATUS = null; // null | 'loading' | 'loaded' | 'error'
+let OFFICE_STATUS_OFFICES_PROMISE = null;
+const OFFICE_STATUS_RANGE_CACHE = {};
+function ensureOfficeStatusOffices() {
+  if (OFFICE_STATUS_OFFICES_PROMISE) return OFFICE_STATUS_OFFICES_PROMISE;
+  OFFICE_STATUS_OFFICES_STATUS = 'loading';
+  OFFICE_STATUS_OFFICES_PROMISE = fetch('data/office_status_offices.json?v=' + Date.now())
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(j) { OFFICE_STATUS_OFFICES = j; OFFICE_STATUS_OFFICES_STATUS = 'loaded'; })
+    .catch(function(err) {
+      OFFICE_STATUS_OFFICES_STATUS = 'error';
+      console.warn('[Office flags] data/office_status_offices.json unavailable:', err);
+    });
+  return OFFICE_STATUS_OFFICES_PROMISE;
+}
+
+// Same bucket rule as office_status._build_bucket: NIL = 0 articles in the
+// range, Low = 1–5; lists capped at list_cap in roster order.
+function computeOfficeStatusRange(from, to) {
+  const key = from + '|' + to;
+  if (OFFICE_STATUS_RANGE_CACHE[key]) return OFFICE_STATUS_RANGE_CACHE[key];
+  const F = OFFICE_STATUS_OFFICES;
+  const wanted = MONTH_ORDER.slice(MONTH_ORDER.indexOf(from), MONTH_ORDER.indexOf(to) + 1);
+  const mi = wanted.map(m => F.months.indexOf(m)).filter(i => i >= 0);
+  const out = { circle: {}, byDiv: {}, byReg: {} };
+  const bucketOf = (holder, name) => holder[name] || (holder[name] =
+    { total: 0, nil: 0, low: 0, low_biz: 0, nilList: [], lowList: [] });
+  F.offices.forEach(function(o, i) {
+    const oid = o[0], name = o[1], bname = F.buckets[o[2]], div = o[3], reg = o[4];
+    let arts = 0, biz = 0;
+    mi.forEach(function(m) { arts += F.arts[i][m]; biz += F.biz[i][m]; });
+    const targets = [bucketOf(out.circle, bname), bucketOf(out.byDiv[div] || (out.byDiv[div] = {}), bname)];
+    if (reg) targets.push(bucketOf(out.byReg[reg] || (out.byReg[reg] = {}), bname));
+    targets.forEach(function(b) {
+      b.total++;
+      if (arts === 0) {
+        b.nil++;
+        if (b.nilList.length < F.list_cap) b.nilList.push({ id: oid, name: name });
+      } else if (arts <= F.low_max) {
+        b.low++; b.low_biz += biz;
+        if (b.lowList.length < F.list_cap) b.lowList.push({ id: oid, name: name, arts: arts, biz: Math.round(biz * 100) / 100 });
+      }
+    });
+  });
+  OFFICE_STATUS_RANGE_CACHE[key] = out;
+  return out;
+}
+
+// Returns { scope, label } like pickOfficeStatusScope, or { pending: 'loading' | 'error' }.
+function pickOfficeFlagsScope(divName) {
+  const p = _periodPair(), from = p[0], to = p[1];
+  const fromSel = document.getElementById('month-from'), toSel = document.getElementById('month-to');
+  const first = fromSel && fromSel.options.length ? fromSel.options[0].value : from;
+  const last = toSel && toSel.options.length ? toSel.options[toSel.options.length - 1].value : to;
+  const OSM = (typeof OFFICE_STATUS_BY_MONTH !== 'undefined') ? OFFICE_STATUS_BY_MONTH : {};
+  if (from === to) return officeStatusScopeFrom(OSM[from], divName);
+  if (from === first && to === last) return officeStatusScopeFrom(OSM['Cumulative'], divName);
+  if (OFFICE_STATUS_OFFICES_STATUS === 'loaded') return officeStatusScopeFrom(computeOfficeStatusRange(from, to), divName);
+  if (OFFICE_STATUS_OFFICES_STATUS === 'error') return { pending: 'error' };
+  const el = document.getElementById('bk-office-flags');
+  if (el && el.offsetParent !== null) {
+    ensureOfficeStatusOffices().then(function() {
+      if (typeof CUR_DIV_NAME !== 'undefined') renderOfficeFlags(CUR_DIV_NAME);
+    });
+  }
+  return { pending: 'loading' };
+}
+
+// Called when the Booking tab is opened — renders a card that was left
+// waiting for its lazy file while the tab was hidden.
+function refreshOfficeFlagsIfPending() {
+  const el = document.getElementById('bk-office-flags');
+  if (el && el.dataset.pending === '1' && typeof CUR_DIV_NAME !== 'undefined') renderOfficeFlags(CUR_DIV_NAME);
 }
 
 function renderOfficeNetwork(divName) {
@@ -8417,11 +8505,19 @@ function renderOfficeNetwork(divName) {
 var BK_MONTH_LABEL = { 'Apr-26': 'April 2026', 'May-26': 'May 2026', 'Jun-26': 'June 2026', 'Jul-26': 'July 2026', 'Aug-26': 'August 2026', 'Cumulative': 'Apr–Aug 2026' };
 function renderOfficeFlags(divName) {
   const el = document.getElementById('bk-office-flags');
-  const { scope, label } = pickOfficeStatusScope(divName);
+  const picked = pickOfficeFlagsScope(divName);
   const descEl = document.getElementById('bk-flags-desc');
   if (descEl) {
-    descEl.innerHTML = `Office activity flags · ${BK_MONTH_LABEL[CUR_BOOKING_MONTH] || CUR_BOOKING_MONTH}<br>NIL = 0 articles · Low = 1–5 articles<br>Admin offices (Circle / Regional / Divisional / Sub-Divisional) excluded`;
+    descEl.innerHTML = `Office activity flags · ${getPeriodLabel()} (Period selector)<br>NIL = 0 articles · Low = 1–5 articles<br>Admin offices (Circle / Regional / Divisional / Sub-Divisional) excluded`;
   }
+  el.dataset.pending = picked.pending === 'loading' ? '1' : '';
+  if (picked.pending) {
+    el.innerHTML = '<div class="placeholder">' + (picked.pending === 'loading'
+      ? 'Loading office-level booking data for ' + getPeriodLabel() + '…'
+      : 'Office-level booking data for ' + getPeriodLabel() + ' could not be loaded.') + '</div>';
+    return;
+  }
+  const scope = picked.scope;
   if (!scope) { el.innerHTML = ''; return; }
   const types = [
     { key: 'HO',    name: 'Head Post Offices' },
