@@ -2023,6 +2023,20 @@ tr.hm-circle-row td {
   body.printing-handout .md-vcard { padding: 8px 10px; }
   body.printing-handout .md-vcard-value { font-size: 20px; }
   body.printing-handout .vb-flag-card { padding: 6px 10px; font-size: 11.5px; }
+  body.printing-handout table.md-vert-table { page-break-inside: avoid; }
+  body.printing-handout table.md-vert-table th { font-size: 9.5px; padding: 4px 8px 3px; letter-spacing: 0.08em; }
+  body.printing-handout table.md-vert-table td { font-size: 11px; padding: 3px 8px; }
+  body.printing-handout table.md-vert-table tr:hover td { box-shadow: none; }
+  /* Room for the table on one A4 page: the sub-division block is only a
+     placeholder note (no data yet), so it's left off the handout, and the
+     section gaps / sparklines are tightened a little. */
+  body.printing-handout .md-todo,
+  body.printing-handout .md-todo-head { display: none !important; }
+  body.printing-handout #md-handout .section-head { margin-top: 12px !important; padding-bottom: 4px; }
+  body.printing-handout .md-vcard-spark { max-width: 100px; margin-top: 4px; }
+  body.printing-handout .md-vcard-grid { gap: 8px; margin-top: 8px; }
+  body.printing-handout table.md-vert-table td { padding: 2px 8px; }
+  body.printing-handout .md-footer-line { margin-top: 12px; }
   @page { size: A4 portrait; margin: 12mm; }
 }
 
@@ -4839,6 +4853,9 @@ function onMonthChange() {
   // re-renders it on entry anyway).
   var sdTab = document.getElementById('tab-subdiv');
   if (sdTab && sdTab.classList.contains('active') && typeof renderSubdivTab === 'function') renderSubdivTab();
+  // My Division's "Detail by vertical" table follows the period too.
+  var r = (typeof parseHash === 'function') ? parseHash() : null;
+  if (r && r.top === 'my-division' && r.sub && TRENDS_DATA.divisions && TRENDS_DATA.divisions[r.sub]) mdShowDivision(r.sub);
 }
 
 // Rebuilds the #month-from/#month-to option lists from whichever months
@@ -8071,6 +8088,21 @@ function mdBuildHeader(slug) {
   '</div>';
 }
 
+// My Division's "Detail by vertical" — the same table as the Verticals page,
+// for this division and the top-right Period selection. TRENDS_DATA is keyed
+// by slug ("rms-ag"), DATA by display name ("RMS AG"), so match on slug form.
+// The period goes in the heading since the handout's print CSS hides .desc.
+function mdBuildVertTable(slug) {
+  var key = Object.keys(DATA).find(function(k) {
+    var d = DATA[k];
+    return d && !d.isAggregate && !d.isOffice && k.toLowerCase().split(/\s+/).join('-') === slug;
+  });
+  if (!key) return '';
+  return '<div class="section-head" style="margin-top:20px;"><h2>Detail by vertical &middot; ' + getPeriodLabel() + '</h2>' +
+      '<span class="desc">Target &middot; pro-rata target &middot; achievement<br>Follows the Period selector</span></div>' +
+    '<table class="brief md-vert-table">' + buildVertTableHTML(DATA[key]) + '</table>';
+}
+
 function mdBuildPage(slug) {
   var dv = TRENDS_DATA.divisions[slug];
   if (!dv) return '<div class="placeholder">Unknown division.</div>';
@@ -8084,9 +8116,10 @@ function mdBuildPage(slug) {
       mdBuildHeader(slug) +
       '<div class="section-head"><h2>Vertical scorecard</h2><span class="desc">% pro-rata &middot; vs circle average &middot; rank of ' + Object.keys(TRENDS_DATA.divisions).length + ' &middot; 3-month trend</span></div>' +
       '<div class="md-vcard-grid">' + cards + '</div>' +
+      mdBuildVertTable(slug) +
       '<div class="section-head" style="margin-top:20px;"><h2>Active flags</h2><span class="desc">This division, all verticals</span></div>' +
       mdBuildFlags(slug) +
-      '<div class="section-head" style="margin-top:20px;"><h2>Top / bottom sub-divisions</h2><span class="desc">Within this division</span></div>' +
+      '<div class="section-head md-todo-head" style="margin-top:20px;"><h2>Top / bottom sub-divisions</h2><span class="desc">Within this division</span></div>' +
       mdBuildSubdivStub() +
       '<div class="md-footer-line">Prepared from Division Health Card (ehealthcard.in) &middot; Data as on ' + dataAsOn + ' &middot; Source: CEPT MIS / PFMS</div>' +
     '</div>';
@@ -8137,8 +8170,14 @@ function renderVerticals(d) {
   
   document.getElementById('vert-caveat').innerHTML = '<strong>Reading note —</strong> Pro-rata target = ' + getPeriodMonths() + '/12 of annual (' + getPeriodLabel() + '). Booking-side verticals (MO/Parcel/IRGB) typically lag early in the FY because previous-month BNPL bills haven\'t flowed in. POSB is front-loaded: silent + certificate revenue lands at the start of the year rather than being spread. PLI/RPLI shown here is eLekha-realised; underlying premium achievement is in the next tab.';
   
-  const tbl = document.getElementById('vert-table');
-  tbl.innerHTML = `
+  document.getElementById('vert-table').innerHTML = buildVertTableHTML(d);
+}
+
+// "Detail by vertical" table body (thead + tbody) — shared by the Verticals
+// landing page and the My Division page/handout.
+function buildVertTableHTML(d) {
+  const verticals = ['Mail Operations','Parcel','IR & GB','CCS','POSB','PLI/RPLI'];
+  let html = `
     <thead><tr>
       <th>Vertical</th>
       <th>FY 2026-27 Target<br>(₹ Cr)</th>
@@ -8153,9 +8192,10 @@ function renderVerticals(d) {
     const pro = d.pro_rata[v] || 0;
     const pctOfPace = d.attainments[v] || 0;
     const pctOfYear = tgt > 0 ? ach/tgt*100 : 0;
-    tbl.innerHTML += `<tr><td>${v}</td><td>${fmt(tgt,2)}</td><td>${fmt(pro,2)}</td><td>${fmt(ach,2)}</td><td>${fmt(pctOfPace,1)}%</td><td>${fmt(pctOfYear,2)}%</td></tr>`;
+    html += `<tr><td>${v}</td><td>${fmt(tgt,2)}</td><td>${fmt(pro,2)}</td><td>${fmt(ach,2)}</td><td>${fmt(pctOfPace,1)}%</td><td>${fmt(pctOfYear,2)}%</td></tr>`;
   });
-  tbl.innerHTML += `<tr class="total"><td>Total</td><td>${fmt(d.targets.Total,2)}</td><td>${fmt(d.pro_rata.Total,2)}</td><td>${fmt(d.actuals.Total,2)}</td><td>—</td><td>${fmt(d.actuals.Total/d.targets.Total*100,2)}%</td></tr></tbody>`;
+  html += `<tr class="total"><td>Total</td><td>${fmt(d.targets.Total,2)}</td><td>${fmt(d.pro_rata.Total,2)}</td><td>${fmt(d.actuals.Total,2)}</td><td>—</td><td>${fmt(d.actuals.Total/d.targets.Total*100,2)}%</td></tr></tbody>`;
+  return html;
 }
 
 
