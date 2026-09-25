@@ -20,7 +20,7 @@ from pathlib import Path
 from pipeline.config import load_config
 from pipeline.common import iso_to_label
 from pipeline.sections import booking as booking_mod
-from pipeline.derive import subdiv_bolookup, office_status, subdiv_booking, pli_rpli_cum, trends as trends_mod
+from pipeline.derive import subdiv_bolookup, office_status, subdiv_booking, booking_offices, pli_rpli_cum, trends as trends_mod
 import pipeline.flag_rules as flag_rules_mod
 
 BASE = Path(__file__).parent
@@ -213,6 +213,11 @@ def main():
     offices_path = DATA_DIR / "office_status_offices.json"
     write_json(offices_path, office_status.build_offices(result["generated_from_months"]))
     print(f"Wrote {offices_path} ({offices_path.stat().st_size:,} bytes)")
+
+    # Likewise for the rest of the Booking tab (see booking_offices.py).
+    booking_offices_path = DATA_DIR / "booking_offices.json"
+    write_json(booking_offices_path, booking_offices.build(result["generated_from_months"]))
+    print(f"Wrote {booking_offices_path} ({booking_offices_path.stat().st_size:,} bytes)")
 
     cfg = load_config()
     trends, flags = build_trends_and_flags(cfg, result["generated_from_months"])

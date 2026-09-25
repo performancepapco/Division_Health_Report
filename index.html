@@ -4195,19 +4195,9 @@ actual_revenue   = sum of actual revenue earned in the selected period
     <h2 id="bk-title">Booking-side intelligence</h2>
     <span class="desc" id="bk-subtitle">APT data · Apr 1 – Aug 31, 2026<br>5-month cumulative window</span>
   </div>
-  <!-- === BOOKING MONTH SWITCHER === -->
-<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-  <span class="bk-month-label">View month:</span>
-  <div class="bk-month-tabs" id="bk-month-tabs">
-    <button class="bk-month-tab" data-bm="Apr-26" onclick="setBookingMonth('Apr-26')">April 2026</button>
-    <button class="bk-month-tab" data-bm="May-26" onclick="setBookingMonth('May-26')">May 2026</button>
-    <button class="bk-month-tab" data-bm="Jun-26" onclick="setBookingMonth('Jun-26')">June 2026</button>
-    <button class="bk-month-tab" data-bm="Jul-26" onclick="setBookingMonth('Jul-26')">July 2026</button>
-    <button class="bk-month-tab" data-bm="Aug-26" onclick="setBookingMonth('Aug-26')">August 2026</button>
-    <button class="bk-month-tab active" data-bm="Cumulative" onclick="setBookingMonth('Cumulative')">Apr–Aug 2026</button>
-  </div>
-</div>
-<!-- === END BOOKING MONTH SWITCHER === -->
+  <!-- Replaces the old "View month" buttons (kept as child #1 — renderBooking's
+       empty/loading states index the tab's children). -->
+  <div id="bk-period-note" class="bk-month-label">The whole Booking tab follows the From / To months at the top of the page.</div>
   <div id="bk-daterange" class="bk-daterange" style="display:none;"></div>
 
   <!-- Office Network card row (under the date strip) -->
@@ -5896,7 +5886,7 @@ function router() {
       el.classList.toggle('active', el.dataset.route === r.sub);
     });
   } else if (top === 'booking') {
-    refreshOfficeFlagsIfPending();
+    refreshBookingIfPending();
   } else if (top === 'drilldown') {
     initSubdivTab();
     var div = r.query.get('div'), vertical = r.query.get('vertical');
@@ -8169,20 +8159,256 @@ function renderVerticals(d) {
 }
 
 
-// === BOOKING MONTH SWITCHER LOGIC ===
-var CUR_BOOKING_MONTH = 'Cumulative';
-function setBookingMonth(m) {
-  CUR_BOOKING_MONTH = m;
-  document.querySelectorAll('.bk-month-tab').forEach(function(b){
-    b.classList.toggle('active', b.dataset.bm === m);
-  });
-  if (typeof renderDivision === 'function' && typeof CUR_DIV_NAME !== 'undefined') {
-    renderDivision(CUR_DIV_NAME);
-  }
+// === BOOKING PERIOD (follows the top-right Period selector) ===
+// Single months and the full range use BOOKING_BY_MONTH's own packs. A
+// partial range (e.g. Jun–Aug) is rebuilt by computeBookingRange() from
+// per-office monthly records in data/booking_offices.json — fetched lazily,
+// only while the Booking tab is on screen (see
+// pipeline/derive/booking_offices.py). computeBookingRange is a port of
+// pipeline/sections/booking.py's _build_scope, so it reproduces what
+// build_cumulative_pack() gives for the same months.
+function bookingPeriod() {
+  var p = _periodPair(), from = p[0], to = p[1];
+  var fs = document.getElementById('month-from'), ts = document.getElementById('month-to');
+  var first = fs && fs.options.length ? fs.options[0].value : from;
+  var last = ts && ts.options.length ? ts.options[ts.options.length - 1].value : to;
+  if (from === to) return { from: from, to: to, key: from };
+  if (from === first && to === last) return { from: from, to: to, key: 'Cumulative' };
+  return { from: from, to: to, key: from + '..' + to, partial: true };
 }
+
+var BOOKING_OFFICES = null;
+var BOOKING_OFFICES_STATUS = null; // null | 'loading' | 'loaded' | 'error'
+var BOOKING_OFFICES_PROMISE = null;
+var BOOKING_RANGE_CACHE = {};
+var SUBDIV_BOOKING_RANGE_CACHE = {};
+var LAST_BOOKING_ARGS = null;
+function ensureBookingOffices() {
+  if (BOOKING_OFFICES_PROMISE) return BOOKING_OFFICES_PROMISE;
+  BOOKING_OFFICES_STATUS = 'loading';
+  BOOKING_OFFICES_PROMISE = fetch('data/booking_offices.json?v=' + Date.now())
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(j) { BOOKING_OFFICES = j; BOOKING_OFFICES_STATUS = 'loaded'; })
+    .catch(function(err) {
+      BOOKING_OFFICES_STATUS = 'error';
+      console.warn('[Booking] data/booking_offices.json unavailable:', err);
+    });
+  return BOOKING_OFFICES_PROMISE;
+}
+function bookingTabVisible() {
+  var t = document.getElementById('tab-booking');
+  return !!(t && t.classList.contains('active'));
+}
+function rerenderBookingTab() {
+  if (LAST_BOOKING_ARGS) renderBooking(LAST_BOOKING_ARGS[0], LAST_BOOKING_ARGS[1]);
+}
+// Called when the Booking tab is opened — renders anything left waiting for
+// a lazy file while the tab was hidden.
+function refreshBookingIfPending() {
+  var t = document.getElementById('tab-booking');
+  var flags = document.getElementById('bk-office-flags');
+  if ((t && t.dataset.pending === '1') || (flags && flags.dataset.pending === '1')) rerenderBookingTab();
+}
+
+// The Booking pack for the selected period, or { pending: 'loading'|'error' }.
+function getBookingPack() {
+  var bp = bookingPeriod();
+  var BBM = (typeof BOOKING_BY_MONTH !== 'undefined') ? BOOKING_BY_MONTH : {};
+  if (!bp.partial) return BBM[bp.key] || null;
+  if (BOOKING_OFFICES_STATUS === 'loaded') return computeBookingRange(bp.from, bp.to);
+  if (BOOKING_OFFICES_STATUS === 'error') return { pending: 'error' };
+  if (bookingTabVisible()) ensureBookingOffices().then(rerenderBookingTab);
+  return { pending: 'loading' };
+}
+
+// === BOOKING RANGE ENGINE ===
+// Matches Python's round(x, n): rounds the exact binary value, and exact
+// halves go to the even digit (so figures agree with the pipeline's own).
+function _bkRound(x, n) {
+  var s = Math.abs(x).toFixed(n + 25), cut = s.indexOf('.') + 1 + n;
+  var r;
+  if (/^50*$/.test(s.slice(cut))) {
+    var lastDigit = +s.charAt(n > 0 ? cut - 1 : cut - 2);
+    r = parseFloat(s.slice(0, cut)) + (lastDigit % 2 ? Math.pow(10, -n) : 0);
+    r = +r.toFixed(n);
+  } else {
+    r = +Math.abs(x).toFixed(n);
+  }
+  return x < 0 ? -r : r;
+}
+function _bkCmp(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+
+function _bkBuildScope(label, recs, hierCount, daily, productNames) {
+  var L = 1e5, CR = 1e7;
+  var arts = 0, biz = 0, mix = [0, 0, 0, 0, 0];
+  var prodAgg = new Map(), prodOff = new Map(), summaries = [];
+  recs.forEach(function(r) {
+    arts += r.arts; biz += r.biz;
+    r.prods.forEach(function(v, p) {
+      var a = prodAgg.get(p) || { articles: 0, business: 0, offices: 0 };
+      a.articles += v[0]; a.business += v[1]; a.offices++;
+      prodAgg.set(p, a);
+      if (v[0] > 0 || v[1] > 0) {
+        if (!prodOff.has(p)) prodOff.set(p, []);
+        prodOff.get(p).push({ id: r.oid, name: r.name, articles: v[0], business: v[1] });
+      }
+    });
+    for (var k = 0; k < 5; k++) mix[k] += r.mix[k];
+    summaries.push({ id: r.oid, name: r.name, articles: r.arts, business: r.biz, products: r.prods.size });
+  });
+
+  var products = [];
+  prodAgg.forEach(function(v, p) {
+    products.push({ name: productNames[p], articles: v.articles, business: _bkRound(v.business, 2),
+      offices: v.offices, business_cr: _bkRound(v.business / CR, 4), business_l: _bkRound(v.business / L, 4), _b: v.business });
+  });
+  products.sort(function(a, b) { return (b._b - a._b) || _bkCmp(a.name, b.name); });
+  products.forEach(function(p) { delete p._b; });
+
+  var topByProduct = {};
+  prodOff.forEach(function(list, p) {
+    list.sort(function(a, b) { return (b.business - a.business) || _bkCmp(a.id, b.id); });
+    topByProduct[productNames[p]] = list.slice(0, 25).map(function(v) {
+      return { id: v.id, name: v.name, articles: v.articles, business: _bkRound(v.business, 2),
+        business_l: _bkRound(v.business / L, 4), avg_rs: v.articles > 0 ? _bkRound(v.business / v.articles, 2) : 0 };
+    });
+  });
+
+  var peak = null, trough = null;
+  daily.forEach(function(d) {
+    if (!peak || d.articles > peak.articles) peak = d;
+    if (!trough || d.articles < trough.articles) trough = d;
+  });
+
+  summaries.sort(function(a, b) { return (b.business - a.business) || _bkCmp(a.id, b.id); });
+  var top25 = summaries.slice(0, 25).map(function(o) {
+    return { id: o.id, name: o.name, articles: o.articles, business: _bkRound(o.business, 2), products: o.products,
+      business_l: _bkRound(o.business / L, 4), avg_rs: o.articles > 0 ? _bkRound(o.business / o.articles, 2) : 0 };
+  });
+
+  var days = daily.length, active = recs.length;
+  return {
+    label: label,
+    totals: {
+      articles: arts, business_cr: _bkRound(biz / CR, 4), business_l: _bkRound(biz / L, 4),
+      active_offices: active, total_offices_in_hier: hierCount,
+      inactive_offices: Math.max(0, hierCount - active), products: products.length, days: days,
+      avg_articles_per_day: days > 0 ? _bkRound(arts / days, 4) : 0,
+      avg_rs_per_article: arts > 0 ? _bkRound(biz / arts, 4) : 0,
+    },
+    customer_mix: { walk_in: mix[0], bulk_bnpl: mix[1], postal_service: mix[2], commercial: mix[3], other: mix[4], total: arts },
+    products: products,
+    daily: daily,
+    top_offices: top25,
+    top_offices_by_product: topByProduct,
+    peak_day: peak ? { date: peak.date, articles: peak.articles, business_l: peak.business_l } : null,
+    trough_day: trough ? { date: trough.date, articles: trough.articles, business_l: trough.business_l } : null,
+  };
+}
+
+// Per-office totals merged across the range's months (first-seen name wins,
+// as in booking.build_cumulative_pack).
+function _bkMergedOffices(from, to) {
+  var F = BOOKING_OFFICES;
+  var labels = MONTH_ORDER.slice(MONTH_ORDER.indexOf(from), MONTH_ORDER.indexOf(to) + 1);
+  var mi = labels.map(function(l) { return F.months.indexOf(l); }).filter(function(i) { return i >= 0; });
+  var merged = [];
+  F.offices.forEach(function(o, i) {
+    var rec = null;
+    mi.forEach(function(m) {
+      var r = F.m[i][m];
+      if (!r) return;
+      if (!rec) rec = { oid: o[0], name: typeof o[1] === 'string' ? o[1] : o[1][m], div: o[2], reg: o[3],
+                        arts: 0, biz: 0, mix: [0, 0, 0, 0, 0], prods: new Map() };
+      rec.arts += r[0]; rec.biz += r[1];
+      for (var k = 0; k < 5; k++) rec.mix[k] += r[2 + k];
+      var p = r[7];
+      for (var j = 0; j < p.length; j += 3) {
+        var e = rec.prods.get(p[j]) || [0, 0];
+        e[0] += p[j + 1]; e[1] += p[j + 2];
+        rec.prods.set(p[j], e);
+      }
+    });
+    if (rec) merged.push(rec);
+  });
+  return { labels: labels, merged: merged };
+}
+
+function computeBookingRange(from, to) {
+  var key = from + '..' + to;
+  if (BOOKING_RANGE_CACHE[key]) return BOOKING_RANGE_CACHE[key];
+  var F = BOOKING_OFFICES, BBM = BOOKING_BY_MONTH;
+  var mo = _bkMergedOffices(from, to), labels = mo.labels;
+  // Daily series come straight from each month's own scope slice — months
+  // never share days, so concatenating them is exact.
+  var dailyFor = function(pick) {
+    var out = [];
+    labels.forEach(function(l) { var s = BBM[l] && pick(BBM[l]); if (s && s.daily) out = out.concat(s.daily); });
+    return out;
+  };
+  var byDiv = {}, byReg = {};
+  mo.merged.forEach(function(r) {
+    if (r.div) (byDiv[r.div] = byDiv[r.div] || []).push(r);
+    if (r.reg) (byReg[r.reg] = byReg[r.reg] || []).push(r);
+  });
+  var pack = {
+    label: key,
+    circle: _bkBuildScope('AP Circle', mo.merged, F.hier.circle, dailyFor(function(p) { return p.circle; }), F.products),
+    by_region: {}, by_div: {},
+    latest_booking_date: labels.reduce(function(acc, l) {
+      var d = BBM[l] && BBM[l].latest_booking_date; return d && (!acc || d > acc) ? d : acc; }, null),
+  };
+  Object.keys(byReg).forEach(function(reg) {
+    pack.by_region[reg] = _bkBuildScope(reg, byReg[reg], F.hier.region[reg] || 0,
+      dailyFor(function(p) { return p.by_region[reg]; }), F.products);
+  });
+  Object.keys(byDiv).forEach(function(div) {
+    pack.by_div[div] = _bkBuildScope(div, byDiv[div], F.hier.div[div] || 0,
+      dailyFor(function(p) { return p.by_div[div]; }), F.products);
+  });
+  BOOKING_RANGE_CACHE[key] = pack;
+  return pack;
+}
+
+// SUBDIV_BOOKING for a partial range: the Cumulative slice already lists
+// every roster office by division/sub-division/type, so only each office's
+// articles/revenue are swapped for the range's sums (mirrors
+// pipeline/derive/subdiv_booking._build_one, incl. its sort order).
+function computeSubdivBookingRange(from, to) {
+  var key = from + '..' + to;
+  if (SUBDIV_BOOKING_RANGE_CACHE[key]) return SUBDIV_BOOKING_RANGE_CACHE[key];
+  var tot = {};
+  _bkMergedOffices(from, to).merged.forEach(function(r) { tot[r.oid] = r; });
+  var cum = SUBDIV_BOOKING['Cumulative'] || {}, out = {};
+  Object.keys(cum).forEach(function(div) {
+    out[div] = {};
+    Object.keys(cum[div]).forEach(function(sd) {
+      out[div][sd] = {};
+      Object.keys(cum[div][sd]).forEach(function(slot) {
+        var list = cum[div][sd][slot].map(function(o) {
+          var r = tot[o.id];
+          return { id: o.id, name: o.name, articles: r ? Math.round(r.arts) : 0, revenue: r ? _bkRound(r.biz, 2) : 0 };
+        });
+        list.sort(function(a, b) { return (a.articles - b.articles) || _bkCmp(a.id, b.id); });
+        out[div][sd][slot] = list;
+      });
+    });
+  });
+  SUBDIV_BOOKING_RANGE_CACHE[key] = out;
+  return out;
+}
+// === END BOOKING RANGE ENGINE ===
+
+function getSubdivBookingSlice() {
+  var bp = bookingPeriod();
+  if (!bp.partial) return SUBDIV_BOOKING[bp.key] || null;
+  return BOOKING_OFFICES_STATUS === 'loaded' ? computeSubdivBookingRange(bp.from, bp.to) : null;
+}
+
 function pickBookingSliceMonthly(d, divName) {
-  var pack = (typeof BOOKING_BY_MONTH !== 'undefined') ? BOOKING_BY_MONTH[CUR_BOOKING_MONTH] : null;
+  var pack = getBookingPack();
   if (!pack) return null;
+  if (pack.pending) return { pending: pack.pending };
   if (divName === '__CIRCLE__') return { B: pack.circle, scopeLabel: 'AP CIRCLE', isCircle: true };
   if (typeof divName === 'string' && divName.indexOf('__REGION__') === 0) {
     var reg = divName.replace('__REGION__','');
@@ -8197,7 +8423,7 @@ function pickBookingSliceMonthly(d, divName) {
 
 function pickBookingSlice(d, divName) {
   var _mo = pickBookingSliceMonthly(d, divName);
-  if (_mo && _mo.B) return _mo;
+  if (_mo && (_mo.B || _mo.pending)) return _mo;
   // Returns the right BOOKING slice + a scope label.
   if (divName === '__CIRCLE__') {
     return { B: BOOKING_DATA, scopeLabel: 'AP CIRCLE', isCircle: true };
@@ -8217,8 +8443,33 @@ function renderBooking(d, divName) {
   // Remove any existing empty-state from prior render
   const oldEmpty = document.getElementById('bk-empty');
   if (oldEmpty) oldEmpty.remove();
+  LAST_BOOKING_ARGS = [d, divName];
 
-  const { B, scopeLabel, isCircle } = pickBookingSlice(d, divName);
+  const subtitleEl = document.getElementById('bk-subtitle');
+  if (subtitleEl) {
+    const nMonths = getPeriodMonths();
+    subtitleEl.innerHTML = `APT data · ${getPeriodLabel()}<br>${nMonths}-month ${nMonths > 1 ? 'cumulative ' : ''}window · follows the Period selector`;
+  }
+
+  const { B, scopeLabel, isCircle, pending } = pickBookingSlice(d, divName);
+  bkTab.dataset.pending = pending === 'loading' ? '1' : '';
+
+  if (pending) {
+    // A partial range whose per-office file (data/booking_offices.json) is
+    // still loading, or failed to load.
+    Array.from(bkTab.children).forEach((el, i) => { if (i > 1) el.style.display = 'none'; });
+    CUR_BOOKING_B = null;
+    const msg = document.createElement('div');
+    msg.id = 'bk-empty';
+    msg.className = 'placeholder';
+    msg.style.margin = '20px 0';
+    msg.innerHTML = pending === 'loading'
+      ? '<strong>Loading booking data…</strong>Office-level booking records for ' + getPeriodLabel() + ' are being fetched.'
+      : '<strong>Booking data unavailable</strong>Office-level booking records for ' + getPeriodLabel() + ' could not be loaded. Pick a single month or the full range.';
+    bkTab.insertBefore(msg, bkTab.firstChild.nextSibling.nextSibling);
+    document.getElementById('booking-count').textContent = '—';
+    return;
+  }
 
   if (!B) {
     // No booking data for this scope (rare — e.g. a unit with no APT activity)
@@ -8373,14 +8624,6 @@ function renderBooking(d, divName) {
     </div>`;
 }
 
-function pickOfficeStatusScope(divName) {
-  // Mirrors pickBookingSlice — returns the office-status slice for this scope,
-  // following the same "View month" selection (CUR_BOOKING_MONTH) as Top 25
-  // offices / product mix elsewhere in the Booking tab.
-  const OS = (typeof OFFICE_STATUS_BY_MONTH !== 'undefined') ? OFFICE_STATUS_BY_MONTH[CUR_BOOKING_MONTH] : null;
-  return officeStatusScopeFrom(OS, divName);
-}
-
 function officeStatusScopeFrom(OS, divName) {
   if (!OS) return { scope: null, label: divName || 'Division' };
   if (divName === '__CIRCLE__') return { scope: OS.circle, label: 'AP Circle' };
@@ -8391,9 +8634,8 @@ function officeStatusScopeFrom(OS, divName) {
   return { scope: OS.byDiv[divName] || null, label: divName || 'Division' };
 }
 
-// The NIL & low-booking card follows the top-right Period selector (the rest
-// of the Booking tab, incl. the office-network cards, follows its own "View
-// month" buttons). A single month or the full range uses OFFICE_STATUS_BY_MONTH's
+// The office-network and NIL & low-booking cards follow the top-right Period
+// selector, like the rest of the Booking tab. A single month or the full range uses OFFICE_STATUS_BY_MONTH's
 // own slices; a partial range (e.g. Jun–Aug) is rebuilt from per-office monthly
 // articles in data/office_status_offices.json — fetched lazily, only while the
 // card is on screen (see office_status.build_offices for the file's shape).
@@ -8446,7 +8688,7 @@ function computeOfficeStatusRange(from, to) {
   return out;
 }
 
-// Returns { scope, label } like pickOfficeStatusScope, or { pending: 'loading' | 'error' }.
+// Returns { scope, label } for the selected period, or { pending: 'loading' | 'error' }.
 function pickOfficeFlagsScope(divName) {
   const p = _periodPair(), from = p[0], to = p[1];
   const fromSel = document.getElementById('month-from'), toSel = document.getElementById('month-to');
@@ -8457,25 +8699,13 @@ function pickOfficeFlagsScope(divName) {
   if (from === first && to === last) return officeStatusScopeFrom(OSM['Cumulative'], divName);
   if (OFFICE_STATUS_OFFICES_STATUS === 'loaded') return officeStatusScopeFrom(computeOfficeStatusRange(from, to), divName);
   if (OFFICE_STATUS_OFFICES_STATUS === 'error') return { pending: 'error' };
-  const el = document.getElementById('bk-office-flags');
-  if (el && el.offsetParent !== null) {
-    ensureOfficeStatusOffices().then(function() {
-      if (typeof CUR_DIV_NAME !== 'undefined') renderOfficeFlags(CUR_DIV_NAME);
-    });
-  }
+  if (bookingTabVisible()) ensureOfficeStatusOffices().then(rerenderBookingTab);
   return { pending: 'loading' };
-}
-
-// Called when the Booking tab is opened — renders a card that was left
-// waiting for its lazy file while the tab was hidden.
-function refreshOfficeFlagsIfPending() {
-  const el = document.getElementById('bk-office-flags');
-  if (el && el.dataset.pending === '1' && typeof CUR_DIV_NAME !== 'undefined') renderOfficeFlags(CUR_DIV_NAME);
 }
 
 function renderOfficeNetwork(divName) {
   const el = document.getElementById('bk-office-network');
-  const { scope, label } = pickOfficeStatusScope(divName);
+  const { scope, label } = pickOfficeFlagsScope(divName);
   if (!scope) { el.innerHTML = ''; return; }
   const types = [
     { key: 'HO',    name: 'Head Post Offices',   short: 'HO' },
@@ -8502,7 +8732,6 @@ function renderOfficeNetwork(divName) {
   }).join('');
 }
 
-var BK_MONTH_LABEL = { 'Apr-26': 'April 2026', 'May-26': 'May 2026', 'Jun-26': 'June 2026', 'Jul-26': 'July 2026', 'Aug-26': 'August 2026', 'Cumulative': 'Apr–Aug 2026' };
 function renderOfficeFlags(divName) {
   const el = document.getElementById('bk-office-flags');
   const picked = pickOfficeFlagsScope(divName);
@@ -8613,7 +8842,7 @@ function renderTopOffices(selectedProduct) {
   const descEl = document.getElementById('bk-top-desc');
   if (!B || !topEl) return;
 
-  const periodLabel = (typeof BK_MONTH_LABEL !== 'undefined' && BK_MONTH_LABEL[CUR_BOOKING_MONTH]) || CUR_BOOKING_MONTH;
+  const periodLabel = getPeriodLabel();
   let list;
   if (selectedProduct) {
     list = (B.top_offices_by_product && B.top_offices_by_product[selectedProduct]) || [];
@@ -9540,8 +9769,8 @@ let SUBDIV_BOOKING = {};
     }
 
     // SUBDIV_BOOKING is keyed by month ('Apr-26'..'Cumulative') then division;
-    // follow the Booking tab's "View month" selection like the office flags do.
-    const monthSlice = SUBDIV_BOOKING[CUR_BOOKING_MONTH] || SUBDIV_BOOKING['Cumulative'] || {};
+    // follow the Period selector (partial ranges rebuilt client-side).
+    const monthSlice = getSubdivBookingSlice() || {};
     const divData = monthSlice[divName];
     if (!divData) {
       section.style.display = 'none';
