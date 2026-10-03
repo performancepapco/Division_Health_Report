@@ -3082,52 +3082,6 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 
 
 /* === BO LOOKUP STYLES === */
-.bolu-rtd-banner {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  margin-bottom: 14px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: var(--paper);
-  background: linear-gradient(120deg, var(--accent-deep), var(--accent), oklch(0.66 0.16 25), var(--accent-deep));
-  background-size: 300% 100%;
-  animation: bolu-rtd-shimmer 6s ease-in-out infinite;
-  box-shadow: 0 2px 10px oklch(0.52 0.13 50 / 0.35);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.bolu-rtd-banner:hover {
-  transform: translateY(-2px) scale(1.005);
-  box-shadow: 0 6px 20px oklch(0.52 0.13 50 / 0.45);
-}
-.bolu-rtd-banner:active {
-  transform: translateY(0) scale(0.99);
-  transition: transform 0.12s ease;
-}
-.bolu-rtd-badge {
-  flex-shrink: 0;
-  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  padding: 3px 9px; border-radius: 999px;
-  background: var(--paper); color: var(--accent-deep);
-  animation: bolu-rtd-pulse 1.8s ease-in-out infinite;
-}
-.bolu-rtd-icon { flex-shrink: 0; font-size: 18px; animation: bolu-rtd-wiggle 2.4s ease-in-out infinite; }
-.bolu-rtd-text { flex: 1; font-size: 14px; font-weight: 600; line-height: 1.3; }
-.bolu-rtd-text small {
-  display: block; margin-top: 1px;
-  font-family: var(--font-mono); font-size: 11px; font-weight: 400;
-  letter-spacing: 0.02em; opacity: 0.9;
-}
-.bolu-rtd-arrow { flex-shrink: 0; font-size: 16px; transition: transform 0.25s ease; }
-.bolu-rtd-banner:hover .bolu-rtd-arrow { transform: translate(3px, -3px); }
-
-@keyframes bolu-rtd-shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
 @keyframes bolu-rtd-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
@@ -3136,14 +3090,9 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
   0%, 100% { transform: scale(1) rotate(0deg); }
   50% { transform: scale(1.15) rotate(8deg); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .bolu-rtd-banner, .bolu-rtd-badge, .bolu-rtd-icon { animation: none; }
-}
 
-/* Mobile web view app banner — deliberately a distinct blue/teal gradient
-   (not the orange Real Time Dashboard one above) so the two "New" banners
-   read as two different things at a glance, not a duplicate. Office Lookup
-   tab only — this is the tool a BPM would actually reach for on a phone. */
+/* Mobile web view (GDS) app banner — blue/teal gradient. Shown on Overview
+   and Office Lookup; it replaced the old orange Real Time Dashboard banner. */
 .bolu-app-banner {
   position: relative;
   display: flex;
@@ -3838,13 +3787,13 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
       <div class="whats-new-copy">
         <a class="whats-new-item" href="#overview">Data updated upto <strong>31.08.2026</strong> — August 2026 figures are now live across all panels</a>
         <a class="whats-new-item" href="#circle-tools">New — <strong>Circle Tools</strong> tab added: quick links to the Bulk Parcel Monitoring dashboard &amp; the Delivery Performance Dashboard (MMU)</a>
-        <a class="whats-new-item" href="#circle-tools">Real time dashboard is now live &mdash; find it under <strong>Circle Tools</strong></a>
+        <a class="whats-new-item" href="https://app.ehealthcard.in/" target="_blank" rel="noopener">New GDS dashboard &mdash; <strong>e-Health Card Mobile Web View</strong> is live at app.ehealthcard.in</a>
         <!-- To add another announcement: add one more <a class="whats-new-item"> here... -->
       </div>
       <div class="whats-new-copy" aria-hidden="true">
         <a class="whats-new-item" href="#overview" tabindex="-1">Data updated upto <strong>31.08.2026</strong> — August 2026 figures are now live across all panels</a>
         <a class="whats-new-item" href="#circle-tools" tabindex="-1">New — <strong>Circle Tools</strong> tab added: quick links to the Bulk Parcel Monitoring dashboard &amp; the Delivery Performance Dashboard (MMU)</a>
-        <a class="whats-new-item" href="#circle-tools" tabindex="-1">Real time dashboard is now live &mdash; find it under <strong>Circle Tools</strong></a>
+        <a class="whats-new-item" href="https://app.ehealthcard.in/" target="_blank" rel="noopener" tabindex="-1">New GDS dashboard &mdash; <strong>e-Health Card Mobile Web View</strong> is live at app.ehealthcard.in</a>
         <!-- ...and an identical one here (the duplicate keeps the scroll seamless). -->
       </div>
     </div>
@@ -3865,11 +3814,11 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 <!-- ===== OVERVIEW TAB ===== -->
 <div id="tab-overview" class="tab-content active">
 
-  <a class="bolu-rtd-banner" href="https://offices.ehealthcard.in/" target="_blank" rel="noopener" style="margin-bottom:24px;">
-    <span class="bolu-rtd-badge">New</span>
-    <span class="bolu-rtd-icon" aria-hidden="true">🚀</span>
-    <span class="bolu-rtd-text">Real Time Dashboard is live<small>Live office &amp; performance tracking &mdash; tap to open</small></span>
-    <span class="bolu-rtd-arrow" aria-hidden="true">&#8599;</span>
+  <a class="bolu-app-banner" href="https://app.ehealthcard.in/" target="_blank" rel="noopener" style="margin-bottom:24px;">
+    <span class="bolu-app-badge">New</span>
+    <span class="bolu-app-icon" aria-hidden="true">📱</span>
+    <span class="bolu-app-text">e-Health Card Mobile Web View is live<small>Faster office lookup on the go &mdash; built for BPMs (<span class="bolu-app-url">app.ehealthcard.in</span>)</small></span>
+    <span class="bolu-app-cta">Click Here &rarr;</span>
   </a>
 
   <!-- AGGREGATE ONLY: Region split (Circle view) -->
