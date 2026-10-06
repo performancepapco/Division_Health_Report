@@ -35,6 +35,26 @@ def _swap_col_map(sheet_cfg: dict, header_row) -> dict:
     return out
 
 
+def _months_factor_matches(ws, header, month_iso: str) -> bool:
+    """Fallback month check for when the source forgets to update the
+    "...up to <Month>-<Year>" header text (September 2026's file still said
+    "Aug-2026" over September figures). Column D is
+    live accounts (col C) x rate x (months elapsed in FY) / 12, with the rate
+    printed in D's own header — so the months factor can be read back off
+    the data and compared with the declared month's position in the FY."""
+    rate_m = re.search(r"@\s*Rs\.?\s*([\d.]+)", str(header[3] or ""))
+    if not rate_m:
+        return False
+    rate = float(rate_m.group(1))
+    expected = (int(month_iso[5:7]) - 4) % 12 + 1   # Apr = 1 ... Mar = 12
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        live, rev = row[2], row[3]
+        if isinstance(live, (int, float)) and isinstance(rev, (int, float)) and live > 0:
+            months = rev * 12 / (live * rate)
+            return abs(months - expected) < 0.05
+    return False
+
+
 def _to_cr(v):
     return round((v or 0) / CR, 7)
 
@@ -61,7 +81,8 @@ def validate(section_cfg: dict, path, month_iso: str) -> list[ValidationError]:
         # Compare using the month abbreviation everyone else uses, tolerant of
         # the header spelling out the full month name.
         declared_abbr = iso_to_label(month_iso).split("-")[0]
-        if not full_month.startswith(declared_abbr) or year != declared_year:
+        if (not full_month.startswith(declared_abbr) or year != declared_year) \
+                and not _months_factor_matches(ws, header, month_iso):
             errors.append(ValidationError("ecr",
                 f"ECR file: header says 'up to {full_month}-{year}' but you declared "
                 f"{iso_to_label(month_iso)} in the Form — please upload the ECR file "

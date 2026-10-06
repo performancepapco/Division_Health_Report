@@ -157,15 +157,21 @@ sections:
       SWAP:
         header_row: 1
         required_headers:
+          # September 2026's file prefixed these with GL group numbers
+          # ("01-Salaries", "04-Pensions", ...) — accept both spellings.
           - name: "Salaries"
+            alternates: ["01-Salaries"]
           - name: "Wages"
+            alternates: ["02-Wages"]
           - name: "Allowances"
+            alternates: ["07-Allowances"]
           - name: "Pension"
+            alternates: ["04-Pensions", "04-Pension", "Pensions"]
           - name: "Plan Expnditure "
           - name: "Total expenditure"
-          # Source system has spelled this two different ways across months.
+          # Source system has spelled this several different ways across months.
           - name: "Others"
-            alternates: ["Others than swap", "Others than SWAP"]
+            alternates: ["Others than swap", "Others than SWAP", "Other than SWAP", "Other than swap"]
 
   posb:
     label: "POSB — Accounts Opened/Closed"
