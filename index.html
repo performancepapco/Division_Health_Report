@@ -1324,6 +1324,7 @@ table.heatmap-table tbody tr:nth-child(even) td { background-color: oklch(0.96 0
 table.heatmap-table tbody tr:hover td { box-shadow: var(--shadow-row); position: relative; z-index: 2; }
 table.heatmap-table td.hm-cell { cursor: default; font-weight: 500; }
 table.heatmap-table td.hm-rank,
+table.heatmap-table td.hm-cell.hm-na { background: var(--surface-2, oklch(0.94 0.006 82)); color: var(--ink-soft); text-align: center; }
 table.heatmap-table td.hm-division {
   text-align: left;
   font-family: var(--font-sans);
@@ -3753,7 +3754,7 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
     </select>
   </div>
   <div class="picker-cell meta-cell">
-    <div class="meta-label">Achievement Rank</div>
+    <div class="meta-label" id="rank-title">Achievement Rank</div>
     <div class="rank-cell">
       <strong id="rank-display">—</strong>
       <div class="rank-sub" id="rank-label">of 33</div>
@@ -3933,12 +3934,12 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
   <div class="two-col">
     <div class="card-box" style="border-top: 3px solid var(--green);">
       <h4 style="color: var(--green);">↗ Strengths</h4>
-      <div class="card-sub">Verticals on or above target</div>
+      <div class="card-sub">Verticals at or above 90% of pro-rata (green)</div>
       <ul id="ov-strengths" style="font-size: 16.5px; padding-left: 20px; line-height: 1.7;"></ul>
     </div>
     <div class="card-box" style="border-top: 3px solid var(--red);">
       <h4 style="color: var(--red);">↘ Concerns</h4>
-      <div class="card-sub">Verticals below 60% of pro-rata</div>
+      <div class="card-sub">Verticals below 90% of pro-rata (amber &amp; red)</div>
       <ul id="ov-concerns" style="font-size: 16.5px; padding-left: 20px; line-height: 1.7;"></ul>
     </div>
   </div>
@@ -4069,7 +4070,7 @@ actual_revenue   = sum of actual revenue earned in the selected period
 
     <div class="section-head" style="margin-top: 32px;">
       <h2>Detail by vertical</h2>
-      <span class="desc">Target · YTD · achievement · YoY where available</span>
+      <span class="desc">Target · pro-rata target · achievement</span>
     </div>
     <table class="brief" id="vert-table"></table>
   </div>
@@ -5989,6 +5990,7 @@ function renderDivision(divName) {
 
   if (d.isAggregate) {
     const visibleCount = d.aggMembers.filter(n => !DATA[n].isOffice).length;
+    document.getElementById('rank-title').textContent = 'Units in View';
     document.getElementById('rank-display').innerHTML = String(visibleCount);
     document.getElementById('rank-label').textContent = aggType === 'circle' ? 'DIVISIONS & RMS UNITS' : 'UNITS IN REGION';
     document.getElementById('ov-title').textContent = `${aggLabel} \u2014 consolidated position`;
@@ -5996,6 +5998,7 @@ function renderDivision(divName) {
     document.getElementById('div-target-summary').style.display = 'none';
     renderAggregateOnly(d, members, aggType);
   } else {
+    document.getElementById('rank-title').textContent = 'Achievement Rank';
     document.getElementById('rank-display').textContent = '#' + d.rank;
     document.getElementById('rank-label').textContent = `of 33 in Circle  \u2022  #${d.rank_in_region} of ${d.region_size} in ${REG_ABBR[d.region] || d.region}`;
     document.getElementById('ov-title').textContent = 'Headline position';
@@ -6045,7 +6048,7 @@ function renderDivisionTargetSummary(d) {
     <div class="kpi feature">
       <div>
         <div class="kpi-label">% Prop. Ach.</div>
-        <div class="kpi-value"><span class="hl-pct">${Math.ceil(pctProp)}</span><span class="unit">%</span></div>
+        <div class="kpi-value"><span class="hl-pct">${fmt(pctProp,1)}</span><span class="unit">%</span></div>
       </div>
     </div>
     <div class="kpi">
@@ -6124,13 +6127,13 @@ function renderAggregateOnly(d, members, aggType) {
     <div class="dist-card green">
       <div class="d-label">Above average</div>
       <div class="d-count">${aboveAvg.length}</div>
-      <div class="d-sub">divisions \u2265 ${fmt(avgComposite,1)}% avg % Prop. Ach.</div>
+      <div class="d-sub">divisions \u2265 ${fmt(avgComposite,1)}% (simple average of units)</div>
       <div class="d-list">${fmtList(aboveAvg)}</div>
     </div>
     <div class="dist-card red">
       <div class="d-label">Below average</div>
       <div class="d-count">${belowAvg.length}</div>
-      <div class="d-sub">divisions &lt; ${fmt(avgComposite,1)}% avg % Prop. Ach.</div>
+      <div class="d-sub">divisions &lt; ${fmt(avgComposite,1)}% (simple average of units)</div>
       <div class="d-list">${fmtList(belowAvg)}</div>
     </div>`;
 
@@ -6162,7 +6165,7 @@ function renderAggregateOnly(d, members, aggType) {
       <div class="kpi feature">
         <div>
           <div class="kpi-label">% Prop. Ach.</div>
-          <div class="kpi-value"><span class="hl-pct">${Math.ceil(pctProp)}</span><span class="unit">%</span></div>
+          <div class="kpi-value"><span class="hl-pct">${fmt(pctProp,1)}</span><span class="unit">%</span></div>
         </div>
       </div>
       <div class="kpi">
@@ -6349,7 +6352,7 @@ function hmAggregateCircleRow(rows) {
   const pension   = rows.reduce((a, r) => a + (r.pension || 0), 0);
   const revenue   = actuals.Total || 0;
   return {
-    name: 'AP Circle', region: null,
+    name: `Total of ${rows.length} units`, region: null,
     targets, actuals, pro_rata, total_exp, pension,
     ecr_with:    total_exp > 0          ? revenue / total_exp * 100         : 0,
     ecr_without: (total_exp - pension) > 0 ? revenue / (total_exp - pension) * 100 : 0,
@@ -6496,7 +6499,8 @@ function hmBuildRow(r, extents, isCircle) {
   const tdDiv = document.createElement('td');
   tdDiv.className = 'hm-division';
   if (isCircle) {
-    tdDiv.textContent = 'AP Circle (Total)';
+    tdDiv.textContent = r.name;
+    tdDiv.title = 'Sum of the units listed above only. Circle-wide totals on the cards above also include Circle Office, Regional Offices, AP GM (Finance) and PSD.';
   } else {
     tdDiv.textContent = r.name;
     if (r.region) {
@@ -6513,7 +6517,13 @@ function hmBuildRow(r, extents, isCircle) {
     const pct = hmPct(r, v.key);
     const td = document.createElement('td');
     td.className = 'hm-cell';
-    if (!isCircle) {
+    const noTarget = !((r.pro_rata && r.pro_rata[v.key]) > 0);
+    if (!isCircle && noTarget && HM_STATE.mode === 'pct') {
+      // e.g. RMS units carry no POSB / PLI target: show "—", not a red 0%.
+      td.textContent = '—';
+      td.classList.add('hm-na');
+      td.setAttribute('data-tip', 'No target set for this unit in this vertical');
+    } else if (!isCircle) {
       let color;
       if (HM_STATE.mode === 'pct') {
         color = hmDivergingColor(pct);
@@ -6946,7 +6956,10 @@ function renderOverview(d) {
   const cs = d.composite_score;
   if (isCircle) {
     document.getElementById('ov-composite-label').textContent = `% Prop. Ach. ${getPeriodPhrase()}`;
-    document.getElementById('ov-composite').innerHTML = `<span class="hl-pct">${Math.ceil(cs)}</span><span class="unit">%</span>`;
+    // Same basis as the KPI row above (circle revenue / pro-rata target), so
+    // the two headline figures always agree.
+    const csCircle = d.pro_rata.Total > 0 ? d.actuals.Total / d.pro_rata.Total * 100 : cs;
+    document.getElementById('ov-composite').innerHTML = `<span class="hl-pct">${fmt(csCircle,1)}</span><span class="unit">%</span>`;
     document.getElementById('ov-composite-sub').innerHTML =
       `Target: ₹${fmt(d.targets.Total,2)} Cr<br>Prop. Target: ₹${fmt(d.pro_rata.Total,2)} Cr`;
   } else {
@@ -7045,20 +7058,20 @@ function renderOverview(d) {
   concernsList.innerHTML = '';
   const verticalsScored = verticals.map(v => ({v, pct: d.attainments[v] || 0}));
   verticalsScored.sort((a,b) => b.pct - a.pct);
-  verticalsScored.slice(0,3).forEach(item => {
-    if (item.pct >= 80) {
-      strengthsList.innerHTML += `<li><strong>${aliases[item.v]}</strong> at ${fmt(item.pct,1)}% of pro-rata target</li>`;
-    }
+  // Same thresholds as the traffic lights (statusClass): green >= 90 is a
+  // strength; amber 60-89 is "watch closely"; red < 60 is a concern.
+  verticalsScored.filter(item => item.pct >= 90).forEach(item => {
+    strengthsList.innerHTML += `<li><strong>${aliases[item.v]}</strong> at ${fmt(item.pct,1)}% of pro-rata target</li>`;
   });
-  verticalsScored.slice(-3).reverse().forEach(item => {
+  verticalsScored.filter(item => item.pct < 90).reverse().forEach(item => {
     if (item.pct < 60) {
       concernsList.innerHTML += `<li><strong>${aliases[item.v]}</strong> at only ${fmt(item.pct,1)}% of pro-rata target</li>`;
-    } else if (item.pct < 80) {
+    } else {
       concernsList.innerHTML += `<li><strong>${aliases[item.v]}</strong> at ${fmt(item.pct,1)}% — watch closely</li>`;
     }
   });
-  if (strengthsList.innerHTML === '') strengthsList.innerHTML = '<li style="font-style:italic;">No verticals above 80% of target yet — early in FY</li>';
-  if (concernsList.innerHTML === '') concernsList.innerHTML = '<li style="font-style:italic;">No verticals below target threshold this month</li>';
+  if (strengthsList.innerHTML === '') strengthsList.innerHTML = '<li style="font-style:italic;">No verticals at 90% of pro-rata yet</li>';
+  if (concernsList.innerHTML === '') concernsList.innerHTML = '<li style="font-style:italic;">All verticals at or above 90% of pro-rata</li>';
 }
 
 // ============ VERTICAL DETAIL BANDS (Phase 3) ============
@@ -7882,7 +7895,7 @@ function ovBuildSparkline() {
     '<div class="ov-spark-chart">' + vbBuildLineChartSvg(monthly, { sparkline: true, tooltipFn: ovSparklineTooltip }) + '</div>' +
     '<div class="ov-spark-figure">' +
       '<span class="ov-spark-value ' + statusClass(last.pct_prorata) + '">' + fmt(last.pct_prorata, 1) + '%</span>' +
-      '<span class="ov-spark-label">of pro-rata &middot; ' + vbMonthLabel(last.month) + '</span>' +
+      '<span class="ov-spark-label">of pro-rata (six verticals) &middot; ' + vbMonthLabel(last.month) + '</span>' +
     '</div>' +
   '</div>';
 }
@@ -8109,7 +8122,7 @@ function renderVerticals(d) {
       </a>`;
   });
   
-  document.getElementById('vert-caveat').innerHTML = '<strong>Reading note —</strong> Pro-rata target = ' + getPeriodMonths() + '/12 of annual (' + getPeriodLabel() + '). Booking-side verticals (MO/Parcel/IRGB) typically lag early in the FY because previous-month BNPL bills haven\'t flowed in. POSB is front-loaded: silent + certificate revenue lands at the start of the year rather than being spread. PLI/RPLI shown here is eLekha-realised; underlying premium achievement is in the next tab.';
+  document.getElementById('vert-caveat').innerHTML = '<strong>Reading note —</strong> Pro-rata target = ' + getPeriodMonths() + '/12 of annual (' + getPeriodLabel() + '). Booking-side verticals (MO/Parcel/IRGB) typically lag early in the FY because previous-month BNPL bills haven\'t flowed in. POSB is front-loaded: silent + certificate revenue lands at the start of the year rather than being spread. PLI/RPLI shown here is eLekha-realised; underlying premium achievement is in the PLI/RPLI view (tab above).';
   
   document.getElementById('vert-table').innerHTML = buildVertTableHTML(d);
 }
@@ -8135,7 +8148,7 @@ function buildVertTableHTML(d) {
     const pctOfYear = tgt > 0 ? ach/tgt*100 : 0;
     html += `<tr><td>${v}</td><td>${fmt(tgt,2)}</td><td>${fmt(pro,2)}</td><td>${fmt(ach,2)}</td><td>${fmt(pctOfPace,1)}%</td><td>${fmt(pctOfYear,2)}%</td></tr>`;
   });
-  html += `<tr class="total"><td>Total</td><td>${fmt(d.targets.Total,2)}</td><td>${fmt(d.pro_rata.Total,2)}</td><td>${fmt(d.actuals.Total,2)}</td><td>—</td><td>${fmt(d.actuals.Total/d.targets.Total*100,2)}%</td></tr></tbody>`;
+  html += `<tr class="total"><td>Total</td><td>${fmt(d.targets.Total,2)}</td><td>${fmt(d.pro_rata.Total,2)}</td><td>${fmt(d.actuals.Total,2)}</td><td>${d.pro_rata.Total > 0 ? fmt(d.actuals.Total/d.pro_rata.Total*100,1) + '%' : '—'}</td><td>${fmt(d.actuals.Total/d.targets.Total*100,2)}%</td></tr></tbody>`;
   return html;
 }
 
@@ -8577,6 +8590,12 @@ function renderBooking(d, divName) {
   const speedShare = top1.business / totalRs * 100;
   const internationalArts = B.products.filter(p => /International/i.test(p.name)).reduce((a,p)=>a+p.articles, 0);
   const internationalRs = B.products.filter(p => /International/i.test(p.name)).reduce((a,p)=>a+p.business, 0);
+  // BNPL bills land as eLekha revenue 30-45 days after booking, so the lift
+  // shows up in the one or two months after the selected period ends.
+  const _MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const _endIdx = _MON.indexOf(_periodPair()[1].slice(0,3));
+  const _lift1 = _MON[(_endIdx + 1) % 12], _lift2 = _MON[(_endIdx + 2) % 12];
+  const irgbPct = d && d.attainments ? d.attainments['IR & GB'] : null;
   const insightsEl = document.getElementById('bk-insights');
   insightsEl.innerHTML = `
     <div class="insight">
@@ -8589,7 +8608,7 @@ function renderBooking(d, divName) {
     </div>
     <div class="insight amber">
       <div class="ins-label">Channel mix</div>
-      <div class="ins-body">Walk-in volume <strong>${(wiPct).toFixed(0)}%</strong> vs BNPL bulk <strong>${(bnplPct).toFixed(0)}%</strong>. BNPL bookings tend to land as eLekha revenue 30\u201345 days later \u2014 expect a <em>May/June revenue lift</em> from the ${fmtInt(cm.bulk_bnpl)} bulk articles already booked.</div>
+      <div class="ins-body">Walk-in volume <strong>${(wiPct).toFixed(0)}%</strong> vs BNPL bulk <strong>${(bnplPct).toFixed(0)}%</strong>. BNPL bookings tend to land as eLekha revenue 30\u201345 days later \u2014 expect a <em>${_lift1}/${_lift2} revenue lift</em> from the ${fmtInt(cm.bulk_bnpl)} bulk articles already booked.</div>
     </div>
     <div class="insight">
       <div class="ins-label">Daily rhythm</div>
@@ -8597,11 +8616,11 @@ function renderBooking(d, divName) {
     </div>
     <div class="insight red">
       <div class="ins-label">International thin</div>
-      <div class="ins-body">All <strong>international products combined</strong> contribute only ${fmtInt(internationalArts)} articles and \u20b9${fmt(internationalRs/1e5,2)} L \u2014 <em>${(internationalRs/totalRs*100).toFixed(2)}%</em> of revenue. IRGB pace is 19% circle-wide; activating international counters at top HOs is the single highest-leverage move this quarter.</div>
+      <div class="ins-body">All <strong>international products combined</strong> contribute only ${fmtInt(internationalArts)} articles and \u20b9${fmt(internationalRs/1e5,2)} L \u2014 <em>${(internationalRs/totalRs*100).toFixed(2)}%</em> of revenue.${irgbPct != null ? ` IRGB is at ${fmt(irgbPct,1)}% of pro-rata target.` : ''} Activating international counters at top HOs is the single highest-leverage move this quarter.</div>
     </div>
     <div class="insight">
       <div class="ins-label">Long tail</div>
-      <div class="ins-body"><strong>${fmtInt(T.active_offices)}</strong> offices booked at least once in the window. The bottom 80% of offices contribute roughly <em>${(100-top10OffShare).toFixed(0)}%</em> of revenue \u2014 cross-sell parcel &amp; international at mid-tier S.O.s is the volume-growth lever.</div>
+      <div class="ins-body"><strong>${fmtInt(T.active_offices)}</strong> offices booked at least once in the window. Outside the top 10, the remaining offices contribute <em>${(100-top10OffShare).toFixed(0)}%</em> of revenue \u2014 cross-sell parcel &amp; international at mid-tier S.O.s is the volume-growth lever.</div>
     </div>`;
 }
 
@@ -9318,8 +9337,15 @@ function renderCost(d, divName) {
   });
   html += `<tr class="total"><td>Total Expenditure</td><td>${fmt(total,2)}</td><td>100.00%</td><td style="font-size:10.5px;">SWAP: ${fmt((total-s.Plan-s.Other)/total*100,1)}%</td></tr></tbody></table>`;
   
+  // The SWAP sheet's component total and the ECR sheet's "Exp. for ECR
+  // calculation" come from different sheets of the same file and can differ
+  // slightly; say so instead of leaving two unexplained totals on the page.
+  const ecrBasisExp = _isCircle ? CIRCLE_FULL.total_exp : (d.total_exp || 0);
+  if (ecrBasisExp > 0 && Math.abs(total - ecrBasisExp) >= 0.01) {
+    html += `<div class="caveat" style="margin-bottom:8px;"><strong>Note —</strong> This breakdown totals ₹${fmt(total,2)} Cr (SWAP sheet). ECR is calculated on ₹${fmt(ecrBasisExp,2)} Cr (ECR sheet, "Exp. for ECR calculation"), a difference of ₹${fmt(Math.abs(total - ecrBasisExp),2)} Cr in the source file.</div>`;
+  }
   const controllable = s.Other;
-  html += `<div class="caveat"><strong>Structural truth —</strong> ${fmt((total-s.Plan-s.Other)/total*100,1)}% of this division's monthly expenditure is fixed people-cost. Only ₹${fmt(controllable,2)} Cr (${fmt(controllable/total*100,2)}%) is operationally controllable. Revenue-side levers (cross-sell, BNPL activation, IRGB push) yield ~10× the ECR impact of cost reduction at this scale.</div>`;
+  html += `<div class="caveat"><strong>Structural truth —</strong> ${fmt((total-s.Plan-s.Other)/total*100,1)}% of ${CUR_DIV_NAME === '__CIRCLE__' ? "the circle's" : CUR_DIV_NAME.startsWith('__REGION__') ? "the region's" : "this division's"} expenditure is fixed people-cost. Only ₹${fmt(controllable,2)} Cr (${fmt(controllable/total*100,2)}%) is operationally controllable. Revenue-side levers (cross-sell, BNPL activation, IRGB push) move ECR far more than cost cuts can at this scale.</div>`;
   el.innerHTML = html;
   
   // ECR compare
@@ -9566,7 +9592,7 @@ function renderEcrDivChart(divName) {
       </div>
       ${svg}
       <div class="ecr-chart-caption">
-        Circle averages shown as dashed horizontal lines &middot;
+        Simple averages of the units shown as dashed horizontal lines &middot;
         Without pension: ${fmt(meanWo, 2)}% &middot; With pension: ${fmt(meanW, 2)}% &middot;
         n = ${rows.length} units
       </div>
