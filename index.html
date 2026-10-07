@@ -6014,6 +6014,7 @@ function renderDivision(divName) {
   renderPLITab(d, divName);
   renderRPLITab(d, divName);
   renderCost(d, divName);
+  if (typeof ovRefreshTrend === 'function') ovRefreshTrend();
 }
 
 // Division-view equivalent of the Circle's agg-circle-summary KPI row.
@@ -7851,22 +7852,43 @@ function ovToggleAttention() {
   if (el) el.innerHTML = ovBuildAttentionStrip();
 }
 
-// Sums pro-rata target + achievement across all 6 verticals per month (matched
-// by month string, not array index, in case a vertical's monthly array ever
-// has a gap) to get a circle-wide "overall achievement %" trend — this figure
-// doesn't exist pre-computed anywhere in trends.json, since the pipeline only
-// emits it per-vertical.
-function ovCircleTotalMonthly() {
-  var verticals = (TRENDS_DATA.circle && TRENDS_DATA.circle.verticals) || {};
-  var months = (TRENDS_DATA.meta && TRENDS_DATA.meta.months) || [];
-  return months.map(function(month) {
+// The trend for whatever the top dropdown has selected (circle, region or
+// division), built from DATA_BY_MONTH — the same cumulative-to-date
+// snapshots, member set and Total revenue / pro-rata target formula the
+// Overview cards use — so the latest point always equals the headline
+// "% Prop. Ach." (and, for a region, its card in the Circle view's
+// regional split). (It used to sum TRENDS_DATA's six circle verticals,
+// which left out "other" revenue and ignored the dropdown.)
+function ovScopeMembers(snapshot) {
+  if (CUR_DIV_NAME === '__CIRCLE__') return Object.keys(snapshot);
+  if (CUR_DIV_NAME.startsWith('__REGION__')) {
+    var reg = CUR_DIV_NAME.replace('__REGION__', '');
+    return Object.keys(snapshot).filter(function(k) { return snapshot[k] && snapshot[k].region === reg; });
+  }
+  return snapshot[CUR_DIV_NAME] ? [CUR_DIV_NAME] : [];
+}
+
+function ovScopeTotalMonthly() {
+  var lastIdx = MONTH_ORDER.indexOf((document.getElementById('month-to') || {}).value);
+  return MONTH_ORDER.filter(function(m, i) {
+    return DATA_BY_MONTH[m] && Object.keys(DATA_BY_MONTH[m]).length && (lastIdx < 0 || i <= lastIdx);
+  }).map(function(month) {
+    var snap = DATA_BY_MONTH[month], monthsElapsed = MONTH_ORDER.indexOf(month) + 1;
     var target = 0, achievement = 0;
-    Object.keys(verticals).forEach(function(k) {
-      var m = (verticals[k].monthly || []).find(function(x) { return x.month === month; });
-      if (m) { target += m.prorata_target || 0; achievement += m.achievement || 0; }
+    ovScopeMembers(snap).forEach(function(k) {
+      var d = snap[k];
+      if (!d || d.isAggregate) return;
+      target += PRORATION_CONFIG.compute((d.targets || {}).Total, monthsElapsed);
+      achievement += (d.actuals || {}).Total || 0;
     });
-    return { month: month, prorata_target: target, achievement: achievement, pct_prorata: target > 0 ? (achievement / target * 100) : 0 };
+    return { month: VB_MONTH_ISO[month] || month, prorata_target: target, achievement: achievement, pct_prorata: target > 0 ? (achievement / target * 100) : 0 };
   });
+}
+
+function ovScopeLabel() {
+  if (CUR_DIV_NAME === '__CIRCLE__') return 'Circle';
+  if (CUR_DIV_NAME.startsWith('__REGION__')) return CUR_DIV_NAME.replace('__REGION__', '') + ' Region';
+  return CUR_DIV_NAME;
 }
 
 // Hover text for each Circle MoM trend point: the month's Prop. Target and
@@ -7888,14 +7910,14 @@ function ovSparklineTooltip(m, i, monthly) {
 }
 
 function ovBuildSparkline() {
-  var monthly = ovCircleTotalMonthly();
+  var monthly = ovScopeTotalMonthly();
   if (!monthly.length) return '<div class="placeholder">No trend data</div>';
   var last = monthly[monthly.length - 1];
   return '<div class="ov-spark-row">' +
     '<div class="ov-spark-chart">' + vbBuildLineChartSvg(monthly, { sparkline: true, tooltipFn: ovSparklineTooltip }) + '</div>' +
     '<div class="ov-spark-figure">' +
       '<span class="ov-spark-value ' + statusClass(last.pct_prorata) + '">' + fmt(last.pct_prorata, 1) + '%</span>' +
-      '<span class="ov-spark-label">of pro-rata (six verticals) &middot; ' + vbMonthLabel(last.month) + '</span>' +
+      '<span class="ov-spark-label">of pro-rata (cumulative) &middot; ' + vbMonthLabel(last.month) + '</span>' +
     '</div>' +
   '</div>';
 }
@@ -7909,11 +7931,20 @@ function renderOverviewAttentionSection() {
       '<span class="desc">Divisions below circle average, most persistent first<br>Tap a card to jump into Sub-Division Drilldown</span>' +
     '</div>' +
     '<div id="ov-attention-strip-wrap">' + ovBuildAttentionStrip() + '</div>' +
-    '<div class="section-head" style="margin-top:24px;">' +
-      '<h2>Circle MoM trend</h2>' +
-      '<span class="desc">Overall achievement as % of pro-rata, across available months</span>' +
+    '<div id="ov-trend-wrap">' + ovBuildTrendSection() + '</div>';
+}
+
+function ovBuildTrendSection() {
+  return '<div class="section-head" style="margin-top:24px;">' +
+      '<h2>' + ovScopeLabel() + ' MoM trend</h2>' +
+      '<span class="desc">Total revenue as % of pro-rata target, cumulative to each month</span>' +
     '</div>' +
     ovBuildSparkline();
+}
+
+function ovRefreshTrend() {
+  var el = document.getElementById('ov-trend-wrap');
+  if (el) el.innerHTML = ovBuildTrendSection();
 }
 
 // ============ MY DIVISION (Phase 3 step 5) ============
