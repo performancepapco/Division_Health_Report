@@ -3673,6 +3673,14 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
   font: 600 16px/1.2 system-ui, sans-serif; cursor: pointer;
 }
 .greet-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+/* On desktop 640px looks lost on a wide screen: fill ~90% of the window,
+   but cap the width by the height too (16:9 image + 12px gap + 56px
+   button inside 90vh) so the button never falls below the fold on
+   short, wide screens. Phones keep the 16px-margin layout above. */
+@media (min-width: 768px) {
+  .greet-box { max-width: min(90vw, calc((90vh - 68px) * 16 / 9)); }
+  .greet-btn { min-height: 56px; font-size: 19px; }
+}
 </style>
 <div id="greet-overlay" class="greet-overlay" role="dialog" aria-modal="true" aria-label="Greeting" hidden>
   <div class="greet-box">
