@@ -110,6 +110,10 @@ jobs:
           cp data/office_status_offices.json dist/data/
           cp data/booking_offices.json dist/data/
           cp data/bo_lookup_month_*.json dist/data/
+          # Site images (e.g. the occasion greeting banner) — hand-picked
+          # files only, same as data/ above.
+          mkdir -p dist/assets
+          cp assets/*.jpg dist/assets/
 
       - name: Deploy to staging
         if: success()

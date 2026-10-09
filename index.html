@@ -3644,6 +3644,88 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 </style>
 </head>
 <body>
+<!-- ===== OCCASION GREETING BANNER ===== -->
+<!-- Full-screen greeting shown on EVERY load (deliberately no localStorage /
+     cookie memory — unlike the update notice below, a greeting is meant to
+     be seen each visit) but only inside GREETING's date window, so it
+     switches itself off with no deploy. For the next occasion, swap the
+     constant's dates/image/alt and drop the new image into assets/. -->
+<style>
+.greet-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(10,18,40,.88);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.greet-overlay[hidden] { display: none; }
+.greet-box { width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 12px; }
+.greet-box img {
+  display: block; width: 100%; height: auto;
+  /* Landscape phones are short: keep the button on screen rather than
+     letting the image push it below the fold. */
+  max-height: calc(100vh - 32px - 60px); object-fit: contain;
+  border: 1px solid #C9A227; border-radius: 12px;
+}
+.greet-btn {
+  width: 100%; min-height: 48px;
+  background: #C9A227; color: #1B1A2E;
+  border: 0; border-radius: 10px;
+  font: 600 16px/1.2 system-ui, sans-serif; cursor: pointer;
+}
+.greet-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+</style>
+<div id="greet-overlay" class="greet-overlay" role="dialog" aria-modal="true" aria-label="Greeting" hidden>
+  <div class="greet-box">
+    <img id="greet-img" alt="" width="1280" height="720">
+    <button type="button" class="greet-btn" id="greet-btn">Continue to dashboard</button>
+  </div>
+</div>
+<script>
+// One place to change for the next occasion. Dates are inclusive, in IST.
+var GREETING = {
+  start: '2026-10-09',
+  end:   '2026-10-15',
+  image: 'assets/world-post-day-2026.jpg',
+  alt:   'World Post Day, 9 October 2026 - greetings from the Chief Postmaster General, Andhra Pradesh Circle'
+};
+(function() {
+  var waiting = [];
+  var open = false;
+  // Other popups (the monthly update notice) queue behind the greeting
+  // instead of stacking on top of it.
+  window.afterGreeting = function(fn) { if (open) waiting.push(fn); else fn(); };
+
+  // India's calendar date regardless of the phone's own time zone setting.
+  var today = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
+  if (today < GREETING.start || today > GREETING.end) return;
+
+  var overlay = document.getElementById('greet-overlay');
+  var img = document.getElementById('greet-img');
+  var btn = document.getElementById('greet-btn');
+  // src is set only inside the window so the image isn't downloaded on
+  // every other day of the year.
+  img.src = GREETING.image;
+  img.alt = GREETING.alt;
+  overlay.hidden = false;
+  open = true;
+  var prevOverflow = document.documentElement.style.overflow;
+  document.documentElement.style.overflow = 'hidden';
+  btn.focus();
+
+  function close() {
+    overlay.hidden = true;
+    open = false;
+    document.documentElement.style.overflow = prevOverflow;
+    document.removeEventListener('keydown', onKey);
+    waiting.splice(0).forEach(function(fn) { fn(); });
+  }
+  function onKey(e) { if (e.key === 'Escape') close(); }
+  btn.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+})();
+</script>
+<!-- ===== END OCCASION GREETING BANNER ===== -->
+
 <!-- ===== DATA UPDATE NOTICE ===== -->
 <!-- Shown once per new month's data refresh, gated by localStorage (bump
      UPDATE_VALUE below whenever a new month goes live) — NOT unconditionally
@@ -3678,8 +3760,10 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
     return; // localStorage unavailable — don't risk showing on every load
   }
   document.addEventListener('DOMContentLoaded', function() {
-    var m = document.getElementById('update-notice-modal');
-    if (m) m.style.display = 'flex';
+    window.afterGreeting(function() {
+      var m = document.getElementById('update-notice-modal');
+      if (m) m.style.display = 'flex';
+    });
   });
 })();
 </script>
