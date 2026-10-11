@@ -4960,7 +4960,21 @@ function getViewData() {
   const toIdx   = MONTH_ORDER.indexOf(to);
   if (from === to) return deriveMonthSnapshot(to);
   const numMonths = Math.max(1, toIdx - fromIdx + 1);
-  return applyProRata(DATA_BY_MONTH[to] || DATA_BY_MONTH[from] || {}, numMonths);
+  // DATA_BY_MONTH holds cumulative Apr-to-month snapshots, so a window
+  // like Jul–Sep is Sep's cumulative minus Jun's — otherwise it showed
+  // Apr–Sep revenue/expenditure against only 3 months of pro-rata target.
+  const before = fromIdx > 0 ? DATA_BY_MONTH[MONTH_ORDER[fromIdx - 1]] : null;
+  const cur = DATA_BY_MONTH[to];
+  if (cur && before) {
+    const out = {};
+    Object.keys(cur).forEach(function(divName) {
+      const c = cur[divName];
+      if (!c || c.isAggregate) { out[divName] = c; return; }
+      out[divName] = subtractDivSnapshot(c, before[divName], numMonths);
+    });
+    return out;
+  }
+  return applyProRata(cur || DATA_BY_MONTH[from] || {}, numMonths);
 }
 
 function applyProRata(snapshot, numMonths) {
@@ -4998,11 +5012,12 @@ function deriveMonthSnapshot(month) {
   return out;
 }
 
-function subtractDivSnapshot(c, p) {
+function subtractDivSnapshot(c, p, numMonths) {
+  numMonths = numMonths || 1;
   const act  = subObj(c.actuals,  p ? p.actuals  : null);
   const sw   = subObj(c.swap,     p ? p.swap     : null);
   const tgt  = c.targets;
-  const pr   = calcProRata(tgt, 1);
+  const pr   = calcProRata(tgt, numMonths);
   const exp  = (c.total_exp || 0) - (p ? (p.total_exp || 0) : 0);
   const pen  = sw ? (sw.Pension || 0) : 0;
   var pli  = c.pli;
@@ -5010,7 +5025,7 @@ function subtractDivSnapshot(c, p) {
     pli = Object.assign({}, c.pli, {
       tbp_ach: (c.pli.tbp_ach || 0) - (p.pli.tbp_ach || 0),
       nbp_ach: (c.pli.nbp_ach || 0) - (p.pli.nbp_ach || 0),
-      tbp_pro: (c.pli.tbp_target || 0) / 12
+      tbp_pro: (c.pli.tbp_target || 0) * numMonths / 12
     });
   }
   var rpli = c.rpli;
@@ -5018,7 +5033,7 @@ function subtractDivSnapshot(c, p) {
     rpli = Object.assign({}, c.rpli, {
       tbp_ach: (c.rpli.tbp_ach || 0) - (p.rpli.tbp_ach || 0),
       nbp_ach: (c.rpli.nbp_ach || 0) - (p.rpli.nbp_ach || 0),
-      tbp_pro: (c.rpli.tbp_target || 0) / 12
+      tbp_pro: (c.rpli.tbp_target || 0) * numMonths / 12
     });
   }
   var bk = c.booking;
@@ -7066,15 +7081,17 @@ function renderOverview(d) {
     document.getElementById('ov-composite-sub').innerHTML = csNote;
   }
   
-  // For AP Circle view, swap in entire-circle figures (includes AP GM, AP Circle HQ,
-  // 3 Regions, PSD Vijayawada). For divisions, keep the existing per-division values.
   const isAggCircle = !!d.isAggregate && d.aggLabel === 'AP Circle';
-  const displayRev = isAggCircle ? CIRCLE_FULL.actuals.Total       : d.actuals.Total;
-  const displayExp = isAggCircle ? CIRCLE_FULL.total_exp           : (d.total_exp || 0);
-  const displayPen = isAggCircle ? CIRCLE_FULL.swap.Pension        : ((d.swap && d.swap.Pension) || 0);
-  const displaySwap= isAggCircle ? CIRCLE_FULL.swap                : (d.swap || {});
-  const displayEcrW  = isAggCircle ? CIRCLE_FULL.ecr_with_pension    : d.ecr_with_pension;
-  const displayEcrWo = isAggCircle ? CIRCLE_FULL.ecr_without_pension : d.ecr_without_pension;
+  // The circle aggregate already includes the entire-circle office rows (AP GM,
+  // AP Circle HQ, 3 Regions, PSD Vijayawada — DATA_BY_MONTH's OFFICE_ENTRIES)
+  // and, unlike CIRCLE_FULL — one latest-month constant — follows the Period
+  // selector, so the same values serve every scope.
+  const displayRev = d.actuals.Total;
+  const displayExp = d.total_exp || 0;
+  const displayPen = (d.swap && d.swap.Pension) || 0;
+  const displaySwap= d.swap || {};
+  const displayEcrW  = d.ecr_with_pension;
+  const displayEcrWo = d.ecr_without_pension;
 
   // Revenue
   document.getElementById('ov-revenue').innerHTML = '₹' + fmt(displayRev, 2) + '<span class="unit"> Cr</span>';
@@ -9443,7 +9460,7 @@ function renderCost(d, divName) {
   }
   // AP Circle view uses entire-circle SWAP / totals; divisions use their own
   const _isCircle = !!d.isAggregate && d.aggLabel === 'AP Circle';
-  const s = _isCircle ? CIRCLE_FULL.swap : d.swap;
+  const s = d.swap;
   const items = [
     ['Allowances', s.Allowances, 'Fixed by establishment'],
     ['Pension', s.Pension, 'Legacy obligation'],
@@ -9452,7 +9469,9 @@ function renderCost(d, divName) {
     ['Plan Expenditure', s.Plan, 'As released'],
     ['Other Operational', s.Other, 'CONTROLLABLE'],
   ];
-  const total = s.Total;
+  // Sum the rows shown rather than trusting swap.Total: the per-unit Total
+  // from the source omits Plan Expenditure, so shares came to >100%.
+  const total = items.reduce((a, it) => a + (it[1] || 0), 0);
   let html = '<table class="brief"><thead><tr><th>Component</th><th>' + getPeriodShort() + ' (₹ Cr)</th><th>% of Total</th><th>Lever</th></tr></thead><tbody>';
   items.forEach(([name, val, lever]) => {
     const isControllable = lever === 'CONTROLLABLE';
@@ -9463,7 +9482,7 @@ function renderCost(d, divName) {
   // The SWAP sheet's component total and the ECR sheet's "Exp. for ECR
   // calculation" come from different sheets of the same file and can differ
   // slightly; say so instead of leaving two unexplained totals on the page.
-  const ecrBasisExp = _isCircle ? CIRCLE_FULL.total_exp : (d.total_exp || 0);
+  const ecrBasisExp = d.total_exp || 0;
   if (ecrBasisExp > 0 && Math.abs(total - ecrBasisExp) >= 0.01) {
     html += `<div class="caveat" style="margin-bottom:8px;"><strong>Note —</strong> This breakdown totals ₹${fmt(total,2)} Cr (SWAP sheet). ECR is calculated on ₹${fmt(ecrBasisExp,2)} Cr (ECR sheet, "Exp. for ECR calculation"), a difference of ₹${fmt(Math.abs(total - ecrBasisExp),2)} Cr in the source file.</div>`;
   }
@@ -9474,12 +9493,13 @@ function renderCost(d, divName) {
   // ECR compare
   const ecrEl = document.getElementById('ecr-compare-content');
   const _isAgg = !!d.isAggregate;
-  // For AP Circle, use entire-circle CIRCLE_FULL values; for divisions, use d's own
-  const ecrW   = _isCircle ? CIRCLE_FULL.ecr_with_pension    : d.ecr_with_pension;
-  const ecrWo  = _isCircle ? CIRCLE_FULL.ecr_without_pension : d.ecr_without_pension;
-  const _exp   = _isCircle ? CIRCLE_FULL.total_exp           : (d.total_exp || 0);
-  const _pen   = _isCircle ? CIRCLE_FULL.swap.Pension        : ((d.swap && d.swap.Pension) ? d.swap.Pension : 0);
-  const _rev   = _isCircle ? CIRCLE_FULL.actuals.Total       : ((d.actuals && d.actuals.Total) ? d.actuals.Total : 0);
+  // d follows the Period selector for every scope (the circle aggregate
+  // includes the circle/regional office rows), so no CIRCLE_FULL override.
+  const ecrW   = d.ecr_with_pension;
+  const ecrWo  = d.ecr_without_pension;
+  const _exp   = d.total_exp || 0;
+  const _pen   = (d.swap && d.swap.Pension) ? d.swap.Pension : 0;
+  const _rev   = (d.actuals && d.actuals.Total) ? d.actuals.Total : 0;
   // For AP Circle: drop the "Circle avg" comparison (the value IS the consolidated circle)
   // and prepend a totals KPI row so Revenue + Expenditure sit beside ECR.
   let _totalsRow = '';
