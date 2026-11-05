@@ -26,7 +26,7 @@ on:
         required: false
         type: string
       restate:
-        description: "Re-run an already-published month (after a hierarchy change). Skips the Silent Accounts file."
+        description: "Re-run an already-published month (after a hierarchy change). Skips the Silent Accounts and ECR files."
         required: false
         type: boolean
         default: false

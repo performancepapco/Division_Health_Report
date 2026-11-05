@@ -113,8 +113,10 @@ def main():
     ap.add_argument("--only-section", help="Restrict to one section (+ its booking sibling if applicable).")
     ap.add_argument("--restate", action="store_true",
                     help="Re-run an already-published month (e.g. after a hierarchy change). Skips "
-                         "posb_silent, whose snapshot is office-keyed and follows the roster anyway, "
-                         "and whose as_of guard would otherwise reject the same month's file.")
+                         "posb_silent (office-keyed snapshot that follows the roster anyway; its as_of "
+                         "guard would reject the same month's file) and ecr (division-keyed and "
+                         "re-regioned at assemble time; months before Aug 2026 also predate today's "
+                         "ECR column layout, so their files no longer pass the header check).")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -132,6 +134,9 @@ def main():
     for section_name in ("ecr", "posb", "pli", "rpli"):
         path = downloaded.get(section_name)
         if not path:
+            continue
+        if section_name == "ecr" and args.restate:
+            print("[ecr] skipped (--restate): keeping the committed ECR extract.")
             continue
         exit_code, msgs = build_dataset.run(section_name, args.month, path)
         if exit_code != 0:
