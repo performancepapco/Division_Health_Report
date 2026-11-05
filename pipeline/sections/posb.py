@@ -122,6 +122,7 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
     by_div = defaultdict(lambda: {"region": "", "offices": 0, "opened": 0, "closed": 0, "net": 0})
     by_reg = defaultdict(lambda: {"offices": 0, "opened": 0, "closed": 0, "net": 0})
     circle = {"offices": 0, "opened": 0, "closed": 0, "net": 0}
+    roster = Roster.load(load_config())
 
     for row in ws.iter_rows(min_row=2, values_only=True):
         oid = row[oid_idx]
@@ -133,8 +134,10 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
             row[code_idx], row[name_idx], row[sub_div_idx], row[div_idx],
             row[opened_idx] or 0, row[closed_idx] or 0, row[net_idx] or 0, row[region_idx] or ""
         )
-        div_s = short_div(div)
-        reg_s = short_region(region)
+        # Division and region come from the master roster (by office id,
+        # else BO code), not from this file's own columns — so a regional
+        # restructure applies to every month, including ones re-run later.
+        div_s, reg_s = roster.place(row[oid_idx], code, div, region)
         opened, closed, net = int(opened), int(closed), int(net)
 
         offices[oid] = {
@@ -161,7 +164,6 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
         circle["closed"] += closed
         circle["net"] += net
 
-    roster = Roster.load(load_config())
     activity_ids_by_div = defaultdict(set)
     activity_ids_by_reg = defaultdict(set)
     for oid, rec in offices.items():

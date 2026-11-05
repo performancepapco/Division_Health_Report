@@ -15,7 +15,7 @@ import re
 import openpyxl
 
 from pipeline.validate import validate_xlsx_sheet, ValidationError
-from pipeline.common import iso_to_label
+from pipeline.common import iso_to_label, short_div
 
 CR = 10_000_000
 
@@ -90,6 +90,25 @@ def validate(section_cfg: dict, path, month_iso: str) -> list[ValidationError]:
     return errors
 
 
+def _canon(name):
+    """ECR row name -> the unit it is reported under. A division listed in
+    circle.division_merge (e.g. Kasibugga) is folded into its parent
+    (Srikakulam); every other row name passes through unchanged."""
+    if not name:
+        return None
+    name = str(name).strip()
+    merged = short_div(name)
+    return merged if merged != name else name
+
+
+def _add_into(dst: dict, src: dict) -> None:
+    for k, v in src.items():
+        if isinstance(v, dict):
+            _add_into(dst.setdefault(k, {}), v)
+        else:
+            dst[k] = round((dst.get(k) or 0) + (v or 0), 7)
+
+
 def _extract_circle_full(section_cfg: dict, path, all_rows: set) -> dict:
     """CIRCLE_FULL — the circle-wide consolidated position. Sums the SAME
     ECR file over known_divisions + circle_full_extra_rows (33 + 6 = 39
@@ -107,7 +126,7 @@ def _extract_circle_full(section_cfg: dict, path, all_rows: set) -> dict:
                "POSB": 0.0, "PLI/RPLI": 0.0, "Total": 0.0}
     total_exp = 0.0
     for row in ecr_ws.iter_rows(min_row=ecr_cfg["header_row"] + 1, values_only=True):
-        name = row[col["Division"]]
+        name = _canon(row[col["Division"]])
         if not name or name not in all_rows:
             continue
         actuals["Parcel"] += (row[col["Parcel"]] or 0) / CR
@@ -124,7 +143,7 @@ def _extract_circle_full(section_cfg: dict, path, all_rows: set) -> dict:
     other_key = "Others" if "Others" in swap_col else None
     swap = {"Salaries": 0.0, "Wages": 0.0, "Pension": 0.0, "Allowances": 0.0, "Plan": 0.0, "Other": 0.0}
     for row in swap_ws.iter_rows(min_row=2, values_only=True):
-        name = row[0]
+        name = _canon(row[0])
         if not name or name not in all_rows:
             continue
         swap["Salaries"] += (row[swap_col["Salaries"]] or 0) / CR
@@ -168,10 +187,10 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
 
     out = {}
     for row in ecr_ws.iter_rows(min_row=ecr_cfg["header_row"] + 1, values_only=True):
-        name = row[col["Division"]]
+        name = _canon(row[col["Division"]])
         if not name or name not in all_rows:
             continue
-        out[name] = {
+        rec = {
             "actuals": {
                 "Parcel":          _to_cr(row[col["Parcel"]]),
                 "Mail Operations": _to_cr(row[col["MO"]]),
@@ -183,15 +202,20 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
             },
             "total_exp": _to_cr(row[col["Exp. For ECR calculation"]]),
         }
+        # A merged division's own row (e.g. Kasibugga) adds into its parent.
+        if name in out:
+            _add_into(out[name], rec)
+        else:
+            out[name] = rec
 
     swap_header_row = next(swap_ws.iter_rows(min_row=1, max_row=1, values_only=True))
     swap_col = _swap_col_map(swap_cfg, swap_header_row)
     other_key = "Others" if "Others" in swap_col else None
     for row in swap_ws.iter_rows(min_row=2, values_only=True):
-        name = row[0]
+        name = _canon(row[0])
         if not name or name not in all_rows or name not in out:
             continue
-        out[name]["swap"] = {
+        rec = {
             "Salaries":   _to_cr(row[swap_col["Salaries"]]),
             "Wages":      _to_cr(row[swap_col["Wages"]]),
             "Pension":    _to_cr(row[swap_col["Pension"]]),
@@ -200,6 +224,10 @@ def extract(section_cfg: dict, path, month_iso: str) -> dict:
             "Other":      _to_cr(row[swap_col[other_key]]) if other_key else 0,
             "Total":      _to_cr(row[swap_col["Total expenditure"]]),
         }
+        if "swap" in out[name]:
+            _add_into(out[name]["swap"], rec)
+        else:
+            out[name]["swap"] = rec
 
     missing = known_divisions - set(out.keys())
     if missing:

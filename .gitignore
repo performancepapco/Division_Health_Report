@@ -59,3 +59,5 @@ uploads/July_2026/
 # pipeline/common.py:OfficeGeo.
 !uploads/Hierarchy_data_AP_Circle.xlsx
 !uploads/AP Circle Hierarchy data containing lat_long.xlsx
+# Nov 2026 master roster, column-trimmed for the pipeline (see pipeline_config.yaml)
+!uploads/Hierarchy_data_AP_Circle_2026-11-05_pipeline.xlsx

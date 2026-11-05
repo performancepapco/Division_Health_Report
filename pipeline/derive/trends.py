@@ -24,6 +24,8 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from pipeline.common import Roster
+
 BASE = Path(__file__).parent.parent.parent
 DATA_DIR = BASE / "data"
 
@@ -38,7 +40,10 @@ VERTICAL_KEYS = {
     "PLI/RPLI": "pli_rpli",
 }
 
-REGION_ABBR = {"Vijayawada": "vja", "Visakhapatnam": "vsp", "Kurnool": "knl"}
+# Region short codes come from circle.regions in pipeline_config.yaml (e.g.
+# "Guntur Amaravathi": GAR), lower-cased here to match trends.json's keys.
+def _region_abbr(cfg: dict) -> dict:
+    return {name: str(code).lower() for name, code in ((cfg.get("circle") or {}).get("regions") or {}).items()}
 SOURCE_LABEL = "CEPT MIS / PFMS"
 
 
@@ -92,6 +97,8 @@ def build(cfg: dict, months: list[str]) -> dict:
     months = [m for m in months if _has_ecr(m)]
 
     known_divisions = cfg["sections"]["ecr"]["known_divisions"]
+    roster = Roster.load(cfg)
+    region_abbr_of = _region_abbr(cfg)
     targets = _load_targets()
     ecr_by_month = {m: _load_ecr_divisions(m) for m in months}
 
@@ -105,8 +112,10 @@ def build(cfg: dict, months: list[str]) -> dict:
         if not tgt_rec:
             print(f"  WARNING: {div_name} missing from data/targets.json — skipped in trends.json")
             continue
-        region_full = tgt_rec.get("region", "")
-        region_abbr = REGION_ABBR.get(region_full, region_full.lower())
+        # The master roster decides the region (targets.json's copy is only
+        # a fallback for a division the roster doesn't cover).
+        region_full = roster.region_of(div_name, tgt_rec.get("region", ""))
+        region_abbr = region_abbr_of.get(region_full, region_full.lower())
         div_targets = tgt_rec.get("targets", {})
 
         verticals_out = {}

@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 
 from pipeline.config import load_config
-from pipeline.common import iso_to_label
+from pipeline.common import iso_to_label, Roster
 from pipeline.sections import booking as booking_mod
 from pipeline.derive import subdiv_bolookup, office_status, subdiv_booking, booking_offices, pli_rpli_cum, trends as trends_mod
 import pipeline.flag_rules as flag_rules_mod
@@ -58,6 +58,60 @@ def _assemble_pli_rpli(months: list[str], segment: str) -> dict:
             out[iso_to_label(month)] = section["divisions"]
     out["__CUM__"] = pli_rpli_cum.build_cum(months, segment)
     return out
+
+
+def _regroup_posb_regions(posb_by_month: dict, roster) -> None:
+    """Re-label each division's region from the master roster and rebuild
+    the __REG_<region>__ totals from the divisions, so a regional
+    restructure shows in every month on record — including months whose
+    dataset was built before the restructure and hasn't been re-run."""
+    for month_data in posb_by_month.values():
+        for k in [k for k in month_data if k.startswith("__REG_")]:
+            del month_data[k]
+        regs = {}
+        for div, d in month_data.items():
+            if div.startswith("__"):
+                continue
+            d["region"] = roster.region_of(div, d.get("region", ""))
+            acc = regs.setdefault(d["region"], {"offices": 0, "opened": 0, "closed": 0, "net": 0})
+            for f in acc:
+                acc[f] += d.get(f) or 0
+        for reg, acc in regs.items():
+            if reg:
+                month_data[f"__REG_{reg}__"] = acc
+
+
+def _regroup_insurance_regions(by_month: dict, roster) -> None:
+    for month_data in by_month.values():
+        for div, d in (month_data or {}).items():
+            if isinstance(d, dict) and not div.startswith("__") and "region" in d:
+                d["region"] = roster.region_of(div, d["region"])
+
+
+def _hierarchy_meta(cfg: dict, roster) -> dict:
+    """What the dashboard needs to lay out regions without hard-coding them:
+    region order + short codes, each reporting unit's region, and which
+    divisions are currently folded into another (circle.division_merge)."""
+    codes = (cfg.get("circle") or {}).get("regions") or {}
+    return {
+        "regions": [{"name": r, "code": codes.get(r, r[:3].upper())} for r in roster.region_order],
+        "division_region": {d: r for d, r in sorted(roster.division_region.items())
+                             if d in set(cfg["sections"]["ecr"]["known_divisions"])},
+        # Only merges of a division that really has counter offices (drops
+        # spelling aliases such as "Narispatnam", which exist only so a stray
+        # source row folds the same way).
+        "division_merge": {k: v for k, v in ((cfg.get("circle") or {}).get("division_merge") or {}).items()
+                           if k in _real_divisions_in_hierarchy(cfg)},
+    }
+
+
+def _real_divisions_in_hierarchy(cfg: dict) -> set:
+    path = Path(__file__).parent / "office_hierarchy.json"
+    if not path.exists():
+        return set()
+    real = set((cfg.get("circle") or {}).get("real_office_types") or [])
+    h = json.loads(path.read_text(encoding="utf-8"))
+    return {v.get("division") for v in h.values() if v.get("type") in real}
 
 
 def _assemble_booking_by_month(months: list[str]) -> dict:
@@ -137,8 +191,14 @@ def assemble() -> tuple[dict, dict]:
     print("SUBDIV_BOOKING...")
     subdiv_booking_out = subdiv_booking.build(cfg, months)
 
+    roster = Roster.load(cfg)
+    _regroup_posb_regions(posb_by_month, roster)
+    _regroup_insurance_regions(pli_policies, roster)
+    _regroup_insurance_regions(rpli_policies, roster)
+
     result = {
         "generated_from_months": months,
+        "HIERARCHY": _hierarchy_meta(cfg, roster),
         "POSB_BY_MONTH": posb_by_month,
         "PLI_POLICIES": pli_policies,
         "RPLI_POLICIES": rpli_policies,

@@ -391,10 +391,13 @@ def build(cfg: dict, months: list[str] | None = None,
     for oid, rec in roster.items():
         posb_rec = posb_offices.get(oid)
         name = posb_rec["name"] if posb_rec else rec["name"]
-        otype = infer_type(posb_rec["name"]) if posb_rec else rec["type"]
+        # The roster's own office_type_code and region are authoritative;
+        # name-based inference mislabelled offices like "Old Town S.O
+        # (Ananthapur)" and "Vijayawada GPO" as BPO.
+        otype = rec["type"] or (infer_type(posb_rec["name"]) if posb_rec else "BPO")
         code = posb_rec["code"] if posb_rec else ""
         sd = posb_rec["sub_division"] if posb_rec else rec["sub_division"]
-        region = posb_rec["region"] if posb_rec else rec["region"]
+        region = rec["region"] or (posb_rec["region"] if posb_rec else "")
         add_office(oid, name, otype, code, rec["division"], sd, region, posb_rec,
                    pli_by_office.get(oid, zero_ins), rpli_by_office.get(oid, zero_ins))
 

@@ -111,6 +111,10 @@ def main():
     ap.add_argument("--month", required=True)
     ap.add_argument("--downloads", type=Path, required=True)
     ap.add_argument("--only-section", help="Restrict to one section (+ its booking sibling if applicable).")
+    ap.add_argument("--restate", action="store_true",
+                    help="Re-run an already-published month (e.g. after a hierarchy change). Skips "
+                         "posb_silent, whose snapshot is office-keyed and follows the roster anyway, "
+                         "and whose as_of guard would otherwise reject the same month's file.")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -145,7 +149,9 @@ def main():
             built_sections.append("booking")
 
     silent_path = downloaded.get("posb_silent")
-    if silent_path:
+    if silent_path and args.restate:
+        print("[posb_silent] skipped (--restate): keeping the committed snapshot.")
+    elif silent_path:
         exit_code, msgs = build_dataset.run_posb_silent(args.month, silent_path)
         if exit_code != 0:
             all_errors += [{"section": "posb_silent", "message": m} for m in msgs]

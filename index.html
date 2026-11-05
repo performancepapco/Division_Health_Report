@@ -1416,7 +1416,7 @@ tr.hm-circle-row td {
 /* Region split block */
 .region-split {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr); /* one card per region (four since Nov 2026) */
   gap: 1px;
   background: var(--rule);
   border: 1px solid var(--rule);
@@ -2934,7 +2934,7 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 /* Region cards for POSB */
 .reg-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr); /* one card per region (four since Nov 2026) */
   gap: 12px;
   margin-bottom: 18px;
 }
@@ -2950,6 +2950,7 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
 .reg-card.knl { border-top-color: oklch(0.46 0.10 245); }
 .reg-card.vja { border-top-color: var(--green); }
 .reg-card.vsp { border-top-color: var(--accent); }
+.reg-card.gar { border-top-color: oklch(0.55 0.14 330); }
 .reg-card h4 {
   font-family: var(--font-mono);
   font-size: 13px;
@@ -3805,7 +3806,7 @@ var GREETING = {
   <div class="masthead-right">
     <div id="hdr-period-vol">Vol. I — Apr–Sep 2026</div>
     <div>Auto-refreshed per upload</div>
-    <div>33 Divisions · 3 Regions</div>
+    <div id="hdr-units">31 Divisions · 4 Regions</div>
   </div>
 </header>
 
@@ -3816,35 +3817,36 @@ var GREETING = {
       <optgroup label="Consolidated Views">
         <option value="__CIRCLE__" selected>AP Circle (Overview)</option>
         <option value="__REGION__Kurnool">Kurnool Region — 10 Units</option>
-        <option value="__REGION__Vijayawada">Vijayawada Region — 14 Units</option>
-        <option value="__REGION__Visakhapatnam">Visakhapatnam Region — 9 Units</option>
+        <option value="__REGION__Vijayawada">Vijayawada Region — 8 Units</option>
+        <option value="__REGION__Guntur Amaravathi">Guntur Amaravathi Region — 7 Units</option>
+        <option value="__REGION__Visakhapatnam">Visakhapatnam Region — 8 Units</option>
       </optgroup>
       <optgroup label="Operational Divisions">
-        <option value="Amalapuram">Amalapuram — Visakhapatnam Region</option>
-        <option value="Anakapalle">Anakapalle — Visakhapatnam Region</option>
+        <option value="Amalapuram">Amalapuram — Vijayawada Region</option>
+        <option value="Anakapalle">Anakapalle (incl. Narsipatnam) — Visakhapatnam Region</option>
         <option value="Anantapur">Anantapur — Kurnool Region</option>
         <option value="Bhimavaram">Bhimavaram — Vijayawada Region</option>
         <option value="Chittoor">Chittoor — Kurnool Region</option>
         <option value="Cuddapah">Cuddapah — Kurnool Region</option>
         <option value="Eluru">Eluru — Vijayawada Region</option>
         <option value="Gudivada">Gudivada — Vijayawada Region</option>
-        <option value="Gudur">Gudur — Vijayawada Region</option>
-        <option value="Guntur">Guntur — Vijayawada Region</option>
+        <option value="Gudur">Gudur — Guntur Amaravathi Region</option>
+        <option value="Guntur">Guntur — Guntur Amaravathi Region</option>
         <option value="Hindupur">Hindupur — Kurnool Region</option>
         <option value="Kakinada">Kakinada — Visakhapatnam Region</option>
         <option value="Kurnool">Kurnool — Kurnool Region</option>
         <option value="Machilipatnam">Machilipatnam — Vijayawada Region</option>
-        <option value="Markapur">Markapur — Vijayawada Region</option>
+        <option value="Markapur">Markapur — Guntur Amaravathi Region</option>
         <option value="Nandyal">Nandyal — Kurnool Region</option>
-        <option value="Narasaraopet">Narasaraopet — Vijayawada Region</option>
-        <option value="Nellore">Nellore — Vijayawada Region</option>
+        <option value="Narasaraopet">Narasaraopet — Guntur Amaravathi Region</option>
+        <option value="Nellore">Nellore — Guntur Amaravathi Region</option>
         <option value="Parvathipuram">Parvathipuram — Visakhapatnam Region</option>
-        <option value="Prakasam">Prakasam — Vijayawada Region</option>
+        <option value="Prakasam">Prakasam — Guntur Amaravathi Region</option>
         <option value="Proddatur">Proddatur — Kurnool Region</option>
         <option value="Rajahmundry">Rajahmundry — Visakhapatnam Region</option>
-        <option value="Srikakulam">Srikakulam — Visakhapatnam Region</option>
+        <option value="Srikakulam">Srikakulam (incl. Kasibugga) — Visakhapatnam Region</option>
         <option value="Tadepalligudem">Tadepalligudem — Vijayawada Region</option>
-        <option value="Tenali">Tenali — Vijayawada Region</option>
+        <option value="Tenali">Tenali — Guntur Amaravathi Region</option>
         <option value="Tirupati">Tirupati — Kurnool Region</option>
         <option value="Vijayawada">Vijayawada — Vijayawada Region</option>
         <option value="Visakhapatnam">Visakhapatnam — Visakhapatnam Region</option>
@@ -4111,9 +4113,10 @@ actual_revenue   = sum of actual revenue earned in the selected period
           <tr><td>SWAP</td><td>Salaries, Wages, Allowances, Pensions</td></tr>
           <tr><td>TBP</td><td>Total Business Premium (NBP + Renewal)</td></tr>
           <tr><td>TMO</td><td>Transit Mail Office</td></tr>
-          <tr><td>VSP</td><td>Visakhapatnam (Region abbreviation)</td></tr>
-          <tr><td>VJA</td><td>Vijayawada (Region abbreviation)</td></tr>
           <tr><td>KNL</td><td>Kurnool (Region abbreviation)</td></tr>
+          <tr><td>VJA</td><td>Vijayawada (Region abbreviation)</td></tr>
+          <tr><td>GAR</td><td>Guntur Amaravathi (Region abbreviation)</td></tr>
+          <tr><td>VSP</td><td>Visakhapatnam (Region abbreviation)</td></tr>
         </tbody>
       </table>
     </div>
@@ -4576,7 +4579,14 @@ const CIRCLE = {"total_target": 939.6237166808609, "total_actual": 105.155345809
 // Visakhapatnam Regions, PSD Vijayawada) that aren't in DATA_BY_MONTH's 33 divisions.
 // Used only when AP Circle is the selected view, for Revenue / Expenditure / ECR / SWAP.
 let CIRCLE_FULL = {};
-const REG_ABBR = { 'Vijayawada': 'VJA', 'Visakhapatnam': 'VSP', 'Kurnool': 'KNL' };
+// Regions, their short codes and each unit's region come from the data
+// (latest.json HIERARCHY, built from the master office roster) — see
+// applyHierarchy(). These defaults only matter before the data loads.
+let REGION_NAMES = ['Kurnool', 'Vijayawada', 'Guntur Amaravathi', 'Visakhapatnam'];
+let REG_ABBR = { 'Kurnool': 'KNL', 'Vijayawada': 'VJA', 'Guntur Amaravathi': 'GAR', 'Visakhapatnam': 'VSP' };
+let DIVISION_REGION = {};
+let DIVISION_MERGE = {};
+function regAbbr(region) { return REG_ABBR[region] || String(region || '').substring(0, 3).toUpperCase(); }
 
 // Phase 3: FY-to-date attainment trends + below-average flags, built by the
 // Python pipeline (pipeline/derive/trends.py, pipeline/flag_rules.py) — NOT
@@ -4759,6 +4769,9 @@ const OFFICE_ENTRIES = {
   "PSD Vijayawada":       {region: "Vijayawada",    CCS: 0.0103468, PLIRPLI: 0.000562656, MO: 0.009751, total_exp: 0.6908451, pension: 0.0278204},
   "Vijayawada Region":    {region: "Vijayawada",    CCS: 0.0001468, PLIRPLI: 0.07697302,  MO: 0,        total_exp: 1.043364,  pension: 0.059239},
   "Visakhapatnam Region": {region: "Visakhapatnam", CCS: 0.0008945, PLIRPLI: 0.053272036, MO: 0,        total_exp: 0.7929395, pension: 0.0422202},
+  // New regional office (Nov 2026 restructure): no April baseline; the ECR
+  // file's own row fills it in for months that report it.
+  "Guntur Amaravathi Region": {region: "Guntur Amaravathi", CCS: 0, PLIRPLI: 0, MO: 0, total_exp: 0, pension: 0},
 };
 Object.entries(OFFICE_ENTRIES).forEach(([name, e]) => {
   const total = e.POSB || 0;
@@ -4844,6 +4857,66 @@ function applyEcrMonth(label, ecrDivisions) {
 }
 function applyAllEcrMonths(ecrByMonth) {
   MONTH_ORDER.forEach(function(label) { applyEcrMonth(label, ecrByMonth[label]); });
+}
+
+// Applies latest.json HIERARCHY (built from the master office roster): the
+// region list and codes, each unit's region in EVERY month (DATA_BY_MONTH's
+// April block predates the Nov 2026 four-region restructure and later months
+// clone it), the division selector, and the masthead count. Must run after
+// applyAllEcrMonths(), which creates the later months.
+function applyHierarchy(h) {
+  if (!h || !h.regions || !h.regions.length) return;
+  REGION_NAMES = h.regions.map(function(r) { return r.name; });
+  REG_ABBR = {};
+  h.regions.forEach(function(r) { REG_ABBR[r.name] = r.code; });
+  DIVISION_REGION = h.division_region || {};
+  DIVISION_MERGE = h.division_merge || {};
+  Object.keys(DATA_BY_MONTH).forEach(function(m) {
+    var month = DATA_BY_MONTH[m];
+    Object.keys(month).forEach(function(name) {
+      if (month[name] && DIVISION_REGION[name]) month[name].region = DIVISION_REGION[name];
+    });
+  });
+  rebuildDivisionSelect();
+  var units = Object.keys(DIVISION_REGION);
+  var postal = units.filter(function(u) { return !/^RMS /.test(u); }).length + Object.keys(DIVISION_MERGE).length;
+  var hu = document.getElementById('hdr-units');
+  if (hu) hu.textContent = postal + ' Divisions · ' + REGION_NAMES.length + ' Regions';
+}
+
+// "Srikakulam (incl. Kasibugga)" for a unit that a newer division currently
+// reports inside (circle.division_merge), else the unit's own name.
+function unitLabel(name) {
+  var inner = Object.keys(DIVISION_MERGE).filter(function(k) { return DIVISION_MERGE[k] === name; });
+  return inner.length ? name + ' (incl. ' + inner.join(', ') + ')' : name;
+}
+
+function rebuildDivisionSelect() {
+  var sel = document.getElementById('div-select');
+  if (!sel || !Object.keys(DIVISION_REGION).length) return;
+  var cur = sel.value;
+  var units = Object.keys(DIVISION_REGION).sort();
+  function opt(value, text) {
+    var o = document.createElement('option'); o.value = value; o.textContent = text; return o;
+  }
+  function group(label, options) {
+    var g = document.createElement('optgroup'); g.label = label;
+    options.forEach(function(o) { g.appendChild(o); });
+    return g;
+  }
+  sel.innerHTML = '';
+  sel.appendChild(group('Consolidated Views', [opt('__CIRCLE__', 'AP Circle (Overview)')].concat(
+    REGION_NAMES.map(function(r) {
+      var n = units.filter(function(u) { return DIVISION_REGION[u] === r; }).length;
+      return opt('__REGION__' + r, r + ' Region — ' + n + ' Units');
+    }))));
+  sel.appendChild(group('Operational Divisions', units.filter(function(u) { return !/^RMS /.test(u); }).map(function(u) {
+    return opt(u, unitLabel(u) + ' — ' + DIVISION_REGION[u] + ' Region');
+  })));
+  sel.appendChild(group('RMS Units', units.filter(function(u) { return /^RMS /.test(u); }).map(function(u) {
+    return opt(u, u + ' — ' + DIVISION_REGION[u] + ' Region');
+  })));
+  sel.value = [].some.call(sel.options, function(o) { return o.value === cur; }) ? cur : '__CIRCLE__';
 }
 // === END ECR month patcher ===
 
@@ -5109,7 +5182,7 @@ function recomputeRanks() {
   var all = Object.entries(DATA).filter(function(e) { return e[1] && !e[1].isOffice && !e[1].isAggregate; });
   all.sort(function(a, b) { return (b[1].composite_score || 0) - (a[1].composite_score || 0); });
   all.forEach(function(e, i) { DATA[e[0]].rank = i + 1; });
-  ['Vijayawada','Visakhapatnam','Kurnool'].forEach(function(reg) {
+  REGION_NAMES.forEach(function(reg) {
     var rd = all.filter(function(e) { return e[1].region === reg; });
     rd.sort(function(a, b) { return (b[1].composite_score || 0) - (a[1].composite_score || 0); });
     rd.forEach(function(e, i) { e[1].rank_in_region = i + 1; e[1].region_size = rd.length; });
@@ -6307,7 +6380,7 @@ function renderAggregateOnly(d, members, aggType) {
         </div>
       </div>`;
     const splitEl = document.getElementById('agg-region-split');
-    const regs = ['Vijayawada', 'Visakhapatnam', 'Kurnool'];
+    const regs = REGION_NAMES;
     const regData = regs.map(reg => {
       const inReg = members.filter(n => DATA[n].region === reg);
       const inRegVisible = inReg.filter(n => !DATA[n].isOffice);
@@ -7764,7 +7837,16 @@ function vbBuildTrafficSection(verticalKey) {
 // page). Premium != revenue: this is a genuinely separate figure from the
 // ECR-based achievement shown in the band above, per the user, so it gets
 // its own ranking rather than being folded into vbDivRows's numbers.
-const VB_PREMIUM_REGION_ABBR = { kurnool: 'KNL', vijayawada: 'VJA', visakhapatnam: 'VSP' };
+// Region codes by lower-cased region name or code; premium_target.json is a
+// one-off July snapshot with pre-restructure regions, so a division's region
+// is taken from DIVISION_REGION first (see vbPremiumRegion()).
+function vbPremiumRegion(divName, fallback) {
+  var reg = DIVISION_REGION[divName];
+  if (reg) return regAbbr(reg);
+  var f = String(fallback || '');
+  var byName = Object.keys(REG_ABBR).find(function(r) { return r.toLowerCase() === f.toLowerCase() || REG_ABBR[r].toLowerCase() === f.toLowerCase(); });
+  return byName ? REG_ABBR[byName] : f.toUpperCase();
+}
 let VB_PREMIUM_BASIS = 'nbp'; // 'nbp' | 'tb' — shared by both PLI and RPLI
 
 function vbPremiumDivRows(product) {
@@ -7774,7 +7856,7 @@ function vbPremiumDivRows(product) {
     var rec = ((dv.products || {})[product] || {})[VB_PREMIUM_BASIS];
     if (!rec) return null;
     return {
-      slug: slug, name: dv.name, region: VB_PREMIUM_REGION_ABBR[dv.region] || String(dv.region).toUpperCase(),
+      slug: slug, name: dv.name, region: vbPremiumRegion(dv.name, dv.region),
       value: rec.pct_prorata || 0, achievement: rec.achievement || 0,
     };
   }).filter(Boolean);
@@ -7845,7 +7927,7 @@ function vbPosbSilentDivRows() {
     var t = totals[div];
     return {
       name: t.name,
-      region: VB_PREMIUM_REGION_ABBR[String(t.region).toLowerCase()] || String(t.region).toUpperCase(),
+      region: vbPremiumRegion(t.name, t.region),
       silent: t.silent, live: t.live, revival: t.revival,
       revivalRate: t.silent > 0 ? (t.revival / t.silent * 100) : 0,
     };
@@ -8089,8 +8171,9 @@ function ovRefreshTrend() {
 // separate slugification step is needed anywhere in this section.
 
 function mdRegionLabel(code) {
-  var map = { vsp: 'Visakhapatnam', vja: 'Vijayawada', knl: 'Kurnool' };
-  return map[String(code).toLowerCase()] || String(code).toUpperCase();
+  var c = String(code).toLowerCase();
+  var name = Object.keys(REG_ABBR).find(function(r) { return REG_ABBR[r].toLowerCase() === c; });
+  return name || String(code).toUpperCase();
 }
 
 function mdBuildPicker() {
@@ -9194,11 +9277,9 @@ function renderPOSBTab(d, divName) {
 
     // Regional breakdown for circle view
     if (isCircle) {
-      var regs = [
-        { key: '__REG_Vijayawada__',    label: 'Vijayawada Region',    cls: 'vja' },
-        { key: '__REG_Kurnool__',       label: 'Kurnool Region',       cls: 'knl' },
-        { key: '__REG_Visakhapatnam__', label: 'Visakhapatnam Region', cls: 'vsp' },
-      ];
+      var regs = REGION_NAMES.map(function(name) {
+        return { key: '__REG_' + name + '__', label: name + ' Region', cls: regAbbr(name).toLowerCase() };
+      });
       kpiHtml += '<div class="reg-cards">';
       regs.forEach(function(r) {
         var rp = getPOSBData(r.key, pk.from, pk.to) || {};
@@ -9231,10 +9312,10 @@ function renderPOSBTab(d, divName) {
         var w = Math.abs(r.net) / maxAbs * 100;
         var cls = r.net >= 0 ? 'pos' : 'neg';
         var valSign = r.net >= 0 ? '+' : '';
-        var regAbbr = r.region === 'Vijayawada' ? 'VJA' : r.region === 'Kurnool' ? 'KNL' : 'VSP';
+        var regTag = regAbbr(r.region);
         return '<div class="ins-bar-row">' +
           '<div class="ins-bar-name">' + String(rank).padStart(2, '0') + '. ' + r.name +
-            ' <span class="region-tag">' + regAbbr + '</span></div>' +
+            ' <span class="region-tag">' + regTag + '</span></div>' +
           '<div class="ins-bar-track"><div class="ins-bar-fill ' + cls + '" style="width:' + w.toFixed(1) + '%;"></div></div>' +
           '<div class="ins-bar-val ' + cls + '">' + valSign + fmtInt(r.net) + '</div>' +
           '<div class="ins-bar-sub">' + fmtInt(r.opened) + ' / ' + fmtInt(r.closed) + '</div>' +
@@ -9399,7 +9480,7 @@ function renderInsuranceTab(tabKey, tableConst, fromMonth, toMonth, divName, d) 
       var procR = r.offices_procured > 0
         ? (r.offices_procured / (r.total_offices||1) * 100) : 0;
       var barCls = procR >= 30 ? 'hi' : procR >= 15 ? 'med' : 'lo';
-      var regA = r.region === 'Vijayawada' ? 'VJA' : r.region === 'Kurnool' ? 'KNL' : 'VSP';
+      var regA = regAbbr(r.region);
       divEl.innerHTML += `
         <div class="ins-bar-row">
           <div class="ins-bar-name">${String(i+1).padStart(2,'0')}. ${r.name}
@@ -9587,7 +9668,7 @@ function renderCost(d, divName) {
   // Region-wise % Achievement mini-table (circle view only)
   if (d.isAggregate && d.aggLabel === 'AP Circle') {
     const allMembers = Object.keys(DATA);
-    const regRows = ['Vijayawada', 'Visakhapatnam', 'Kurnool'].map(reg => {
+    const regRows = REGION_NAMES.map(reg => {
       const inReg = allMembers.filter(n => DATA[n].region === reg);
       const agg = aggregateData(reg, inReg);
       return { reg, agg, pct: agg.composite_score };
@@ -10026,6 +10107,7 @@ async function loadDashboardData() {
   if (data.CIRCLE_FULL) CIRCLE_FULL = data.CIRCLE_FULL;
 
   applyAllEcrMonths(data.ECR_BY_MONTH || {});
+  applyHierarchy(data.HIERARCHY);
 
   // Phase 3: independent side-payloads. Soft-fail via allSettled so a
   // missing/broken trends.json/flags.json degrades to "no vertical band"
@@ -10235,8 +10317,8 @@ const COMPLAINTS_REQUIRED_COLS = [
   'Sl.','Region','Division','Pending CRM Complaints','Pending PG Portal Complaints',
   'Pending PG Portal Appeals','Pending Social Media Complaints','Total Pending Complaints'
 ];
-const COMPLAINTS_REGION_NAMES = new Set(['Vijayawada','Visakhapatnam','Kurnool',
-  'Vijayawada Region','Visakhapatnam Region','Kurnool Region','AP Circle','Circle']);
+const COMPLAINTS_REGION_NAMES = new Set(['Vijayawada','Visakhapatnam','Kurnool','Guntur Amaravathi',
+  'Vijayawada Region','Visakhapatnam Region','Kurnool Region','Guntur Amaravathi Region','AP Circle','Circle']);
 
 function submitComplaintsUpload() {
   const errEl = document.getElementById('complaints-upload-error');

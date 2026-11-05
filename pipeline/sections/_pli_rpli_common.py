@@ -15,7 +15,8 @@ import re
 import openpyxl
 
 from pipeline.validate import validate_xlsx_sheet, ValidationError
-from pipeline.common import short_div, iso_to_label
+from pipeline.common import short_div, iso_to_label, Roster
+from pipeline.config import load_config
 
 HEADER_RE = re.compile(r"^(.+?)\s+Division\s")
 
@@ -54,6 +55,7 @@ def _read_division_level(path, sheet):
     hdr_idx = next(i for i, r in enumerate(rows) if r[0] == "Sl.")
     out = {}
     circle = None
+    roster = Roster.load(load_config())
     for r in rows[hdr_idx + 1:]:
         if r[1] is None:
             continue
@@ -68,14 +70,19 @@ def _read_division_level(path, sheet):
             }
             continue
         div = short_div(div_raw)
-        procurement_rate = round(off_proc / total_off * 100, 1) if total_off else 0
-        avg_premium = round(premium / policies) if policies else 0
-        out[div] = {
-            "total_offices": int(total_off), "offices_procured": int(off_proc),
-            "policies": int(policies), "premium": float(premium),
-            "procurement_rate": procurement_rate, "avg_premium": avg_premium,
-            "region": str(region).replace(" Region", "").strip(),
-        }
+        # Region from the master roster, not this file's column, so a
+        # regional restructure applies to re-run months too. A merged
+        # division's own row (e.g. Kasibugga) adds into its parent's.
+        acc = out.setdefault(div, {"total_offices": 0, "offices_procured": 0,
+                                   "policies": 0, "premium": 0.0,
+                                   "region": roster.region_of(div, region)})
+        acc["total_offices"] += int(total_off)
+        acc["offices_procured"] += int(off_proc)
+        acc["policies"] += int(policies)
+        acc["premium"] += float(premium)
+    for acc in out.values():
+        acc["procurement_rate"] = round(acc["offices_procured"] / acc["total_offices"] * 100, 1) if acc["total_offices"] else 0
+        acc["avg_premium"] = round(acc["premium"] / acc["policies"]) if acc["policies"] else 0
     return out, circle
 
 

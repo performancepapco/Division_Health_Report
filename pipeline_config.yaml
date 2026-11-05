@@ -14,16 +14,45 @@ circle:
   # Master office roster — NOT a monthly branch upload. Changes rarely
   # (roster changes, not activity), maintained centrally, kept out of the
   # Form entirely. See pipeline/common.py:load_roster().
-  master_roster_file: "uploads/Hierarchy_data.xlsx"
-  master_roster_sheet: "Worksheet"
+  # Since Nov 2026: the corrected office master (four regions, 31
+  # divisions) — a column-trimmed copy of "Hierarchy_data_AP_Circle -
+  # corrected 2026-11-05.xlsx" (kept out of git: it carries staff numbers in
+  # head_of_the_office, and this repo is public). Its region_name is the Directorate's four-region order and
+  # is the ONE authority for which region each division sits in — every
+  # section re-labels offices from this file by office id, ignoring the
+  # region/division printed in the monthly MIS files. Restructures need
+  # only a new file here (then re-run the affected months).
+  master_roster_file: "uploads/Hierarchy_data_AP_Circle_2026-11-05_pipeline.xlsx"
+  master_roster_sheet: "data"
   real_office_types: ["BPO", "SPO", "HPO"]
+
+  # Regions in display order, with the short code shown on the dashboard.
+  regions:
+    Kurnool: KNL
+    Vijayawada: VJA
+    Guntur Amaravathi: GAR
+    Visakhapatnam: VSP
+
+  # Divisions that report INSIDE another one until they have their own FY
+  # targets (Nov 2026: Kasibugga was carved out of Srikakulam, Narsipatnam
+  # out of Anakapalle). Every section folds the key into the value, so
+  # target-based figures stay comparable. Delete an entry — and add the new
+  # division to sections.ecr.known_divisions, data/targets.json and the
+  # dashboard — once its official targets arrive. "Narispatnam" is a
+  # misspelling present in the Nov 2026 master.
+  division_merge:
+    Kasibugga: Srikakulam
+    Narsipatnam: Anakapalle
+    Narispatnam: Anakapalle
 
   # Static per-office location reference (pincode/lat/long/district/
   # constituency/tribal-area) — also NOT a monthly upload, changes rarely.
   # Split across two files by whoever supplied them; both keyed by
   # office_id and merged in pipeline/common.py:OfficeGeo.load().
-  office_geo_file: "uploads/Hierarchy_data_AP_Circle.xlsx"
-  office_geo_sheet: "Sheet1"
+  # The corrected master carries pincode/lat/long and the corrected pli_id
+  # (insurance join key), so it supersedes the July export here too.
+  office_geo_file: "uploads/Hierarchy_data_AP_Circle_2026-11-05_pipeline.xlsx"
+  office_geo_sheet: "data"
   office_district_file: "uploads/AP Circle Hierarchy data containing lat_long.xlsx"
   office_district_sheet: "Sheet1"
 
@@ -114,6 +143,9 @@ sections:
       - "Kurnool Region"
       - "Vijayawada Region"
       - "Visakhapatnam Region"
+      # New Nov 2026; absent from ECR files before the restructure, which is
+      # fine — extra rows are optional, only known_divisions are checked.
+      - "Guntur Amaravathi Region"
     sheets:
       ECR:
         header_row: 1

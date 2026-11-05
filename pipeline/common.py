@@ -16,10 +16,29 @@ _MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
+_DIVISION_MERGE = None
+
+
+def _division_merge() -> dict:
+    """circle.division_merge in pipeline_config.yaml: divisions that report
+    inside another one (e.g. a newly carved-out division before it has its
+    own targets). Loaded lazily so short_div() needs no cfg argument."""
+    global _DIVISION_MERGE
+    if _DIVISION_MERGE is None:
+        from pipeline.config import load_config
+        _DIVISION_MERGE = dict((load_config().get("circle") or {}).get("division_merge") or {})
+    return _DIVISION_MERGE
+
+
 def short_div(s):
     # Handles "... Division" and the "... Divison" typo present in some
     # source rows (e.g. "RMS TP Divison"), so every unit normalizes the same.
-    return re.sub(r"\s+Divis(?:i)?on\s*$", "", str(s)).strip() if s else ""
+    # Then folds any division listed in circle.division_merge into the unit
+    # it reports under, so every section groups it the same way.
+    if not s:
+        return ""
+    name = re.sub(r"\s+Divis(?:i)?on\s*$", "", str(s)).strip()
+    return _division_merge().get(name, name)
 
 
 def short_region(s):
@@ -58,7 +77,8 @@ class Roster:
     _cache = None
 
     def __init__(self, ids_by_div, ids_by_reg, div_of_office, region_of_office,
-                 name_of_office, count_by_div, count_by_reg, offices):
+                 name_of_office, count_by_div, count_by_reg, offices,
+                 oid_of_code=None, division_region=None, region_order=None):
         self.ids_by_div = ids_by_div
         self.ids_by_reg = ids_by_reg
         self.div_of_office = div_of_office
@@ -69,6 +89,35 @@ class Roster:
         # oid -> {name, type, division, sub_division, region} — full record,
         # for derived views (subdiv/BO-lookup) that need more than counts.
         self.offices = offices
+        # BO code (sol_id) -> office_id, for source files whose rows lack an
+        # office id.
+        self.oid_of_code = oid_of_code or {}
+        # Reporting division -> region, from every row of the roster file
+        # (not just counter offices, so RMS units are covered too). This —
+        # not the region printed in each monthly MIS file — is the one
+        # authority for which region a division belongs to, so a regional
+        # restructure only needs a new roster file.
+        self.division_region = division_region or {}
+        # Regions in the order of their office ids (the Directorate's order).
+        self.region_order = region_order or []
+
+    def place(self, oid=None, code=None, division=None, region=None):
+        """(division, region) for one office as the roster has it today,
+        looked up by office id, else BO code. Offices the roster doesn't
+        know (closed since, or never in it) keep the division the source
+        file gave, with that division's roster region."""
+        rec = self.offices.get(str(oid)) if oid else None
+        if rec is None and code:
+            o = self.oid_of_code.get(str(code).strip())
+            rec = self.offices.get(o) if o else None
+        if rec is not None:
+            return rec["division"], rec["region"]
+        div = short_div(division)
+        return div, self.division_region.get(div) or short_region(region)
+
+    def region_of(self, division, fallback=""):
+        div = short_div(division)
+        return self.division_region.get(div) or short_region(fallback)
 
     @classmethod
     def load(cls, cfg: dict) -> "Roster":
@@ -88,13 +137,21 @@ class Roster:
         ids_by_div, ids_by_reg = defaultdict(set), defaultdict(set)
         div_of_office, region_of_office, name_of_office = {}, {}, {}
         offices = {}
+        oid_of_code = {}
+        region_votes = defaultdict(lambda: defaultdict(int))
         for r in rows:
-            otype = r[idx["office_type_code"]]
-            if otype not in real_types:
+            if not r or r[idx["office_id"]] is None:
                 continue
             div = short_div(r[idx["division_name"]])
             reg = short_region(r[idx["region_name"]])
+            if div and reg:
+                region_votes[div][reg] += 1
+            otype = r[idx["office_type_code"]]
+            if otype not in real_types:
+                continue
             oid = str(r[idx["office_id"]])
+            if "sol_id" in idx and r[idx["sol_id"]]:
+                oid_of_code[str(r[idx["sol_id"]]).strip()] = oid
             ids_by_div[div].add(oid)
             ids_by_reg[reg].add(oid)
             div_of_office[oid] = div
@@ -112,9 +169,29 @@ class Roster:
 
         count_by_div = {d: len(ids) for d, ids in ids_by_div.items()}
         count_by_reg = {r_: len(ids) for r_, ids in ids_by_reg.items()}
+        division_region = {d: max(v, key=v.get) for d, v in region_votes.items()}
+        # A division's offices define its region; overwrite each office's
+        # own row value with that, so a stray mis-regioned row can't split a
+        # division across two regions.
+        for oid, rec in offices.items():
+            reg = division_region.get(rec["division"], rec["region"])
+            if reg != rec["region"]:
+                ids_by_reg[rec["region"]].discard(oid)
+                ids_by_reg[reg].add(oid)
+                rec["region"] = reg
+                region_of_office[oid] = reg
+        ids_by_reg = {k: v for k, v in ids_by_reg.items() if v}
+        count_by_reg = {r_: len(ids) for r_, ids in ids_by_reg.items()}
+        # Display order and short codes come from circle.regions in the
+        # config; any region the roster has but the config doesn't list goes
+        # last, so a new region never silently disappears.
+        configured = list((circle.get("regions") or {}).keys())
+        found = set(division_region.values())
+        region_order = [r_ for r_ in configured if r_ in found] + sorted(found - set(configured))
 
         cls._cache = cls(dict(ids_by_div), dict(ids_by_reg), div_of_office,
-                          region_of_office, name_of_office, count_by_div, count_by_reg, offices)
+                          region_of_office, name_of_office, count_by_div, count_by_reg, offices,
+                          oid_of_code, division_region, region_order)
         return cls._cache
 
     @classmethod

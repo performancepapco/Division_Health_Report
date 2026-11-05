@@ -25,6 +25,11 @@ on:
         description: "Month to rebuild (YYYY-MM). Leave blank for the current month."
         required: false
         type: string
+      restate:
+        description: "Re-run an already-published month (after a hierarchy change). Skips the Silent Accounts file."
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: "30 6 * * *"
 
@@ -74,11 +79,12 @@ jobs:
           MONTH: ${{ steps.month.outputs.month }}
           EVENT_NAME: ${{ github.event_name }}
           DISPATCH_SECTION: ${{ github.event.client_payload.section }}
+          RESTATE: ${{ github.event.inputs.restate == 'true' && '1' || '' }}
         run: |
           if [ "$EVENT_NAME" = "repository_dispatch" ]; then
             python ci_build_sections.py --month "$MONTH" --downloads downloads/ --only-section "$DISPATCH_SECTION"
           else
-            python ci_build_sections.py --month "$MONTH" --downloads downloads/
+            python ci_build_sections.py --month "$MONTH" --downloads downloads/ ${RESTATE:+--restate}
           fi
 
       - name: Commit updated data
