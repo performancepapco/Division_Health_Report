@@ -3531,23 +3531,31 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
   }
   .picker .rank-cell strong { font-size: 40px; }
 
-  /* ---- Tabs: horizontally scrollable strip ---- */
+  /* ---- Tabs: all 8 visible as a 4x2 grid ----
+     A scrolling strip showed only 2 of 8 tabs at 375px and left the
+     active tab off-screen, so phone users couldn't see where they were. */
   .tabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    padding: 4px;
     margin-bottom: 20px;
   }
-  .tabs::-webkit-scrollbar { display: none; }
   .tab {
-    flex: 0 0 auto;
-    padding: 13px 16px;
-    font-size: 13px;
+    padding: 9px 4px;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    line-height: 1.25;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 48px;
+    border-radius: 4px;
   }
+  .tab.active { background: oklch(0.30 0.04 258); }
+  .tab .count { font-size: 10px; margin: 3px 0 0; padding: 1px 4px; }
   .sd-tabs, .bolu-subtabs, .bk-month-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -3641,6 +3649,60 @@ details.vb-collapse .vb-collapse-body { padding: 16px; }
   .card-box { padding: 16px 16px; }
   .placeholder { padding: 24px 16px; }
   .modal-box { max-height: 88vh; overflow-y: auto; }
+
+  /* ---- Layouts that pushed the page wider than the phone ----
+     Any element wider than 375px makes phones zoom the whole page out,
+     so everything (including the update pop-up) looks tiny and off-centre. */
+  .two-col { grid-template-columns: 1fr; }
+  .office-flags { grid-template-columns: 1fr; }
+  .sd-tab-controls { flex-wrap: wrap; gap: 8px 12px; }
+  .sd-tab-controls label { margin-left: 0 !important; }
+
+  /* Verticals: label + value on one line, bar full-width underneath,
+     instead of fixed 160px / 200px columns that ran 37px off-screen. */
+  .prog-row { grid-template-columns: 1fr auto; gap: 6px 12px; }
+  .prog-row .prog-bar { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; }
+  .prog-row .val { font-size: 13px; }
+  /* The tick's floating "APR–OCT · 7/12" label sat on the value text
+     above; the tick stays and the section header already explains it. */
+  .prog-target::after { display: none; }
+  .prog-pct { font-size: 11px; padding: 0 5px; right: 4px; }
+
+  /* Top 5 cards (Office Lookup, Verticals): these rows aren't inside a
+     scroller, so the 460px row minimum widened the page. Stack instead:
+     name + headline value on top, bar + sub-figure below. */
+  .tb5-card .div-rank-row {
+    min-width: 0;
+    grid-template-columns: 24px 1fr auto;
+    gap: 4px 8px;
+  }
+  .tb5-card .div-rank-row .r-num  { grid-row: 1 / 4; align-self: start; }
+  .tb5-card .div-rank-row .r-name { grid-column: 2; grid-row: 1; min-width: 0; }
+  .tb5-card .div-rank-row .r-pct  { grid-column: 3; grid-row: 1; font-size: 14px; }
+  .tb5-card .div-rank-row .r-bar  { grid-column: 2 / 4; grid-row: 2; }
+  .tb5-card .div-rank-row .r-rev  { grid-column: 2 / 4; grid-row: 3; font-size: 12px; text-align: left; }
+
+  /* Booking product mix: product name on its own line, the four figures
+     two per line below — fixed 64–70px columns were too narrow for values
+     like "₹2,223.76 L" and they ran into each other, and four across
+     still wrapped every figure at 375px. */
+  .prod-list { overflow-x: visible; }
+  .prod-row {
+    min-width: 0;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 12px;
+    padding: 10px 12px;
+  }
+  .prod-row .p-name { grid-column: 1 / -1; font-size: 15px; }
+  .prod-row .p-rs, .prod-row .p-arts, .prod-row .p-arpu, .prod-row .p-offs {
+    font-size: 12.5px; text-align: left; white-space: nowrap;
+  }
+
+  /* Booking daily trend: ~200 bars with a 2px gap each need more width
+     than a phone has, so every bar collapsed to 0px and the chart looked
+     blank. No gap on phones; the bars still read as a continuous trend. */
+  .bk-trend { gap: 0; padding: 14px 10px 26px; }
+  .bk-trend-axis { left: 10px; right: 10px; font-size: 11px; }
 }
 </style>
 </head>
